@@ -198,6 +198,8 @@ function creeCreneau(type, matiere, prof, lieu, public, duree, zone="") {
 --------------------------------------------------------------*/
 $(document).ready(function() {
     // Désactive tous les éléments du formulaire par défaut et le bouton '+'
+    
+	    
     $("#formulaire").children().hide();
     $('#btAjoutCreneau').hide();
 
@@ -282,12 +284,89 @@ $(document).ready(function() {
             $('#btAjoutCreneau').show();         // montre le bouton '+'
         });
     });
-
+/*
     // Action suite au clic sur le bouton "makeCSV"
     $("#makeCSV").on("click", function() {
-        alert("Fabriquer le CSV");
-    });
+		var numeroSemaine = $("#laSemaine").val();
+    	var url = "http://localhost:8000/selectCreneaux?semaine="+numeroSemaine;
+        $.getJSON( url, function( data ) {
+            // Récupère l'objet JSON (en fait un tableau de JSON)
+            // Mais s'il est vide la chaîne retournée est ']' ; donc quitter !
+            if (data == "]") {
+                return;
+            }
+            obj = JSON.parse(data);
+            // Balaye tous les éléments du tableau
+			var fichcsv=fabriquecsv();
+            for (var i = 0; i<obj.length; i++) {
+                var uuid = obj[i]["uuid"];
+                var typeDeCours = obj[i]["typeDeCours"];
+                var nomModule = obj[i]["nomModule"];
+                var prof = obj[i]["prof"];
+                var salles = obj[i]["salles"];
+                var groupe = obj[i]["groupe"];
+                var dureeEnMin = obj[i]["dureeEnMin"];
+                var tab = obj[i]["tab"];
+                remplirCSV(uuid, typeDeCours, nomModule, prof, salles, groupe, dureeEnMin, tab, numeroSemaine, fichcsv);
+        	}
 
+    	});
+    }
+
+    function remplirCSV(uuid, typeDeCours, nomModule, prof, salles, groupe, dureeEnMin, tab, numeroSemaine){
+		const createCsvWriter = require('csv-writer').createObjectCsvWriter;
+		const csvWriter = createCsvWriter({
+		    path: 'PLANNINGS/file.csv',
+		    header: [
+		        {id: 'semaine', title: 'SEMAINE'},
+		        {id: 'jour', title: 'JOUR'},
+		        {id: 'NomModule', title: 'MODULE'},
+		        {id: 'type', title: 'TYPE'},
+		        {id: 'numApogee', title: 'NUMAPOGEE'},
+		        {id: 'heure', title: 'HEURE'},
+		        {id: 'DureeEnMin', title: 'DUREE'},
+		        {id: 'professeur', title: 'PROF'},
+		        {id: 'Salles', title: 'SALLES'},
+		        {id: 'Groupe', title: 'GOUPE'}
+		    ]
+		}, append = true);
+		const records = [
+		    {semaine: numeroSemaine,jour: '', NomModule: nomModule, type: typeDeCours, numApogee: 'numApogee', heure: '', DureeEnMin: dureeEnMin, professeur: prof, Salles: salles, Groupe: groupe}
+		];
+		csvWriter.writeRecords(records)       // returns a promise
+
+    }
+	
+    function fabriquecsv(){
+    	const createCsvWriter = require('csv-writer').createObjectCsvWriter;
+		const csvWriter = createCsvWriter({
+		    path: 'PLANNINGS/file.csv',
+		    header: [
+		        {id: 'semaine', title: 'SEMAINE'},
+		        {id: 'jour', title: 'JOUR'},
+		        {id: 'NomModule', title: 'MODULE'},
+		        {id: 'type', title: 'TYPE'},
+		        {id: 'numApogee', title: 'NUMAPOGEE'},
+		        {id: 'heure', title: 'HEURE'},
+		        {id: 'DureeEnMin', title: 'DUREE'},
+		        {id: 'professeur', title: 'PROF'},
+		        {id: 'Salles', title: 'SALLES'},
+		        {id: 'Groupe', title: 'GOUPE'}
+		    ]
+		});
+	}
+	*/
+	//function checkServer(url, timeout) {
+	//  	const controller = new AbortController();
+	// 	const signal = controller.signal;
+	// 	const options = { mode: 'no-cors', signal };
+	//  	return fetch(url, options)
+	//    .then(setTimeout(() => { controller.abort() }, timeout))
+	//    .then(response => console.log('Check server response:', response.statusText))
+	//    .catch(error => console.error('Check server error:', error.message));
+	//}
+	
+	
     // Action après clic sur bouton "+"
     $('#btAjoutCreneau').on('click', function(e) {
         // Vérifie qu'il y a bien un numéro de semaine entre 1 et 52 sinon sort
