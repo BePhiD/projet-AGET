@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <title>Planning de Ressource</title>
+    <link  href="./CSS/planningRessource.css" rel="stylesheet">
+    <link  href="./CSS/bootstrap.min.css" rel="stylesheet">
+    <script src="./JS/jquery-3.6.0.min.js"></script>
+    <script src="./JS/planningRessource.js"></script>
+</head>
+<body>
+    <table id="decoupagePrincipal">
+      <tr>
+        <td class="barreMenuGeneral" rowspan="2">
+          <p>
+            <a href="#"
+               title="Poser des contraintes sur des ressources">
+              <img src="images/lock_verrou.png" width="60"></a>
+          </p>
+          <p>
+            <a href="planificationSemaine.html"
+               title="Définir les créneaux affectés à une semaine">
+              <img src="images/group_post_it.jpg" width="60"></a>
+          </p>
+          <p>
+            <a href="#"
+               title="Fabriquer le CSV de la semaine en cours">
+              <img src="images/make_csv.jpg" width="60"></a>
+          </p>
+        </td>
+        <td>
+          <div>
+            <span><b>Planning de : </b></span>
+              <input type="text" id="laRessource">
+            <span>&nbsp;&nbsp;&nbsp;Semaine n° : </span>
+              <input type="number" id="laSemaine">
+          </div>
+      
+          <p>Pour changer l'état d'un créneau, <b>entrez</b> dedans avec SHIFT.
+          <br>"Occuper" un jour = <b>CTRL + clic</b> sur son nom
+             (<b>CTRL + SHIFT + clic</b>) pour le "libérer".
+          <br>"Occuper" une tranche horaire = <b>entrez avec CTRL + clic</b>
+              dans l'horaire (<b>entrez avec CTRL + SHIFT + clic</b> pour la
+             "libérer").</p>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <div id="blocBoutons">
+            <button id='btRemplissage' class="btn btn-success">
+              Réinitialiser le planning</button>
+            <br>
+            <button id='btValider'
+                    class="btn btn-danger">Enregistrer le planning</button>
+          </div>
+      
+          <!-- Début du tableau du planning d'une semaine, le reste sera calculé
+               automatiquement en jQuery (après appel des constantes du
+               programme "AutomaticEDT" écrit en julia) -->
+          <div id="blocPlanning">
+            <table border='1' id='planningRessource'>
+              <tr id="entete">
+                <th>&nbsp;</th>
+                <th class='nomJour' data-col = "1">Lundi</th>
+                <th class='nomJour' data-col = "2">Mardi</th>
+                <th class='nomJour' data-col = "3">Mercredi</th>
+                <th class='nomJour' data-col = "4">Jeudi</th>
+                <th class='nomJour' data-col = "5">Vendredi</th> </tr>
+            </table>
+          </div>
+        </td>
+      </tr>
+    </table>
+</body>
+</html>

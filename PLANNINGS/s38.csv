@@ -1,0 +1,70 @@
+38;;Méca;CM;numApogee;;60;roubaud;Amphi A, Amphi B, Amphi C;promo1
+38;;Elec;CM;numApogee;;60;lepesteur;Amphi A, Amphi B, Amphi C;promo1
+38;;Maths;CM;numApogee;;60;lanchon;Amphi A, Amphi B, Amphi C;promo1
+38;;Maintenance;CM;numApogee;;60;samyn;Amphi A, Amphi B, Amphi C;promo1
+38;;AnaVib;CM;numApogee;;60;libine;Amphi A, Amphi B, Amphi C;promo1
+38;;Méca;TD;numApogee;;90;roubaud;C1,C2,C5,B1,B6;TD11
+38;;Elec;TD;numApogee;;90;lepesteur;C1,C2,C5,B1,B6;TD11
+38;;Maths;TD;numApogee;;90;lanchon;C1,C2,C5,B1,B6;TD11
+38;;Maintenance;TD;numApogee;;90;samyn;C1,C2,C5,B1,B6;TD11
+38;;AnaVib;TD;numApogee;;90;libine;C1,C2,C5,B1,B6;TD11
+38;;Méca;TD;numApogee;;90;roubaud;C1,C2,C5,B1,B6;TD21
+38;;Elec;TD;numApogee;;90;lepesteur;C1,C2,C5,B1,B6;TD21
+38;;Maths;TD;numApogee;;90;lanchon;C1,C2,C5,B1,B6;TD21
+38;;Maintenance;TD;numApogee;;90;samyn;C1,C2,C5,B1,B6;TD21
+38;;AnaVib;TD;numApogee;;90;libine;C1,C2,C5,B1,B6;TD21
+38;;Méca;TP;numApogee;;180;roubaud;A5;TP11
+38;;Elec;TP;numApogee;;180;lepesteur;B4;TP11
+38;;Info;TP;numApogee;;180;belhomme;C3,C4,B2;TP11
+38;;Maintenance;TP;numApogee;;180;samyn;B8;TP11
+38;;AnaVib;TP;numApogee;;180;libine;B5;TP11
+38;;Méca;TP;numApogee;;180;roubaud;A5;TP21
+38;;Elec;TP;numApogee;;180;lepesteur;B4;TP21
+38;;Info;TP;numApogee;;180;belhomme;C3,C4,B2;TP21
+38;;Maintenance;TP;numApogee;;180;samyn;B8;TP21
+38;;AnaVib;TP;numApogee;;180;libine;B5;TP21
+38;;Méca;TP;numApogee;;180;roubaud;A5;TP31
+38;;Elec;TP;numApogee;;180;lepesteur;B4;TP31
+38;;Info;TP;numApogee;;180;belhomme;C3,C4,B2;TP31
+38;;Maintenance;TP;numApogee;;180;samyn;B8;TP31
+38;;AnaVib;TP;numApogee;;180;libine;B5;TP31
+38;;Méca;TP;numApogee;;180;roubaud;A5;TP41
+38;;Elec;TP;numApogee;;180;lepesteur;B4;TP41
+38;;Info;TP;numApogee;;180;belhomme;C3,C4,B2;TP41
+38;;Maintenance;TP;numApogee;;180;samyn;B8;TP41
+38;;AnaVib;TP;numApogee;;180;libine;B5;TP41
+38;;Méca;CM;numApogee;;60;roubaud;Amphi A, Amphi B, Amphi C;promo2
+38;;Elec;CM;numApogee;;60;lepesteur;Amphi A, Amphi B, Amphi C;promo2
+38;;Maths;CM;numApogee;;60;lanchon;Amphi A, Amphi B, Amphi C;promo2
+38;;Maintenance;CM;numApogee;;60;samyn;Amphi A, Amphi B, Amphi C;promo2
+38;;AnaVib;CM;numApogee;;60;libine;Amphi A, Amphi B, Amphi C;promo2
+38;;Méca;TD;numApogee;;90;roubaud;C1,C2,C5,B1,B6;TD12
+38;;Elec;TD;numApogee;;90;lepesteur;C1,C2,C5,B1,B6;TD12
+38;;Maths;TD;numApogee;;90;lanchon;C1,C2,C5,B1,B6;TD12
+38;;Maintenance;TD;numApogee;;90;samyn;C1,C2,C5,B1,B6;TD12
+38;;AnaVib;TD;numApogee;;90;libine;C1,C2,C5,B1,B6;TD12
+38;;Méca;TD;numApogee;;90;roubaud;C1,C2,C5,B1,B6;TD22
+38;;Elec;TD;numApogee;;90;lepesteur;C1,C2,C5,B1,B6;TD22
+38;;Maths;TD;numApogee;;90;lanchon;C1,C2,C5,B1,B6;TD22
+38;;Maintenance;TD;numApogee;;90;samyn;C1,C2,C5,B1,B6;TD22
+38;;AnaVib;TD;numApogee;;90;libine;C1,C2,C5,B1,B6;TD22
+38;;Méca;TP;numApogee;;180;roubaud;A5;TP12
+38;;Elec;TP;numApogee;;180;lepesteur;B4;TP12
+38;;Info;TP;numApogee;;180;belhomme;C3,C4,B2;TP12
+38;;Maintenance;TP;numApogee;;180;samyn;B8;TP12
+38;;AnaVib;TP;numApogee;;180;libine;B5;TP12
+38;;Méca;TP;numApogee;;180;roubaud;A5;TP22
+38;;Elec;TP;numApogee;;180;lepesteur;B4;TP22
+38;;Info;TP;numApogee;;180;belhomme;C3,C4,B2;TP22
+38;;Maintenance;TP;numApogee;;180;samyn;B8;TP22
+38;;AnaVib;TP;numApogee;;180;libine;B5;TP22
+38;;Méca;TP;numApogee;;180;roubaud;A5;TP32
+38;;Elec;TP;numApogee;;180;lepesteur;B4;TP32
+38;;Info;TP;numApogee;;180;belhomme;C3,C4,B2;TP32
+38;;Maintenance;TP;numApogee;;180;samyn;B8;TP32
+38;;AnaVib;TP;numApogee;;180;libine;B5;TP32
+38;;Méca;TP;numApogee;;180;roubaud;A5;TP42
+38;;Elec;TP;numApogee;;180;lepesteur;B4;TP42
+38;;Info;TP;numApogee;;180;belhomme;C3,C4,B2;TP42
+38;;Maintenance;TP;numApogee;;180;samyn;B8;TP42
+38;;AnaVib;TP;numApogee;;180;libine;B5;TP42

@@ -1,0 +1,45 @@
+/* Classe des en-têtes du tableau (noms des jours de la semaine) */
+.nomJour {
+    color:red;
+    width: 100px;
+    text-align: center;
+    font-size: 0.9rem;
+    line-height:1;
+}
+
+/* Classe des horaires (colonne de gauche) */
+.horaire {
+    font-size: 0.9rem;
+    line-height:1;
+}
+
+/* Classe pour colorer un créneau occupé */
+.marque {
+    background-color: lightsalmon;
+}
+
+/* Classe pour colorer le planning en cas d'erreur */
+.erreur {
+    background-color: lightslategrey;
+    text-align: center;
+    font-size: 0.9rem;
+    line-height:1;
+}
+
+/* Bloc des boutons placés à gauche du planning */
+div#blocBoutons {
+    float: left;
+}
+
+/* Le tableau doit occuper toute la largeur de l'écran... */
+table#decoupagePrincipal {
+    width: 100%;
+    border: black solid 1px;
+}
+
+/* Classe de la barre de menu général */
+.barreMenuGeneral {
+    background-color:aliceblue;
+    vertical-align: top;
+    width: 65px;
+}

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <title>Planification Semaine</title>
+    <link href="./CSS/planificationSemaine.css" rel="stylesheet">
+    <link href="./CSS/bootstrap.min.css" rel="stylesheet">
+    <link href="./CSS/jquery-ui.css" rel="stylesheet">
+    <script src="./JS/jquery-3.6.0.min.js"></script>
+    <script src="./JS/jquery-ui.js"></script>    <!-- doit être APRES ! -->
+    <script src="./JS/planificationSemaine.js"></script>
+</head>
+<body>
+<table>
+  <tr>
+    <td class="barreMenuGeneral" rowspan="3">
+      <p>
+        <a href="planningRessource.html"
+           title="Poser des contraintes sur des ressources">
+          <img src="images/lock_verrou.png" width="60"></a>
+      </p>
+      <p>
+        <a href="#"
+           title="Définir les créneaux affectés à une semaine">
+          <img src="images/group_post_it.jpg" width="60"></a>
+      </p>
+      <p>
+        <a href="#" id="makeCSV"
+           title="Fabriquer le CSV de la semaine en cours">
+          <img src="images/make_csv.jpg" width="60"></a>
+      </p>
+    </td>
+    <td>
+      <div id='entetePrevisionnel'>
+        <span class='titre'>Semaine n° </span>
+        <input type="number" id="laSemaine">
+      </div>
+    </td>
+    <td>
+      <div id='enteteFormulaire'>
+        <span class='titre'>Ajouter un créneau&nbsp;</span>
+        <button id='btAjoutCreneau' class="btn btn-success">+</button>
+      </div>
+    </td>
+  </tr>
+  <tr>
+    <td rowspan="2" class='celluleZone'>
+      <div id="previsionnel">
+        <ul>
+          <li><a href="#previsionnel-0">GIM-1A-FI</a></li>
+          <li><a href="#previsionnel-1">GIM-2A-FI</a></li>
+        </ul>
+        <div id="previsionnel-0"></div>
+        <div id="previsionnel-1"></div>
+      </div>
+    </td>
+    <td>
+      <div id='formulaire'>
+        <label for="type">Type&nbsp;</label>
+            <input type="text" id="type" name="type"><br>
+        <label for="matiere">Matière&nbsp;</label>
+            <input type="text" id="matiere" name="matiere"><br>
+        <label for="prof">Prof&nbsp;</label>
+            <input type="text" id="prof" name="prof"><br>
+        <label for="lieu">Salle&nbsp;</label>
+            <input type="text" id="lieu" name="lieu"><br>
+        <label for="public">Public&nbsp;</label>
+            <input type="text" id="public" name="public"><br>
+        <label for="duree">Durée en min&nbsp;</label>
+            <input type="text" id="duree" name="duree"><br>
+        <!-- Champ caché pour contenir le futur uuid des créneaux -->
+        <input type="text" id="uuid" name="uuid" hidden><br>
+        <!-- Boutons d'actions -->
+        <button id='btModifier' class="btn btn-danger">Modifier</button>
+        <button id='btCreer'    class="btn btn-warning">Créer</button>
+        <button id='btAnnuler'  class="btn btn-secondary">Annuler</button>
+      </div>
+    </td>
+  </tr>
+  <tr>
+    <td class='celluleZone'>
+      <div id='corbeille'>
+        <!-- Context-menu : caché aussitôt via jQuery -->
+        <div class='context-menu'>
+          <ul>
+            <li><span id="actionModifier">Modifier</span></li>
+            <li><span id="actionDupliquer">Dupliquer</span></li>
+            <li><span id="actionSupprimer">Supprimer</span></li>
+          </ul>
+        </div>
+      </div>
+    </td>
+  </tr>
+</table>
+</body>
+</html>
