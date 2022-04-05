@@ -124,7 +124,30 @@ function fabriqueCreneauFromFormulaire() {
         alert("Il manque des informations !");
         return;
     }
-    creeCreneau(type, matiere, prof, lieu, public, duree);
+    //Vérification pour voir si les heures sont bien découpées par périodes de 15 minutes et d'une durée max de 4h
+    if (duree != "15" && duree != "30" && duree != "45" && duree != "60" && 
+        duree != "75" && duree != "90" && duree != "105" && duree != "120" && 
+        duree != "135" && duree != "150" && duree != "165" && duree != "180" && 
+        duree != "195" && duree != "210" && duree != "225" && duree != "240" && 
+        duree != "255" && duree != "270" && duree != "285" && duree != "300"){
+        alert("La durée ne correspond pas, elle doit être découpée par période de 15 minutes (exemple: 15, 30, 45, 60...) pour une durée max de 5 heures(300 minutes).");
+        return;
+    }
+    //vérification que le type de cours contient au moin son type, soit td, tp, cm, ccc ctp ou autres.
+    if(type.toUpperCase().includes("TD") || type.toUpperCase().includes("TP") ||type.toUpperCase().includes("CM") || type.toUpperCase().includes("CC") || type.toUpperCase().includes("CTP") ){
+        
+    }else{
+        alert("Le type de cour doit contenir TD, TP, CM, CC, CTP.");
+        return;
+    }
+    //Vérifie si le mot info est entré dans la matière, si oui, il est converti en majuscule.
+    if(matiere.toUpperCase().includes("INFO")){
+        creeCreneau(type.toUpperCase(), matiere.toUpperCase(), prof, lieu, public, duree);
+        return;
+    }
+    //S'il ne s'agit pas du mot info, alors on ne transforme que la première lettre en majuscule.
+    matiere = matiere.charAt(0).toUpperCase() + matiere.slice(1);
+    creeCreneau(type.toUpperCase(), matiere, prof, lieu, public, duree);
 }
 
 /* Fonction qui crée un objet <div> associé au nouveau créneau. Le paramètre
