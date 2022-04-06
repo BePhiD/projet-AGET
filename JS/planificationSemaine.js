@@ -124,6 +124,28 @@ function fabriqueCreneauFromFormulaire() {
         alert("Il manque des informations !");
         return;
     }
+    //vérifie que [ et ] ne sont pas contenue dans les champs, ce qui empecherait de lire le JSON
+    if (type.includes("[") || type.includes("]") ||
+    matiere.includes("[") || matiere.includes("]") ||
+    prof.includes("[") || prof.includes("]") ||
+    lieu.includes("[") || lieu.includes("]") ||
+    public.includes("[") || public.includes("]") ||
+    duree.includes("[") || duree.includes("]")){
+		alert("Caractères interdits: '[' et ']'");
+		return;
+	}
+	//vérifie que la classe entrée existe
+	if(public.toUpperCase()!="PROMO1" && public.toUpperCase()!="PROMO2" &&
+	 public.toUpperCase()!="TD11" && public.toUpperCase()!="TD21" && 
+	 public.toUpperCase()!="TP11" && public.toUpperCase()!="TP21" && 
+	 public.toUpperCase()!="TP31" && public.toUpperCase()!="TP41" && 
+	 public.toUpperCase()!="TD12" && public.toUpperCase()!="TD22" &&
+	 public.toUpperCase()!="TP12" && public.toUpperCase()!="TP22" && 
+	 public.toUpperCase()!="TP32" && public.toUpperCase()!="TP42"){
+		alert("Le public entré doit être une classe existante.");
+        return;
+	}
+	
     //Vérification pour voir si les heures sont bien découpées par périodes de 15 minutes et d'une durée max de 4h
     if (duree != "15" && duree != "30" && duree != "45" && duree != "60" && 
         duree != "75" && duree != "90" && duree != "105" && duree != "120" && 
@@ -133,21 +155,25 @@ function fabriqueCreneauFromFormulaire() {
         alert("La durée ne correspond pas, elle doit être découpée par période de 15 minutes (exemple: 15, 30, 45, 60...) pour une durée max de 5 heures(300 minutes).");
         return;
     }
-    //vérification que le type de cours contient au moin son type, soit td, tp, cm, ccc ctp ou autres.
-    if(type.toUpperCase().includes("TD") || type.toUpperCase().includes("TP") ||type.toUpperCase().includes("CM") || type.toUpperCase().includes("CC") || type.toUpperCase().includes("CTP") ){
-        
-    }else{
-        alert("Le type de cour doit contenir TD, TP, CM, CC, CTP.");
-        return;
-    }
+    
     //Vérifie si le mot info est entré dans la matière, si oui, il est converti en majuscule.
     if(matiere.toUpperCase().includes("INFO")){
-        creeCreneau(type.toUpperCase(), matiere.toUpperCase(), prof, lieu, public, duree);
+		if (public.toUpperCase().includes("PROMO")){
+	    creeCreneau(type.toUpperCase(), matiere.toUpperCase(), prof, lieu.toUpperCase(), public, duree);
+	    }else{
+		creeCreneau(type.toUpperCase(), matiere.toUpperCase(), prof, lieu.toUpperCase(), public.toUpperCase(), duree);
+		}
+        
         return;
     }
     //S'il ne s'agit pas du mot info, alors on ne transforme que la première lettre en majuscule.
-    matiere = matiere.charAt(0).toUpperCase() + matiere.slice(1);
-    creeCreneau(type.toUpperCase(), matiere, prof, lieu, public, duree);
+    matiere = matiere.charAt(0).toUpperCase() + matiere.slice(1).toLowerCase();
+    prof = prof.charAt(0).toUpperCase() + prof.slice(1).toLowerCase();
+    if (public.toUpperCase().includes("PROMO")){
+    creeCreneau(type.toUpperCase(), matiere, prof, lieu.toUpperCase(), public, duree);
+    }else{
+	creeCreneau(type.toUpperCase(), matiere, prof, lieu.toUpperCase(), public.toUpperCase(), duree);
+	}
 }
 
 /* Fonction qui crée un objet <div> associé au nouveau créneau. Le paramètre
@@ -199,7 +225,7 @@ function creeCreneau(type, matiere, prof, lieu, public, duree, zone="") {
 $(document).ready(function() {
     // Désactive tous les éléments du formulaire par défaut et le bouton '+'
     
-	    
+	
     $("#formulaire").children().hide();
     $('#btAjoutCreneau').hide();
 
@@ -284,6 +310,7 @@ $(document).ready(function() {
             $('#btAjoutCreneau').show();         // montre le bouton '+'
         });
     });
+
 /*
     // Action suite au clic sur le bouton "makeCSV"
     $("#makeCSV").on("click", function() {
@@ -311,51 +338,28 @@ $(document).ready(function() {
         	}
 
     	});
-    }
+    })
 
     function remplirCSV(uuid, typeDeCours, nomModule, prof, salles, groupe, dureeEnMin, tab, numeroSemaine){
-		const createCsvWriter = require('csv-writer').createObjectCsvWriter;
-		const csvWriter = createCsvWriter({
-		    path: 'PLANNINGS/file.csv',
-		    header: [
-		        {id: 'semaine', title: 'SEMAINE'},
-		        {id: 'jour', title: 'JOUR'},
-		        {id: 'NomModule', title: 'MODULE'},
-		        {id: 'type', title: 'TYPE'},
-		        {id: 'numApogee', title: 'NUMAPOGEE'},
-		        {id: 'heure', title: 'HEURE'},
-		        {id: 'DureeEnMin', title: 'DUREE'},
-		        {id: 'professeur', title: 'PROF'},
-		        {id: 'Salles', title: 'SALLES'},
-		        {id: 'Groupe', title: 'GOUPE'}
-		    ]
-		}, append = true);
-		const records = [
-		    {semaine: numeroSemaine,jour: '', NomModule: nomModule, type: typeDeCours, numApogee: 'numApogee', heure: '', DureeEnMin: dureeEnMin, professeur: prof, Salles: salles, Groupe: groupe}
-		];
-		csvWriter.writeRecords(records)       // returns a promise
-
+		var fs = require('fs');
+		var csv = require('fast-csv');
+		var ws = fs. createWriteStream('my.csv');
+		csv.write([
+		        [numeroSemaine, '', nomModule, typeDeCours, 'numApogee', '', dureeEnMin, prof, salles, groupe]
+		    ]).pipe(ws);
     }
 	
     function fabriquecsv(){
-    	const createCsvWriter = require('csv-writer').createObjectCsvWriter;
-		const csvWriter = createCsvWriter({
-		    path: 'PLANNINGS/file.csv',
-		    header: [
-		        {id: 'semaine', title: 'SEMAINE'},
-		        {id: 'jour', title: 'JOUR'},
-		        {id: 'NomModule', title: 'MODULE'},
-		        {id: 'type', title: 'TYPE'},
-		        {id: 'numApogee', title: 'NUMAPOGEE'},
-		        {id: 'heure', title: 'HEURE'},
-		        {id: 'DureeEnMin', title: 'DUREE'},
-		        {id: 'professeur', title: 'PROF'},
-		        {id: 'Salles', title: 'SALLES'},
-		        {id: 'Groupe', title: 'GOUPE'}
-		    ]
-		});
+    	var fs = require('fs');
+		var csv = require('fast-csv');
+		var ws = fs. createWriteStream('my.csv');
+		csv.write([
+		
+		]).pipe(ws);
 	}
+	
 	*/
+	
 	//function checkServer(url, timeout) {
 	//  	const controller = new AbortController();
 	// 	const signal = controller.signal;
@@ -402,6 +406,48 @@ $(document).ready(function() {
             alert("Il manque des informations !")
             return;
         }
+         //vérifie que [ et ] ne sont pas contenue dans les champs, ce qui empecherait de lire le JSON
+	    if (type.includes("[") || type.includes("]") ||
+		    matiere.includes("[") || matiere.includes("]") ||
+		    prof.includes("[") || prof.includes("]") ||
+		    lieu.includes("[") || lieu.includes("]") ||
+		    public.includes("[") || public.includes("]") ||
+		    duree.includes("[") || duree.includes("]")){
+				alert("Caractères interdits: '[' et ']'");
+				return;
+		}
+		//vérifie que la classe entrée existe
+		if(public.toUpperCase()!="PROMO1" && public.toUpperCase()!="PROMO2" &&
+		 public.toUpperCase()!="TD11" && public.toUpperCase()!="TD21" && 
+		 public.toUpperCase()!="TP11" && public.toUpperCase()!="TP21" && 
+		 public.toUpperCase()!="TP31" && public.toUpperCase()!="TP41" && 
+		 public.toUpperCase()!="TD12" && public.toUpperCase()!="TD22" &&
+		 public.toUpperCase()!="TP12" && public.toUpperCase()!="TP22" && 
+		 public.toUpperCase()!="TP32" && public.toUpperCase()!="TP42"){
+			alert("Le public entré doit être une classe existante.");
+	        return;
+	}
+        //Vérification pour voir si les heures sont bien découpées par périodes de 15 minutes et d'une durée max de 4h
+    if (duree != "15" && duree != "30" && duree != "45" && duree != "60" && 
+        duree != "75" && duree != "90" && duree != "105" && duree != "120" && 
+        duree != "135" && duree != "150" && duree != "165" && duree != "180" && 
+        duree != "195" && duree != "210" && duree != "225" && duree != "240" && 
+        duree != "255" && duree != "270" && duree != "285" && duree != "300"){
+        alert("La durée ne correspond pas, elle doit être découpée par période de 15 minutes (exemple: 15, 30, 45, 60...) pour une durée max de 5 heures(300 minutes).");
+        return;
+    }
+    
+    
+    //Vérifie si le mot info est entré dans la matière, si oui, il est converti en majuscule.
+    if(matiere.toUpperCase().includes("INFO")){
+        creeCreneau(type.toUpperCase(), matiere.toUpperCase(), prof, lieu, public, duree);
+        return;
+    }
+    //S'il ne s'agit pas du mot info, alors on ne transforme que la première lettre en majuscule.
+    matiere = matiere.charAt(0).toUpperCase() + matiere.slice(1).toLowerCase();
+    prof = prof.charAt(0).toUpperCase() + prof.slice(1).toLowerCase();
+    type = type.toUpperCase();
+    lieu = lieu.toUpperCase();
         // Fabrique le texte "html" du créneau puis l'affiche (donc sans <div>)
         ch = "<b>" + type + "&nbsp;" + matiere + "</b><br>";
         ch += prof + "<br>" + lieu + "<br>";

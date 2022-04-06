@@ -30,10 +30,19 @@
         </td>
         <td>
           <div>
-            <span><b>Planning de : </b></span>
-              <input type="text" id="laRessource">
-            <span>&nbsp;&nbsp;&nbsp;Semaine n° : </span>
+          	<span>&nbsp;&nbsp;&nbsp;Semaine n° : </span>
               <input type="number" id="laSemaine">
+            <span><b>Planning de : </b></span>
+              <input type="text" id="laRessource" onchange="stockagesemaine()">
+            <script type="text/javascript">
+                function stockagesemaine(){
+                  var num =parseInt($("#laSemaine").val());
+                  localStorage.setItem("num", num);
+                }
+              </script>
+              <script type="text/javascript">
+                document.getElementById("laSemaine").value = localStorage.getItem("num");
+              </script>
           </div>
       
           <p>Pour changer l'état d'un créneau, <b>entrez</b> dedans avec SHIFT.

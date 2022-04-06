@@ -34,7 +34,16 @@
     <td>
       <div id='entetePrevisionnel'>
         <span class='titre'>Semaine n° </span>
-        <input type="number" id="laSemaine">
+        <input type="number" id="laSemaine" onchange="stockagesemaine()">
+        <script type="text/javascript">
+                function stockagesemaine(){
+                  var num =parseInt($("#laSemaine").val());
+                  localStorage.setItem("num", num);
+                }
+              </script>
+              <script type="text/javascript">
+                document.getElementById("laSemaine").value = localStorage.getItem("num");
+              </script>
       </div>
     </td>
     <td>

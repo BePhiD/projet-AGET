@@ -40,6 +40,26 @@ function creeFichierEtTableBDD()
    SQLite.execute(db, reqCreation)
 end
 
+function creeFichierEtTablePROF()
+#= Fonction qui devrait être appelée une seule fois, pour créer la BDD
+   contenant tous les créneaux inscrits dans le prévisionnel. Certains seront
+   associés à une promo (ex : GIM-1A-FI) alors que d'autres seront dans la
+   "corbeille" =#
+   reqCreation = """CREATE TABLE IF NOT EXISTS professeurs (
+       uuid VARCHAR(36) PRIMARY KEY NOT NULL,
+       nomProf VARCHAR(30)
+   )"""
+   # Ouvre la base de données (mais si le fichier n'existe pas il est créé)
+   db = SQLite.DB(NOM_DATABASE_EDT)
+   # Crée la table (TODO: devrait être vidée chaque année !)
+   SQLite.execute(db, reqCreation)
+end
+
+function inserePROF(id, nom)
+    req = """ INSERT INTO professeurs VALUES("$id", "$nom") """
+    DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req)
+end
+
 #= Fonction qui insère un créneau dans la base de données =#
 function insereCreneauBDD(id, ns, tab, type, nm, pr, s, gr, duree, ndj="", h="", sR="")
     req = """ INSERT INTO previsionnelEDT VALUES("$id", $ns, "$tab", "$type",
@@ -86,12 +106,19 @@ function afficheDonnees()
     println(df)
 end
 
+
 ### PROGRAMME PRINCIPAL
 # ----> Création de la table au départ après avoir effacé le fichier
 # (puis commenter les deux lignes suivantes)
 #creeFichierEtTableBDD()
 #afficheDonnees()
-
+#creeFichierEtTablePROF()
+#inserePROF("1","Belhomme")
+#inserePROF("2","Lanchon")
+#inserePROF("3","Lepesteur")
+#inserePROF("4","Libine")
+#inserePROF("5","Roubaud")
+#inserePROF("6","Samyn")
 #= insereCreneauBDD("dhhkhgh655865FDFDG", 38, "GIM-1A-FI", "CM", "Maths",
                  "lanchon", "B1,B6,AmphiC", "promo1", 90)
 insereCreneauBDD("fhggfh555HGFGFG344", 38, "corbeille", "TP", "INFO1",
