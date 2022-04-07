@@ -21,6 +21,7 @@ $(document).ready(function() {
         // Affecte des valeurs aux variables globales
         NBJOURS = parseInt(data["NBJOURS"]);
         NBCRENEAUX = parseInt(data["NBCRENEAUX"]);
+        afficherProf();
         
         /* Construction dynamique de la suite du tableau de planning (après la
            ligne d'en-tête). Chaque créneau possèdera un numéro entre 1 et 210.
@@ -94,7 +95,48 @@ $(document).ready(function() {
             }); 
         });
     }
+    //fonction qui remplit la liste des profs
+    function afficherProf(){
+        var url = "http://localhost:8000/selectProf";
+        $.getJSON( url, function( data ) {
+            // Récupère l'objet JSON (en fait un tableau de JSON)
+            // Mais s'il est vide la chaîne retournée est ']' ; donc quitter !
+            if (data == "]") {
+                return;
+            }
+            obj = JSON.parse(data);
+            // Balaye tous les éléments du tableau
+            for (var i = 0; i<obj.length; i++) {
+                var uuid = obj[i]["uuid"];
+                var nomProf = obj[i]["nomProf"];
+                
+                // Construit le code du <div> qui sera injecté dans la zone du prévisionnel
+                ch = fabriqueListeProf(uuid, nomProf);
+            }
+        });
+    }
+    //insère chaque prof dans la liste
+    function fabriqueListeProf(uuid, nomProf){
+        var select = document.getElementById("laRessource");
+        var optn = nomProf;
+        var el = document.createElement("option");
+        el.textContent = optn;
+        el.value = optn;
+        select.appendChild(el);
+        
+    }
 
+    var fenetre = window.open('popup.html','','width=700, height=400, top=100 , left=300, resizable=no, location=no');
+
+    $("#addProf").on("click", function() {
+        fenetre = window.open('popup.html','','width=700, height=400, top=100 , left=300, resizable=no, location=no');
+    });
+
+    $("btnVD").on("click", function(){
+        fenetre.close;
+    });
+        
+    
     $('#btRemplissage').on('click', function(e){
         remplirPlanning();
     });
@@ -135,7 +177,9 @@ $(document).ready(function() {
     });
 
     // Gère les changements de valeur pour "ressource" et "semaine"
-    $("#laSemaine, #laRessource").change(function(e){
+    
+
+    $("#Planning").on("click",function(e){
         remplirPlanning();
     });
 

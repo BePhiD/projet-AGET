@@ -115,6 +115,8 @@ function dropCreneau(event, ui, idZoneDuDrop) {
     $.ajax({url: url});
 }
 
+
+
 // Fonction qui fabrique un nouveau créneau à partir des infos du formulaire
 function fabriqueCreneauFromFormulaire() {
     // Récupère les informations du créneau (vérifie si oubli...)

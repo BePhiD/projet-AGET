@@ -42,9 +42,7 @@ end
 
 function creeFichierEtTablePROF()
 #= Fonction qui devrait être appelée une seule fois, pour créer la BDD
-   contenant tous les créneaux inscrits dans le prévisionnel. Certains seront
-   associés à une promo (ex : GIM-1A-FI) alors que d'autres seront dans la
-   "corbeille" =#
+   contenant tous les profs.  =#
    reqCreation = """CREATE TABLE IF NOT EXISTS professeurs (
        uuid VARCHAR(36) PRIMARY KEY NOT NULL,
        nomProf VARCHAR(30)
@@ -104,6 +102,20 @@ function afficheDonnees()
     r = """ select * from previsionnelEDT """
     df = DataFrame(DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), r))
     println(df)
+end
+
+function insererProf(nomProf)
+    r = """ select max(uuid) from professeurs """
+    df = DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), r)
+    q= """ INSERT INTO professeurs VALUES(df+1,"$nomProf") """
+   DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), q)
+end
+
+#= Fonction qui affiche les données de la table prof =#
+function selectDonneesprof()
+    r = """ select * from professeurs """
+    df = DataFrame(DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), r))
+    return df
 end
 
 

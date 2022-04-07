@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <title>Planification Semaine</title>
+    <link href="./CSS/ajoutProf.css" rel="stylesheet">
+    <link href="./CSS/bootstrap.min.css" rel="stylesheet">
+    <link href="./CSS/jquery-ui.css" rel="stylesheet">
+    <script src="./JS/jquery-3.6.0.min.js"></script>
+    <script src="./JS/jquery-ui.js"></script>
+<body>
+	<h1>Création d'un nouveau professeur/intervenant:</h1>
+	<div class="grossediv">
+		<div class="divtxt">
+			<label>Quel est le nom du nouveau professeur/intervenant?</label>
+			<input type="text" id="Txt" class="zonetxt" placeholder="Nom de famille">
+		</div>
+		<br>
+			<div class="divbtn">
+				<script type="text/javascript">
+					function ValiderAjouterprof(){
+						if(document.getElementById("Txt").value.trim() != ""){
+							var nom = document.getElementById("Txt").value.charAt(0).toUpperCase() + document.getElementById("Txt").value.slice(1).toLowerCase();
+						var url = "http://localhost:8000/ajoutProf?nomProf="+ nom;
+						$.ajax({url: url});
+						alert("La personne a été ajouté");
+						}else{
+							alert("La zone ne doit pas être vide");
+							return;
+						}
+					}
+				</script>
+			<button id="btnVD" class="btnVD" onclick="ValiderAjouterprof()"> Valider</button>
+		</div>
+	</div>
+</body>
+</html>
