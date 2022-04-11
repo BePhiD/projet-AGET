@@ -126,17 +126,19 @@ $(document).ready(function() {
         
     }
 
-    var fenetre = window.open('popup.html','','width=700, height=400, top=100 , left=300, resizable=no, location=no');
-
     $("#addProf").on("click", function() {
-        fenetre = window.open('popup.html','','width=700, height=400, top=100 , left=300, resizable=no, location=no');
+        var result = prompt("Nom de famille du nouveau Professeur:");
+        if(result.trim() != ""){
+            var nom = result.charAt(0).toUpperCase() + result.slice(1).toLowerCase();
+            var url = "http://localhost:8000/ajoutProf?nomProf="+ nom;
+        $.ajax({url: url});
+        alert("La personne a été ajouté");
+        }else{
+            alert("La zone ne doit pas être vide.");
+            return;
+        }
     });
 
-    $("btnVD").on("click", function(){
-        fenetre.close;
-    });
-        
-    
     $('#btRemplissage').on('click', function(e){
         remplirPlanning();
     });

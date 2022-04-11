@@ -2,7 +2,7 @@
 API pour le système de création automatique d'emploi du temps (écrit en julia)
 Auteur : Philippe Belhomme
 Dates de création : lundi 27 décembre 2021
-  de modification : mardi 15 février 2022
+  de modification : mardi 08 avril 2022
 =#
 
 using Genie, Genie.Router, Genie.Renderer.Html, Genie.Requests, Genie.Renderer.Json
@@ -131,7 +131,9 @@ end
 route("/ajoutProf", method = "GET") do
 	nomProf = params(:nomProf, false)
 	# Appelle la fonction spécifique du module bddPlanificationSemaine.jl
-	insererProf(nomProf)
+	maxid = getprofidmax()
+	id = maxid + 1
+	insererProf(id, nomProf)
 	# Referme la chaîne de JSON en remplaçant la ',' finale par un ']'
 	#TODO: bizarre que ça marche...
 	# Retourne la conversion de la chaîne en véritable objet JSON
@@ -189,6 +191,10 @@ route("/updateCreneau", method = "GET") do
 	afficheDonnees()
 end
 
+route("/createCsv", method = "GET") do
+	createCSV()
+end
+
 #= Route permettant de supprimer de la BDD un créneau spécifié par son uuid
    L'URL d'appel sera du type :
    http://serveur:8000/deleteCreneau?creneau=uuid
@@ -221,7 +227,7 @@ Genie.config.run_as_server = true
 # La ligne suivante est nécessaire pour une requête AJAX depuis jquery.
 # Info trouvée sur le site :
 # https://stackoverflow.com/questions/62166853/how-can-i-setup-cors-headers-in-julia-genie-app-to-allow-post-request-from-diffe
-Genie.config.cors_headers["Access-Control-Allow-Origin"] = "http://localhost:8000"
+Genie.config.cors_headers["Access-Control-Allow-Origin"] = "*"
 Genie.config.cors_headers["Access-Control-Allow-Headers"] = "Content-Type"
 Genie.config.cors_headers["Access-Control-Allow-Methods"] = "GET,POST"
 Genie.config.cors_allowed_origins = ["*"]
@@ -243,7 +249,8 @@ function force_compile()
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/deleteCreneau?creneau=?")
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/moveCreneau?creneau=?&zone=?")
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/selectProf")
-	Genie.Requests.HTTP.request("GET", "http://serveur:8000/ajoutProf?&nomProf=?")
+	Genie.Requests.HTTP.request("GET", "http://serveur:8000/ajoutProf?nomProf=?")
+	Genie.Requests.HTTP.request("GET", "http://serveur:8000/createCsv")
 
 end
   

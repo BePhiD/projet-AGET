@@ -313,6 +313,12 @@ $(document).ready(function() {
         });
     });
 
+$("#makeCSV").on("click", function() {
+        var url = "http://serveur:8000/createCsv";
+        $.ajax({url: url});
+});
+
+
 /*
     // Action suite au clic sur le bouton "makeCSV"
     $("#makeCSV").on("click", function() {
