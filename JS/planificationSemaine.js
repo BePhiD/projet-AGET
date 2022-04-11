@@ -353,7 +353,7 @@ $("#makeCSV").on("click", function() {
 		var csv = require('fast-csv');
 		var ws = fs. createWriteStream('my.csv');
 		csv.write([
-		        [numeroSemaine, '', nomModule, typeDeCours, 'numApogee', '', dureeEnMin, prof, salles, groupe]
+		        [numeroSemaine, '', nomModule, typeDeCours, 'numApogee', '', dureeEnMin, prof, salles, groupe] 
 		    ]).pipe(ws);
     }
 	

@@ -12,6 +12,8 @@ include("Creneaux.jl")          # pour charger la liste des créneaux à traiter
 include("Groupes.jl")           # pour charger la hiérarchie des groupes
 using Serialization             # pour relire les données depuis le disque
 using Random                    # pour la fonction shuffle!
+using DataFrames
+using CSV
 
 # Structure du moteur contenant tous les éléments pour calculer l'EDT
 mutable struct Moteur
@@ -97,6 +99,13 @@ function chargeLesGroupes(M)
     end
 end
 
+#fonction chargée de la création du csv
+function createCSV(numSemaine)
+  # new file created
+  nom = "s"*string(numSemaine)*".csv"
+  touch(nom)
+end
+
 # Cherche à placer dans l'EDT les créneaux non placés du moteur
 function positionneLesCreneauxNonPlaces(M)
     for tour in 1:length(M.collCreneauxNP)
@@ -110,7 +119,7 @@ function positionneLesCreneauxNonPlaces(M)
             end
         end
         if cr.salleRetenue == ""                # pas de salle disponible...
-            push!(M.collCreneauxNP, cr)         # cr retourne dans la pile NP
+            push!(M.lCreneauxNP, cr)         # cr retourne dans la pile NP
             continue                            # passe au tour suivant
         end
         ### Ici on a forcément trouvé une salle possible
@@ -197,20 +206,34 @@ end
 
 # Fonction qui affiche l'emploi du temps calculé
 #TODO: devra modifier le fichier original
-function afficheEDT(M)
+function afficheEDT(M, numSemaine)
+    nom = "s"*string(numSemaine)*".csv"
     println("[++++]Créneaux placés...")
-    for e in M.collCreneauxP   println(e)  end
+    for e in M.collCreneauxP   
+        println(e)
+        df = DataFrame(semaine = [numSemaine], JourduCours = [e.jour],  matiere = [e.nomModule], typeCr = [e.typeDeCours], numApogee = "numApogee", heure = [e.horaire], duree = [e.dureeEnMin], prefesseur = [e.prof], salleDeCours = [e.salles], public = [e.groupe])
+        CSV.write(nom, df, header = false, append = true)
+    end
     println("[----]Créneaux NON placés...")
-    for e in M.collCreneauxNP  println(e)  end
+    for e in M.collCreneauxNP  
+        println(e)  
+        df = DataFrame(semaine = [numSemaine], JourduCours = [e.jour],  matiere = [e.nomModule], typeCr = [e.typeDeCours], numApogee = "numApogee", heure = [e.horaire], duree = [e.dureeEnMin], prefesseur = [e.prof], salleDeCours = [e.salles], public = [e.groupe])
+        CSV.write(nom, df, header = false, append = true)
+    end
     strStat = " (" * string(length(M.collCreneauxP)) * "/"
     strStat *= string(M.nbCreneaux) * ")"
     println("Rendement : ", M.rendement, " %  ", strStat)
-    println("Tout ça en ", M.nbreTours, " tours de recuit simulé !")
+    println("Tout ça en ", M.nbreTours, " tours de recuit simulé !") 
 end
 
 ### PROGRAMME PRINCIPAL
 numSemaine = parse(Int, ARGS[1])          # lit la ligne de commande
+
 nbEDTCalcules = 1
+createCSV(numSemaine)
+# file handling in write mode
+nom = "s"*string(numSemaine)*".csv" 
+efg = open(nom, "w")
 try
     global nbEDTCalcules = parse(Int, ARGS[2])  # global sinon interne au try
 catch
@@ -220,5 +243,5 @@ for tour in 1:nbEDTCalcules
     println("*** Tour n°", tour, "/", nbEDTCalcules, " ***")
     moteur = prepareMoteur(numSemaine)
     runMoteur(moteur)
-    afficheEDT(moteur)
+    afficheEDT(moteur, numSemaine)
 end

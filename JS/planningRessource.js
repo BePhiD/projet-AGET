@@ -129,7 +129,7 @@ $(document).ready(function() {
     $("#addProf").on("click", function() {
         var result = prompt("Nom de famille du nouveau Professeur:");
         if(result.trim() != ""){
-            var nom = result.charAt(0).toUpperCase() + result.slice(1).toLowerCase();
+            var nom = result.charAt(0).toUpperCase() + result.slice(1).toLowerCase(); 
             var url = "http://localhost:8000/ajoutProf?nomProf="+ nom;
         $.ajax({url: url});
         alert("La personne a été ajouté");

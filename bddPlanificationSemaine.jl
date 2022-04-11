@@ -64,22 +64,6 @@ function getprofidmax()
   return rep
 end
 
-function createCSV()
-  # new file created
-  touch("monfichier.csv")
- 
-  # file handling in write mode
-  efg = open("newfile.csv", "w")
- 
-  # Creating a new dataframe
-  mn = DataFrame(Name = ["AKANKSHA", "TANYA", "PREETIKA", "VRINDA", "JAHNVI"],
-                 Age = [42, 44, 22, 81, 93],
-                 Salary = [540000, 650000, 900000, 770000, 850000],
-           RESIDENCE=["DELHI", "DELHI", "UP", "HARYANA", "UP"]
-                 )
-  # writing to the newly created file
-  CSV.write("newfile.csv", mn)
-end
 
 #= Fonction qui insère un créneau dans la base de données =#
 function insereCreneauBDD(id, ns, tab, type, nm, pr, s, gr, duree, ndj="", h="", sR="")
