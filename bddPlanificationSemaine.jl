@@ -125,14 +125,13 @@ function selectDonneesprof()
     return df
 end
 
-
 ### PROGRAMME PRINCIPAL
 # ----> Création de la table au départ après avoir effacé le fichier
 # (puis commenter les deux lignes suivantes)
 #creeFichierEtTableBDD()
 #afficheDonnees()
 #creeFichierEtTablePROF()
-#inserePROF("1","Belhomme")
+#inserePROF("1","Belhomme") 
 #inserePROF("2","Lanchon")
 #inserePROF("3","Lepesteur")
 #inserePROF("4","Libine")

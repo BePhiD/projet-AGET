@@ -204,23 +204,29 @@ function runMoteur(M)
     M.rendement = round(10000 * nbCrBienPlaces / M.nbCreneaux) / 100
 end
 
+function creerCsvDepuisDonnees(numSemaine, jour, matiere, typeDeCours, numApogee, heure, duree, professeur, salleDeCours, public, nom)
+  df = DataFrame(semaine = [numSemaine], JourduCours = [jour],  matiere = [matiere], typeCr = [typeDeCours], numApogee = [numApogee], heure = [heure], duree = [duree], professeur = [professeur], salleDeCours = [salleDeCours], public = [public])
+  CSV.write(nom, df, header = false, append = true)
+end
+
 # Fonction qui affiche l'emploi du temps calculé
 #TODO: devra modifier le fichier original
 function afficheEDT(M, numSemaine)
     nom = "s"*string(numSemaine)*".csv"
     println("[++++]Créneaux placés...")
     for e in M.collCreneauxP   
+    #remplit le csv après calcul
         println(e)
-        df = DataFrame(semaine = [numSemaine], JourduCours = [e.jour],  matiere = [e.nomModule], typeCr = [e.typeDeCours], numApogee = "numApogee", heure = [e.horaire], duree = [e.dureeEnMin], prefesseur = [e.prof], salleDeCours = [e.salles], public = [e.groupe])
+        df = DataFrame(semaine = [numSemaine], JourduCours = [e.jour],  matiere = [e.nomModule], typeCr = [e.typeDeCours], numApogee = "numApogee", heure = [e.horaire], duree = [e.dureeEnMin], professeur = [e.prof], salleDeCours = [e.salles], public = [e.groupe])
         CSV.write(nom, df, header = false, append = true)
     end
     println("[----]Créneaux NON placés...")
     for e in M.collCreneauxNP  
         println(e)  
-        df = DataFrame(semaine = [numSemaine], JourduCours = [e.jour],  matiere = [e.nomModule], typeCr = [e.typeDeCours], numApogee = "numApogee", heure = [e.horaire], duree = [e.dureeEnMin], prefesseur = [e.prof], salleDeCours = [e.salles], public = [e.groupe])
+        df = DataFrame(semaine = [numSemaine], JourduCours = [e.jour],  matiere = [e.nomModule], typeCr = [e.typeDeCours], numApogee = "numApogee", heure = [e.horaire], duree = [e.dureeEnMin], professeur = [e.prof], salleDeCours = [e.salles], public = [e.groupe])
         CSV.write(nom, df, header = false, append = true)
     end
-    strStat = " (" * string(length(M.collCreneauxP)) * "/"
+    strStat = " (" * string(length(M.collCreneauxP)) * "/" 
     strStat *= string(M.nbCreneaux) * ")"
     println("Rendement : ", M.rendement, " %  ", strStat)
     println("Tout ça en ", M.nbreTours, " tours de recuit simulé !") 
@@ -243,5 +249,7 @@ for tour in 1:nbEDTCalcules
     println("*** Tour n°", tour, "/", nbEDTCalcules, " ***")
     moteur = prepareMoteur(numSemaine)
     runMoteur(moteur)
+    #à modifier
+    #creerCsvDepuisDonnees(numSemaine, "jour", "nomModule", "maths", "numApogee", "08h00", 180, "Meignen", "C2", "promo1", nom)
     afficheEDT(moteur, numSemaine)
 end

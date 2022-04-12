@@ -20,7 +20,7 @@ route("/constantes") do
 	# retourne au format JSON
 	Genie.Renderer.Json.json( Dict("HEUREDEB" => string(HEUREDEB),
 	           "NBCRENEAUX" => string(NBCRENEAUX),
-			   "NBJOURS" => string(NBJOURS)) ) 
+			   "NBJOURS" => string(NBJOURS)) )  
 end
 
 # Route récupérant l'état de TOUS les créneaux d'une ressource pour une semaine

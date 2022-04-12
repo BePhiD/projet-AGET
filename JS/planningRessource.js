@@ -113,7 +113,7 @@ $(document).ready(function() {
                 // Construit le code du <div> qui sera injecté dans la zone du prévisionnel
                 ch = fabriqueListeProf(uuid, nomProf);
             }
-        });
+        }); 
     }
     //insère chaque prof dans la liste
     function fabriqueListeProf(uuid, nomProf){
