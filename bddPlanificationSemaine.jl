@@ -60,7 +60,7 @@ end
 
 function getprofidmax()
   req = """ SELECT max(uuid) from professeurs """
-  rep = DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req)
+  rep = DataFrame(DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req))
   return rep
 end
 
@@ -112,10 +112,13 @@ function afficheDonnees()
 end
 
 function insererProf(nomProf)
-    r = """ select max(uuid) from professeurs """
-    df = DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), r)
-    q= """ INSERT INTO professeurs VALUES(df+1,"$nomProf") """
-   DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), q)
+    r = getprofidmax()
+    r = chop(string(r[:, "max(uuid)"]), head = 2, tail = 2)
+    r = string(r)
+    r = Base.parse(Int, r)
+    r = r + 1
+    req = """ INSERT INTO professeurs VALUES("$r", "$nomProf") """
+    DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req)
 end
 
 #= Fonction qui affiche les données de la table prof =#

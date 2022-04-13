@@ -131,9 +131,7 @@ end
 route("/ajoutProf", method = "GET") do
 	nomProf = params(:nomProf, false)
 	# Appelle la fonction spécifique du module bddPlanificationSemaine.jl
-	maxid = getprofidmax()
-	id = maxid + 1
-	insererProf(id, nomProf)
+	insererProf(nomProf)
 	# Referme la chaîne de JSON en remplaçant la ',' finale par un ']'
 	#TODO: bizarre que ça marche...
 	# Retourne la conversion de la chaîne en véritable objet JSON
