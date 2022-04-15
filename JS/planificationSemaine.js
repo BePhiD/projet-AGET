@@ -178,6 +178,38 @@ function fabriqueCreneauFromFormulaire() {
 	}
 }
 
+ //fonction qui remplit la liste des profs
+    function afficherProf(){
+        var url = "http://localhost:8000/selectProf";
+        $.getJSON( url, function( data ) {
+            // Récupère l'objet JSON (en fait un tableau de JSON)
+            // Mais s'il est vide la chaîne retournée est ']' ; donc quitter !
+            if (data == "]") {
+                return;
+            }
+            obj = JSON.parse(data);
+            // Balaye tous les éléments du tableau
+            for (var i = 0; i<obj.length; i++) {
+                var uuid = obj[i]["uuid"];
+                var nomProf = obj[i]["nomProf"];
+                
+                // Construit le code du <div> qui sera injecté dans la zone du prévisionnel
+                ch = fabriqueListeProf(uuid, nomProf);
+            }
+        }); 
+    }
+    //insère chaque prof dans la liste
+    function fabriqueListeProf(uuid, nomProf){
+        var select = document.getElementById("prof");
+        var optn = nomProf;
+        var el = document.createElement("option");
+        el.textContent = optn;
+        el.value = optn;
+        select.appendChild(el);
+        
+    }
+
+
 /* Fonction qui crée un objet <div> associé au nouveau créneau. Le paramètre
    zone sert à savoir si la duplication s'est faite dans la corbeille ou pas */
 function creeCreneau(type, matiere, prof, lieu, public, duree, zone="") {
@@ -230,7 +262,7 @@ $(document).ready(function() {
 	
     $("#formulaire").children().hide();
     $('#btAjoutCreneau').hide();
-
+    afficherProf();
     // Permet de mettre en oeuvre le système d'onglets de jquery-ui
     $( "#previsionnel" ).tabs();
 
@@ -246,7 +278,7 @@ $(document).ready(function() {
         accept: ".corbeille",         // que ceux venant de la corbeille
         drop: function(event, ui) {
             dropCreneau(event, ui, "#previsionnel");
-        }
+        } 
     });
 
     // Action après saisie/changement de numéro de semaine

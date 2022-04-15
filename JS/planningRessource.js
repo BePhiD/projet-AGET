@@ -20,7 +20,7 @@ $(document).ready(function() {
 
         // Affecte des valeurs aux variables globales
         NBJOURS = parseInt(data["NBJOURS"]);
-        NBCRENEAUX = parseInt(data["NBCRENEAUX"]);
+        NBCRENEAUX = parseInt(data["NBCRENEAUX"]); 
         afficherProf();
         
         /* Construction dynamique de la suite du tableau de planning (après la
