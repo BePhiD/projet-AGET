@@ -10,6 +10,7 @@
 
 include("CONSTANTES.jl")        # pour importer les constantes du système
 using SQLite
+using CSV
 using DataFrames
 
 # Variables globales/CONSTANTES
@@ -64,6 +65,17 @@ function getprofidmax()
   return rep
 end
 
+function createCSVcreneau(numSemaine, matiere, typeCr, duree, professeur, salleDeCours, public)
+  nom = "s"*string(numSemaine)*".csv"
+  df = DataFrame(semaine = [numSemaine], JourduCours = "",  matiere = [matiere], typeCr = [typeCr], numApogee = "numApogee", heure = "", duree = [duree], professeur = [professeur], salleDeCours = [salleDeCours], public = [public])
+  CSV.write("creneau\\"*nom, df, header = false, append = true)
+end
+
+function deleteandcreateCSVcreneau(numSemaine)
+  nom = "s"*string(numSemaine)*".csv"
+  rm("creneau\\"*nom)
+  touch("creneau\\"*nom)
+end
 
 #= Fonction qui insère un créneau dans la base de données =#
 function insereCreneauBDD(id, ns, tab, type, nm, pr, s, gr, duree, ndj="", h="", sR="")

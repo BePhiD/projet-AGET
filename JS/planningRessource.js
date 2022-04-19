@@ -180,6 +180,7 @@ $(document).ready(function() {
 
     // Gère les changements de valeur pour "ressource" et "semaine"
     
+    
 
     $("#Planning").on("click",function(e){
         remplirPlanning();

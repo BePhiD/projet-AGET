@@ -190,7 +190,19 @@ route("/updateCreneau", method = "GET") do
 end
 
 route("/createCsv", method = "GET") do
-	createCSV()
+	numSemaine = params(:numSemaine, false)
+	matiere = params(:matiere, false)
+	typeCr = params(:typeCr, false)
+	duree = params(:duree, false)
+	professeur = params(:professeur, false)
+	salleDeCours = params(:salleDeCours, false)
+	public = params(:public, false)
+	createCSVcreneau(numSemaine, matiere, typeCr, duree, professeur, salleDeCours, public)
+end
+
+route("/createanddeleteCsv", method = "GET") do
+	numSemaine = params(:numSemaine, false)
+	deleteandcreateCSVcreneau(numSemaine)
 end
 
 #= Route permettant de supprimer de la BDD un créneau spécifié par son uuid
@@ -212,7 +224,7 @@ end
 =#
 route("/moveCreneau", method = "GET") do
 	uuid = params(:creneau, false)
-	zone = params(:zone, false)
+	zone = params(:zone, false) 
 	numSemaine = params(:numSemaine, false)
 	if uuid == "?" || zone == "?" || numSemaine == "?"
 		return    # pour précompilation...
@@ -248,7 +260,8 @@ function force_compile()
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/moveCreneau?creneau=?&zone=?")
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/selectProf")
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/ajoutProf?nomProf=?")
-	Genie.Requests.HTTP.request("GET", "http://serveur:8000/createCsv")
+	Genie.Requests.HTTP.request("GET", "http://serveur:8000/createCsv?numSemaine=?&matiere=?&typeCr=?&duree=?&professeur=?&salleDeCours=?&public=?")
+	Genie.Requests.HTTP.request("GET", "http://serveur:8000/createanddeleteCsv?numSemaine=?")
 
 end
   

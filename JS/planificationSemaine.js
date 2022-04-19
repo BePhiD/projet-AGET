@@ -280,9 +280,17 @@ $(document).ready(function() {
             dropCreneau(event, ui, "#previsionnel");
         } 
     });
+    remplirCreneaux();
 
     // Action après saisie/changement de numéro de semaine
     $("#laSemaine").on("change", function() {
+    	remplirCreneaux();
+    });
+
+
+   
+
+    function remplirCreneaux(){
         // Efface tous les éléments du DOM qui ont la classe 'creneau'
         $(".creneau").each(function () {
             var obj = $(this)[0];
@@ -343,11 +351,21 @@ $(document).ready(function() {
                lorsque la requête AJAX (qui est asynchrone) sera terminée. */
             $('#btAjoutCreneau').show();         // montre le bouton '+'
         });
-    });
+    }
 
 $("#makeCSV").on("click", function() {
-        var url = "http://serveur:8000/createCsv";
-        $.ajax({url: url});
+		numSemaine = $("#laSemaine").val().toString();
+		var url2 = "http://localhost:8000/createanddeleteCsv?numSemaine="+numSemaine;
+		var id;
+		var url;
+		$.ajax({url: url2});
+        $(".creneau").each(function () {
+        	id = $("#uuid").val();
+			let {type, matiere, prof, lieu, public, duree} = attributsFromUUID(id);
+			url = "http://localhost:8000/createCsv?numSemaine="+numSemaine+"&matiere="+matiere+"&typeCr="+type+"&duree="+duree.toString()+"&professeur="+prof+"&salleDeCours="+lieu+"&public="+public;
+			$.ajax({url: url});
+		});
+		alert("Création CSV prévisionnel finie!");
 });
 
 
