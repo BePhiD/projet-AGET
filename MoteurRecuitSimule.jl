@@ -118,7 +118,7 @@ function positionneLesCreneauxNonPlaces(M)
                 break                           # quitte le for...
             end
         end
-        if cr.salleRetenue == ""                # pas de salle disponible...
+        if cr.salleRetenue == ""                # pas de salle disponible... 
             push!(M.lCreneauxNP, cr)         # cr retourne dans la pile NP
             continue                            # passe au tour suivant
         end
@@ -206,7 +206,7 @@ end
 
 function creerCsvDepuisDonnees(numSemaine, jour, matiere, typeDeCours, numApogee, heure, duree, professeur, salleDeCours, public, nom)
   df = DataFrame(semaine = [numSemaine], JourduCours = [jour],  matiere = [matiere], typeCr = [typeDeCours], numApogee = [numApogee], heure = [heure], duree = [duree], professeur = [professeur], salleDeCours = [salleDeCours], public = [public])
-  CSV.write(nom, df, header = false, append = true)
+  CSV.write(nom, df, header = false, append = true, delim=';')
 end
 
 # Fonction qui affiche l'emploi du temps calculé
@@ -218,13 +218,13 @@ function afficheEDT(M, numSemaine)
     #remplit le csv après calcul
         println(e)
         df = DataFrame(semaine = [numSemaine], JourduCours = [e.jour],  matiere = [e.nomModule], typeCr = [e.typeDeCours], numApogee = "numApogee", heure = [e.horaire], duree = [e.dureeEnMin], professeur = [e.prof], salleDeCours = [e.salles], public = [e.groupe])
-        CSV.write(nom, df, header = false, append = true)
+        CSV.write(nom, df, header = false, append = true, delim=';')
     end
     println("[----]Créneaux NON placés...")
     for e in M.collCreneauxNP  
         println(e)  
         df = DataFrame(semaine = [numSemaine], JourduCours = [e.jour],  matiere = [e.nomModule], typeCr = [e.typeDeCours], numApogee = "numApogee", heure = [e.horaire], duree = [e.dureeEnMin], professeur = [e.prof], salleDeCours = [e.salles], public = [e.groupe])
-        CSV.write(nom, df, header = false, append = true)
+        CSV.write(nom, df, header = false, append = true, delim=';')
     end
     strStat = " (" * string(length(M.collCreneauxP)) * "/" 
     strStat *= string(M.nbCreneaux) * ")"

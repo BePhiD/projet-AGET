@@ -359,14 +359,43 @@ $("#makeCSV").on("click", function() {
 		var id;
 		var url;
 		$.ajax({url: url2});
-        $(".creneau").each(function () {
-        	id = $("#uuid").val();
-			let {type, matiere, prof, lieu, public, duree} = attributsFromUUID(id);
-			url = "http://localhost:8000/createCsv?numSemaine="+numSemaine+"&matiere="+matiere+"&typeCr="+type+"&duree="+duree.toString()+"&professeur="+prof+"&salleDeCours="+lieu+"&public="+public;
-			$.ajax({url: url});
+		var corb= 0;
+		var url3;
+        var url = "http://localhost:8000/selectCreneaux?semaine="+numSemaine;
+        $.getJSON( url, function( data ) {
+            // Récupère l'objet JSON (en fait un tableau de JSON)
+            // Mais s'il est vide la chaîne retournée est ']' ; donc quitter !
+            if (data == "]") {
+                return;
+            }
+            obj = JSON.parse(data);
+            // Balaye tous les éléments du tableau
+            for (var i = 0; i<obj.length; i++) {
+                var uuid = obj[i]["uuid"];
+                var typeDeCours = obj[i]["typeDeCours"];
+                var nomModule = obj[i]["nomModule"];
+                var prof = obj[i]["prof"];
+                var salles = obj[i]["salles"];
+                var groupe = obj[i]["groupe"];
+                var dureeEnMin = obj[i]["dureeEnMin"];
+                var tab = obj[i]["tab"];
+                // Construit le code du <div> qui sera injecté dans la zone du prévisionnel
+                ch = fabriqueCreneauHTML(uuid, typeDeCours, nomModule, prof,
+                                        salles, groupe, dureeEnMin, tab);
+                // Détermine dans quelle zone il va falloir insérer le créneau
+                if (tab == "corbeille") {
+                    corb = corb+1;
+                }
+                else {
+                    // En fonction de la valeur de 'tab' il faudra déterminer
+                    // dans quel onglet le créneau doit se placer.
+                    url3 = url = "http://localhost:8000/createCsv?numSemaine="+numSemaine+"&matiere="+nomModule+"&typeCr="+typeDeCours+"&duree="+dureeEnMin.toString()+"&professeur="+prof+"&salleDeCours="+salles+"&public="+groupe
+                    $.ajax({url: url3});               
+                }
+			}
 		});
 		alert("Création CSV prévisionnel finie!");
-});
+	});
 
 
 /*

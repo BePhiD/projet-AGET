@@ -186,7 +186,7 @@ route("/updateCreneau", method = "GET") do
 	# Modifie le créneau connu par son uuid
 	updateCreneauBDD(uuid, week, tab, type, matiere, prof, lieu, public, duree,
 	                 "", "", "")
-	afficheDonnees()
+	afficheDonnees() 
 end
 
 route("/createCsv", method = "GET") do

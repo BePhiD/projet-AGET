@@ -68,7 +68,7 @@ end
 function createCSVcreneau(numSemaine, matiere, typeCr, duree, professeur, salleDeCours, public)
   nom = "s"*string(numSemaine)*".csv"
   df = DataFrame(semaine = [numSemaine], JourduCours = "",  matiere = [matiere], typeCr = [typeCr], numApogee = "numApogee", heure = "", duree = [duree], professeur = [professeur], salleDeCours = [salleDeCours], public = [public])
-  CSV.write("creneau\\"*nom, df, header = false, append = true)
+  CSV.write("creneau\\"*nom, df, header = false, append = true, delim=';')
 end
 
 function deleteandcreateCSVcreneau(numSemaine)
