@@ -8,6 +8,7 @@
 # Pour calculer AUTOMATIQUEMENT l'emploi du temps d'une semaine donnée
 
 include("CONSTANTES.jl")        # pour importer les constantes du système
+include("bddPlanificationSemaine.jl")
 include("Creneaux.jl")          # pour charger la liste des créneaux à traiter
 include("Groupes.jl")           # pour charger la hiérarchie des groupes
 using Serialization             # pour relire les données depuis le disque

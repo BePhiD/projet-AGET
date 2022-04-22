@@ -37,7 +37,7 @@ end
 function RetireCreneauxInterdits(P)
     # Positionne à false les créneaux listés comme interdits.
     for ci in CRENEAUX_INTERDITS AffecteCreneau(P,ci[1],ci[2],ci[3]) end
-end
+end 
 
 function AffecteCreneauHoraireDuree(P, jour, heure, mn, duree, value=false)
     #= Affecte un créneau dans P désigné par son jour, l'horaire de début et

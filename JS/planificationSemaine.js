@@ -384,7 +384,7 @@ $("#makeCSV").on("click", function() {
                                         salles, groupe, dureeEnMin, tab);
                 // Détermine dans quelle zone il va falloir insérer le créneau
                 if (tab == "corbeille") {
-                    corb = corb+1;
+                    corb = corb+1; 
                 }
                 else {
                     // En fonction de la valeur de 'tab' il faudra déterminer

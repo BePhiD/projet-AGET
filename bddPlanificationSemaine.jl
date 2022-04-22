@@ -9,6 +9,7 @@
 # Les créneaux font partie d'une promo ou bien sont dans une corbeille.
 
 include("CONSTANTES.jl")        # pour importer les constantes du système
+include("Creneaux.jl")
 using SQLite
 using CSV
 using DataFrames
@@ -54,26 +55,34 @@ function creeFichierEtTablePROF()
    SQLite.execute(db, reqCreation)
 end
 
+# insere un prof dans la base
 function inserePROF(id, nom)
     req = """ INSERT INTO professeurs VALUES("$id", "$nom") """
     DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req)
 end
 
+# recupere l'id max du dernier prof dans la base
 function getprofidmax()
   req = """ SELECT max(uuid) from professeurs """
   rep = DataFrame(DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req))
   return rep
 end
 
+# remplit le csv previsionnel
 function createCSVcreneau(numSemaine, matiere, typeCr, duree, professeur, salleDeCours, public)
   nom = "s"*string(numSemaine)*".csv"
   df = DataFrame(semaine = [numSemaine], JourduCours = "",  matiere = [matiere], typeCr = [typeCr], numApogee = "numApogee", heure = "", duree = [duree], professeur = [professeur], salleDeCours = [salleDeCours], public = [public])
   CSV.write("creneau\\"*nom, df, header = false, append = true, delim=';')
 end
 
+# creer le csv previsionnel et supprime l'ancien s'il existe
 function deleteandcreateCSVcreneau(numSemaine)
   nom = "s"*string(numSemaine)*".csv"
+  try
   rm("creneau\\"*nom)
+  catch e
+  print(e)
+  end
   touch("creneau\\"*nom)
 end
 
@@ -114,7 +123,7 @@ function selectCreneauxBDD(numSemaine)
             WHERE (numSemaine="$numSemaine" or tab="corbeille") """
     df = DataFrame(DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), r))
     return df
-end
+end 
 
 #= Fonction qui affiche les données de la table =#
 function afficheDonnees()
@@ -123,7 +132,20 @@ function afficheDonnees()
     println(df)
 end
 
+# insere un prof depuis la page de semaine
 function insererProf(nomProf)
+    r = getprofidmax()
+    r = chop(string(r[:, "max(uuid)"]), head = 2, tail = 2)
+    r = string(r)
+    r = Base.parse(Int, r)
+    r = r + 1
+    req = """ INSERT INTO professeurs VALUES("$r", "$nomProf") """
+    DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req)
+    creeFichierDatPourProfOuSalle(nomProf, "Création du prof : ")
+end
+
+# insere un prof depuis le moteur
+function insererProfdepuisMoteur(nomProf)
     r = getprofidmax()
     r = chop(string(r[:, "max(uuid)"]), head = 2, tail = 2)
     r = string(r)

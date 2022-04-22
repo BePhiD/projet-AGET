@@ -10,6 +10,7 @@
 
 include("CONSTANTES.jl")        # pour importer les constantes du système
 
+
 # Définition de la structure Creneau (élément pédagogique à placer dans l'EDT)
 mutable struct Creneau
     groupe::String
@@ -84,6 +85,7 @@ function verifieValiditeDesCreneaux(lstCreneaux)
             # Crée le .dat du prof puisqu'il n'est pas connu
             creeFichierDatPourProfOuSalle(c.prof, "Création du prof : ")
             push!(fichiersPresents, c.prof * ".dat")
+            insererProfdepuisMoteur(c.prof)
         end
         # Vérifie la ou les salles
         for salle in c.salles

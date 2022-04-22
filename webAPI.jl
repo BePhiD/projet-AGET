@@ -210,7 +210,7 @@ end
    http://serveur:8000/deleteCreneau?creneau=uuid
 =#
 route("/deleteCreneau", method = "GET") do
-	uuid = params(:creneau, false)
+	uuid = params(:creneau, false) 
 	if uuid == "?"
 		return    # pour précompilation...
 	end
