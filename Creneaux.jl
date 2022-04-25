@@ -9,6 +9,7 @@
 # Les créneaux sont inscrits au départ dans un fichier texte (issu de ADE...).
 
 include("CONSTANTES.jl")        # pour importer les constantes du système
+include("PlanningSemaine.jl")
 
 
 # Définition de la structure Creneau (élément pédagogique à placer dans l'EDT)
@@ -81,7 +82,7 @@ function verifieValiditeDesCreneaux(lstCreneaux)
     for c in lstCreneaux
         erreur = ""                 # vide par défaut
         # Vérifie le prof
-        if !(c.prof * ".dat" in fichiersPresents)
+        if !(lowercasefirst(c.prof) * ".dat" in fichiersPresents)
             # Crée le .dat du prof puisqu'il n'est pas connu
             creeFichierDatPourProfOuSalle(c.prof, "Création du prof : ")
             push!(fichiersPresents, c.prof * ".dat")

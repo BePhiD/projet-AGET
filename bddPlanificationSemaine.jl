@@ -45,12 +45,14 @@ end
 function creeFichierEtTablePROF()
 #= Fonction qui devrait être appelée une seule fois, pour créer la BDD
    contenant tous les profs.  =#
+   db = SQLite.DB(NOM_DATABASE_EDT)
+   reqsup = """DROP TABLE IF EXISTS professeurs"""
+   SQLite.execute(db, reqsup)
    reqCreation = """CREATE TABLE IF NOT EXISTS professeurs (
-       uuid VARCHAR(36) PRIMARY KEY NOT NULL,
+       uuid INTEGER PRIMARY KEY NOT NULL,
        nomProf VARCHAR(30)
    )"""
    # Ouvre la base de données (mais si le fichier n'existe pas il est créé)
-   db = SQLite.DB(NOM_DATABASE_EDT)
    # Crée la table (TODO: devrait être vidée chaque année !)
    SQLite.execute(db, reqCreation)
 end
@@ -63,7 +65,7 @@ end
 
 # recupere l'id max du dernier prof dans la base
 function getprofidmax()
-  req = """ SELECT max(uuid) from professeurs """
+  req = """ SELECT uuid from professeurs """
   rep = DataFrame(DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req))
   return rep
 end
@@ -135,9 +137,7 @@ end
 # insere un prof depuis la page de semaine
 function insererProf(nomProf)
     r = getprofidmax()
-    r = chop(string(r[:, "max(uuid)"]), head = 2, tail = 2)
-    r = string(r)
-    r = Base.parse(Int, r)
+    r = size(r, 1)
     r = r + 1
     req = """ INSERT INTO professeurs VALUES("$r", "$nomProf") """
     DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req)
@@ -147,10 +147,9 @@ end
 # insere un prof depuis le moteur
 function insererProfdepuisMoteur(nomProf)
     r = getprofidmax()
-    r = chop(string(r[:, "max(uuid)"]), head = 2, tail = 2)
-    r = string(r)
-    r = Base.parse(Int, r)
+    r = size(r, 1)
     r = r + 1
+    print(r)
     req = """ INSERT INTO professeurs VALUES("$r", "$nomProf") """
     DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req)
 end
@@ -164,7 +163,7 @@ end
 
 ### PROGRAMME PRINCIPAL
 # ----> Création de la table au départ après avoir effacé le fichier
-# (puis commenter les deux lignes suivantes)
+# (puis commenter les deux lignes suivantes) 
 #creeFichierEtTableBDD()
 #afficheDonnees()
 #creeFichierEtTablePROF()
@@ -184,3 +183,4 @@ afficheDonnees()
 updateCreneauBDD("dhhkhgh655865FDFDG", 38, "GIM-2A-FI", "CM", "MATH2",
                  "pignoux", "B1", "promo2", 60)
 afficheDonnees() =#
+#creeFichierEtTablePROF()

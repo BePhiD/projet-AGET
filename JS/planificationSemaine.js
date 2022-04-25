@@ -355,7 +355,7 @@ $(document).ready(function() {
 
 $("#makeCSV").on("click", function() {
 		numSemaine = $("#laSemaine").val().toString();
-		var url2 = "http://localhost:8000/createanddeleteCsv?numSemaine="+numSemaine;
+		var url2 = "http://localhost:8000/createanddeleteCsv?numSemaine="+numSemaine; 
 		var id;
 		var url;
 		$.ajax({url: url2});
