@@ -19,6 +19,7 @@ $(document).ready(function() {
         $("#btValider").hide();
 
         // Affecte des valeurs aux variables globales
+        
         NBJOURS = parseInt(data["NBJOURS"]);
         NBCRENEAUX = parseInt(data["NBCRENEAUX"]); 
         afficherProf();

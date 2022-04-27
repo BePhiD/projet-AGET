@@ -137,6 +137,32 @@ route("/ajoutProf", method = "GET") do
 	# Retourne la conversion de la chaîne en véritable objet JSON
 end
 
+route("/selectSalles", method = "GET") do
+	# Appelle la fonction spécifique du module bddPlanificationSemaine.jl
+	df = selectDonneesSalles()
+	# Place chaque ligne de la BDD dans une chaîne simulant un tableau de JSON
+	chJSON = "["
+	for L in eachrow(df)
+		ch = """{"uuid": "$(L.uuid)",
+		         "nomSalle": "$(L.nomSalle)"},"""
+		chJSON *= ch
+	end
+	# Referme la chaîne de JSON en remplaçant la ',' finale par un ']'
+	chJSON = chJSON[1:end-1] * ']'   #TODO: bizarre que ça marche...
+	# Retourne la conversion de la chaîne en véritable objet JSON
+	return Genie.Renderer.Json.json(chJSON)
+end
+
+route("/ajoutSalle", method = "GET") do
+	nomSalle = params(:nomSalle, false)
+	# Appelle la fonction spécifique du module bddPlanificationSemaine.jl
+	insererSalle(nomSalle)
+	# Referme la chaîne de JSON en remplaçant la ',' finale par un ']'
+	#TODO: bizarre que ça marche...
+	# Retourne la conversion de la chaîne en véritable objet JSON
+end
+
+
 #= Route permettant d'enregistrer dans une base de données les créneaux créés
    au travers de l'interface web/jquery "planificationSemaine.html"
    L'URL d'appel sera du type :
@@ -262,6 +288,8 @@ function force_compile()
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/ajoutProf?nomProf=?")
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/createCsv?numSemaine=?&matiere=?&typeCr=?&duree=?&professeur=?&salleDeCours=?&public=?")
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/createanddeleteCsv?numSemaine=?")
+	Genie.Requests.HTTP.request("GET", "http://serveur:8000/ajoutSalle?nomSalle=?")
+	Genie.Requests.HTTP.request("GET", "http://serveur:8000/selectSalles") 
 
 end
   

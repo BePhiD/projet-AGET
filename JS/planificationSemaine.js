@@ -160,22 +160,19 @@ function fabriqueCreneauFromFormulaire() {
     
     //Vérifie si le mot info est entré dans la matière, si oui, il est converti en majuscule.
     if(matiere.toUpperCase().includes("INFO")){
-		if (public.toUpperCase().includes("PROMO")){
-	    creeCreneau(type.toUpperCase(), matiere.toUpperCase(), prof, lieu.toUpperCase(), public, duree);
-	    }else{
-		creeCreneau(type.toUpperCase(), matiere.toUpperCase(), prof, lieu.toUpperCase(), public.toUpperCase(), duree);
-		}
-        
+    	prof = prof.charAt(0).toUpperCase() + prof.slice(1).toLowerCase();
+    	public = public.charAt(0).toUpperCase() + public.slice(1).toLowerCase();
+	    creeCreneau(type.toUpperCase(), matiere.toUpperCase(), prof, lieu.toUpperCase(), public, duree); 
         return;
     }
     //S'il ne s'agit pas du mot info, alors on ne transforme que la première lettre en majuscule.
     matiere = matiere.charAt(0).toUpperCase() + matiere.slice(1).toLowerCase();
     prof = prof.charAt(0).toUpperCase() + prof.slice(1).toLowerCase();
-    if (public.toUpperCase().includes("PROMO")){
+    public = public.charAt(0).toUpperCase() + public.slice(1).toLowerCase();
+    
     creeCreneau(type.toUpperCase(), matiere, prof, lieu.toUpperCase(), public, duree);
-    }else{
-	creeCreneau(type.toUpperCase(), matiere, prof, lieu.toUpperCase(), public.toUpperCase(), duree);
-	}
+   
+	
 }
 
  //fonction qui remplit la liste des profs
@@ -202,6 +199,36 @@ function fabriqueCreneauFromFormulaire() {
     function fabriqueListeProf(uuid, nomProf){
         var select = document.getElementById("prof");
         var optn = nomProf;
+        var el = document.createElement("option");
+        el.textContent = optn;
+        el.value = optn;
+        select.appendChild(el);
+        
+    }
+
+    function afficherSalles(){
+        var url = "http://localhost:8000/selectSalles";
+        $.getJSON( url, function( data ) {
+            // Récupère l'objet JSON (en fait un tableau de JSON)
+            // Mais s'il est vide la chaîne retournée est ']' ; donc quitter !
+            if (data == "]") {
+                return;
+            }
+            obj = JSON.parse(data);
+            // Balaye tous les éléments du tableau
+            for (var i = 0; i<obj.length; i++) {
+                var uuid = obj[i]["uuid"];
+                var nomSalle = obj[i]["nomSalle"];
+                
+                // Construit le code du <div> qui sera injecté dans la zone du prévisionnel
+                ch = fabriqueListeSalle(uuid, nomSalle);
+            }
+        }); 
+    }
+    //insère chaque prof dans la liste
+    function fabriqueListeSalle(uuid, nomSalle){
+        var select = document.getElementById("lieu");
+        var optn = nomSalle;
         var el = document.createElement("option");
         el.textContent = optn;
         el.value = optn;
@@ -263,6 +290,7 @@ $(document).ready(function() {
     $("#formulaire").children().hide();
     $('#btAjoutCreneau').hide();
     afficherProf();
+    afficherSalles();
     // Permet de mettre en oeuvre le système d'onglets de jquery-ui
     $( "#previsionnel" ).tabs();
 
@@ -457,6 +485,34 @@ $("#makeCSV").on("click", function() {
 	//    .catch(error => console.error('Check server error:', error.message));
 	//}
 	
+	$("#addProf").on("click", function() {
+        var result = prompt("Nom de famille du nouveau Professeur:");
+        if(result.trim() != ""){
+            var nom = result.charAt(0).toUpperCase() + result.slice(1).toLowerCase();  
+            nom = nom.replace(" ", '-');
+            var url = "http://localhost:8000/ajoutProf?nomProf="+ nom;
+        $.ajax({url: url});
+        alert("La personne a été ajouté");
+        }else{
+            alert("La zone ne doit pas être vide.");
+            return;
+        }
+    });
+
+    $("#addSalle").on("click", function() {
+        var result = prompt("Nom de la nouvelle salle:");
+        if(result.trim() != ""){
+            var nom = result.toUpperCase();  
+            nom = nom.replace(" ", '-');
+            var url = "http://localhost:8000/ajoutSalle?nomSalle="+ nom;
+        $.ajax({url: url});
+        alert("La salle a été ajouté");
+        }else{
+            alert("La zone ne doit pas être vide.");
+            return;
+        }
+    });
+
 	
     // Action après clic sur bouton "+"
     $('#btAjoutCreneau').on('click', function(e) {

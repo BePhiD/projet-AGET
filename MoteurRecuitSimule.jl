@@ -19,7 +19,7 @@ using CSV
 # Structure du moteur contenant tous les éléments pour calculer l'EDT
 mutable struct Moteur
     info::String                # description du moteur
-    numSemaine::Int             # numéro de la semaine à construire 
+    numSemaine::Int             # numéro de la semaine à construire  
     dctP                        # dictionnaire des Profs
     dctG                        # dictionnaire des Groupes
     dctS                        # dictionnaire des Salles
