@@ -10,6 +10,7 @@ import JSON: parse                      # module supplémentaire à installer
 include("CONSTANTES.jl")         # pour disposer des constantes de l'application
 include("PlanningSemaine.jl")           # pour affecter un créneau dans un x.dat
 include("bddPlanificationSemaine.jl")   # pour gérer la base de données
+include("Creneaux.jl")
 
 # Info trouvée notamment sur :
 # https://docs.juliahub.com/Genie/8eazC/0.31.5/guides/Simple_API_backend.html
@@ -153,6 +154,21 @@ route("/selectSalles", method = "GET") do
 	return Genie.Renderer.Json.json(chJSON)
 end
 
+route("/selectSalles", method = "GET") do
+	nomSalles = params(:nomSalles, false)
+    df = checkExistanceSalles(nomSalles)
+	chJSON = "["
+	for L in eachrow(df)
+		ch = """{"OkOuPasOk": "$(L.OkOuPasOk)"},"""
+		chJSON *= ch
+	end
+	# Referme la chaîne de JSON en remplaçant la ',' finale par un ']'
+	chJSON = chJSON[1:end-1] * ']'   #TODO: bizarre que ça marche...
+	# Retourne la conversion de la chaîne en véritable objet JSON
+	return Genie.Renderer.Json.json(chJSON)
+end
+
+
 route("/ajoutSalle", method = "GET") do
 	nomSalle = params(:nomSalle, false)
 	# Appelle la fonction spécifique du module bddPlanificationSemaine.jl
@@ -290,6 +306,7 @@ function force_compile()
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/createanddeleteCsv?numSemaine=?")
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/ajoutSalle?nomSalle=?")
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/selectSalles") 
+	Genie.Requests.HTTP.request("GET", "http://serveur:8000/selectSalles?nomSalles=?")
 
 end
   

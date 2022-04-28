@@ -157,21 +157,37 @@ function fabriqueCreneauFromFormulaire() {
         alert("La durée ne correspond pas, elle doit être découpée par période de 15 minutes (exemple: 15, 30, 45, 60...) pour une durée max de 5 heures(300 minutes).");
         return;
     }
-    
-    //Vérifie si le mot info est entré dans la matière, si oui, il est converti en majuscule.
-    if(matiere.toUpperCase().includes("INFO")){
-    	prof = prof.charAt(0).toUpperCase() + prof.slice(1).toLowerCase();
-    	public = public.charAt(0).toUpperCase() + public.slice(1).toLowerCase();
-	    creeCreneau(type.toUpperCase(), matiere.toUpperCase(), prof, lieu.toUpperCase(), public, duree); 
-        return;
-    }
-    //S'il ne s'agit pas du mot info, alors on ne transforme que la première lettre en majuscule.
-    matiere = matiere.charAt(0).toUpperCase() + matiere.slice(1).toLowerCase();
-    prof = prof.charAt(0).toUpperCase() + prof.slice(1).toLowerCase();
-    public = public.charAt(0).toUpperCase() + public.slice(1).toLowerCase();
-    
-    creeCreneau(type.toUpperCase(), matiere, prof, lieu.toUpperCase(), public, duree);
-   
+ 	const words = lieu.replace(/ /g,'').split(',');
+	var i;
+	for (i=0; i<words.length; i++){
+		words[i]= words[i].toUpperCase();
+	
+
+		var url="http://localhost:8000/selectSalles?nomSalles="+words[i];
+		$.getJSON( url, function( data ) {
+	            // Récupère l'objet JSON (en fait un tableau de JSON)
+	            // Mais s'il est vide la chaîne retournée est ']' ; donc quitter !
+	            if (data == "]") {
+	                return;
+	            }
+	            obj = JSON.parse(data);
+	            // Balaye tous les éléments du tableau
+	            for (var i = 0; i<obj.length; i++) {
+	                var OkOuPasOk = obj[i]["OkOuPasOk"];
+	    		}
+	    		if (OkOuPasOk == false){
+			   		alert("La/les salle(s) doit(vent) exister. Vous devez les écrire séparer par des virgules.");
+	   				return;
+				}
+	    });	
+	}
+	
+	    matiere = matiere.charAt(0).toUpperCase() + matiere.slice(1).toLowerCase();
+	   	prof = prof.charAt(0).toUpperCase() + prof.slice(1).toLowerCase();
+	    public = public.charAt(0).toUpperCase() + public.slice(1).toLowerCase();
+	    
+	    creeCreneau(type.toUpperCase(), matiere, prof, lieu.toUpperCase(), public, duree);
+
 	
 }
 
@@ -290,7 +306,6 @@ $(document).ready(function() {
     $("#formulaire").children().hide();
     $('#btAjoutCreneau').hide();
     afficherProf();
-    afficherSalles();
     // Permet de mettre en oeuvre le système d'onglets de jquery-ui
     $( "#previsionnel" ).tabs();
 

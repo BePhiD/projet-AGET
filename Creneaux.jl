@@ -94,6 +94,7 @@ function verifieValiditeDesCreneaux(lstCreneaux)
                 # Crée le .dat de la salle puisqu'elle n'est pas connue
                 creeFichierDatPourProfOuSalle(salle, "Création de la salle : ")
                 push!(fichiersPresents, salle * ".dat")
+                insererSalleDepuisMoteur(salle)
             end
         end
         # Vérifie la durée
