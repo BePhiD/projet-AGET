@@ -174,25 +174,6 @@ function insererSalle(nomSalle)
     creeFichierDatPourProfOuSalle(nomSalle, "Création de la Salle : ")
 end
 
-function checkExistanceSalles(nomSalles)
-fichiersPresents = readdir(REPERTOIRE_DATA)
-      print(nomSalles)
-      if !(nomSalles * ".dat" in fichiersPresents)
-           df = DataFrame(OkOuPasOk=false)
-           return df
-      end
-     df = DataFrame(OkOuPasOk=true)
-     return df
-  end
-
-function insererSalleDepuisMoteur(nomSalle)
-    r = getSalleidmax()
-    r = size(r, 1)
-    r = r + 1
-    req = """ INSERT INTO salles VALUES("$r", "$nomSalle") """
-    DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req)
-end
-
 # insere un prof depuis le moteur
 function insererProfdepuisMoteur(nomProf)
     r = getprofidmax()

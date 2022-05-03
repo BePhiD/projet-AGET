@@ -10,7 +10,7 @@ import JSON: parse                      # module supplémentaire à installer
 include("CONSTANTES.jl")         # pour disposer des constantes de l'application
 include("PlanningSemaine.jl")           # pour affecter un créneau dans un x.dat
 include("bddPlanificationSemaine.jl")   # pour gérer la base de données
-include("Creneaux.jl")
+include("Groupes.jl")
 
 # Info trouvée notamment sur :
 # https://docs.juliahub.com/Genie/8eazC/0.31.5/guides/Simple_API_backend.html
@@ -113,6 +113,50 @@ route("/selectCreneaux", method = "GET") do
 	return Genie.Renderer.Json.json(chJSON)
 end
 
+route("/selectPublic", method = "GET") do
+	# Appelle la fonction spécifique du module bddPlanificationSemaine.jl
+	lstGroupes = RetourListeGroupes()
+	df1 = DataFrame(groupes = "")
+	df2 = DataFrame(groupes = "")
+	for e in lstGroupes
+		df2 =DataFrame(groupes = e)
+		append!(df1,df2)
+	end
+	# Place chaque ligne de la BDD dans une chaîne simulant un tableau de JSON
+	chJSON = "["
+	print(df1)
+	for L in eachrow(df1)
+		ch = """{"groupes": "$(L.groupes)"},"""
+		chJSON *= ch
+	end
+	# Referme la chaîne de JSON en remplaçant la ',' finale par un ']'
+	chJSON = chJSON[1:end-1] * ']'   #TODO: bizarre que ça marche...
+	# Retourne la conversion de la chaîne en véritable objet JSON
+	return Genie.Renderer.Json.json(chJSON)
+end
+
+route("/selectDepartements", method = "GET") do
+	# Appelle la fonction spécifique du module bddPlanificationSemaine.jl
+	lstDep = RetourListeDepartements()
+	df1 = DataFrame(dep = "")
+	df2 = DataFrame(dep = "")
+	for e in lstDep
+		df2 =DataFrame(dep = e)
+		append!(df1,df2)
+	end
+	# Place chaque ligne de la BDD dans une chaîne simulant un tableau de JSON
+	chJSON = "["
+	print(df1)
+	for L in eachrow(df1)
+		ch = """{"dep": "$(L.dep)"},"""
+		chJSON *= ch
+	end
+	# Referme la chaîne de JSON en remplaçant la ',' finale par un ']'
+	chJSON = chJSON[1:end-1] * ']'   #TODO: bizarre que ça marche...
+	# Retourne la conversion de la chaîne en véritable objet JSON
+	return Genie.Renderer.Json.json(chJSON)
+end
+
 route("/selectProf", method = "GET") do
 	# Appelle la fonction spécifique du module bddPlanificationSemaine.jl
 	df = selectDonneesprof()
@@ -153,21 +197,6 @@ route("/selectSalles", method = "GET") do
 	# Retourne la conversion de la chaîne en véritable objet JSON
 	return Genie.Renderer.Json.json(chJSON)
 end
-
-route("/selectSalles", method = "GET") do
-	nomSalles = params(:nomSalles, false)
-    df = checkExistanceSalles(nomSalles)
-	chJSON = "["
-	for L in eachrow(df)
-		ch = """{"OkOuPasOk": "$(L.OkOuPasOk)"},"""
-		chJSON *= ch
-	end
-	# Referme la chaîne de JSON en remplaçant la ',' finale par un ']'
-	chJSON = chJSON[1:end-1] * ']'   #TODO: bizarre que ça marche...
-	# Retourne la conversion de la chaîne en véritable objet JSON
-	return Genie.Renderer.Json.json(chJSON)
-end
-
 
 route("/ajoutSalle", method = "GET") do
 	nomSalle = params(:nomSalle, false)
@@ -306,7 +335,7 @@ function force_compile()
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/createanddeleteCsv?numSemaine=?")
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/ajoutSalle?nomSalle=?")
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/selectSalles") 
-	Genie.Requests.HTTP.request("GET", "http://serveur:8000/selectSalles?nomSalles=?")
+	Genie.Requests.HTTP.request("GET", "http://serveur:8000/selectPublic")
 
 end
   

@@ -54,6 +54,41 @@ function analyseListeDesGroupes()
     construitHierarchieDesGroupes()  # --> variable globale 'hierarchieGroupes'
 end
 
+function RetourListeGroupes()
+    # Lecture du fichier de config des groupes (de la forme 'fils<pere')
+    lstRelations  = readlines(open(REPERTOIRE_CFG * '/' * LISTE_GROUPES, "r"))
+    fichiersPresents = readdir(REPERTOIRE_DATA)
+    lstGroupes = []                # groupes déduits des relations 'fils<père'
+    # Création des groupes pas encore sérialisés
+    for e in lstRelations
+        if startswith(strip(e),'#') continue end    # on saute les commentaires
+        if length(strip(e)) == 0 continue end       # on saute les lignes vides
+        # Extrait les noms qui apparaîssent autour du '<' (élimine les ' ')
+        ids = split(strip(e),'<')
+        # Stocke ces noms dans la liste des groupes s'ils n'y sont pas encore
+        if !(strip(ids[1]) in lstGroupes) push!(lstGroupes, strip(ids[1])) end
+        if !(strip(ids[2]) in lstGroupes) push!(lstGroupes, strip(ids[2])) end
+    end
+    return lstGroupes
+end
+
+function RetourListeDepartements()
+    # Lecture du fichier de config des groupes (de la forme 'fils<pere')
+    lstRelations  = readlines(open(REPERTOIRE_CFG * '/' * LISTE_DEPARTS, "r"))
+    fichiersPresents = readdir(REPERTOIRE_DATA)
+    lstDep = []                # groupes déduits des relations 'fils<père'
+    # Création des groupes pas encore sérialisés
+    for e in lstRelations
+        if startswith(strip(e),'#') continue end    # on saute les commentaires
+        if length(strip(e)) == 0 continue end       # on saute les lignes vides
+        # Extrait les noms qui apparaîssent autour du '<' (élimine les ' ')
+        ids = e
+        # Stocke ces noms dans la liste des groupes s'ils n'y sont pas encore
+        if !(strip(ids) in lstGroupes) push!(lstGroupes, strip(ids)) end
+    end
+    return lstDep
+end
+
 function construitHierarchieDesGroupes()
     #= Construit un dictionnaire de la hiérarchie des groupes promo/TD/TP.
        Stocke cette hiérarchie dans un dictionnaire de 'noeuds' ; les clés du
@@ -107,6 +142,7 @@ function rechercheFamilleDuGroupe(nom)
             end
         end
     end
+
     # Recherche des descendants du groupe 'nom'
     descendants = []
     # On place d'abord la génération juste au-dessous, si elle existe
@@ -132,7 +168,18 @@ function rechercheFamilleDuGroupe(nom)
     return famille
 end
 
+function recherchePere()
+lstOnglets = []
+    for e in keys(hierarchieGroupes)
+        if (isempty(hierarchieGroupes[e].pere))
+            push!(lstOnglets, e)
+        end
+    end
+    print(lstOnglets)
+end
+
 ### PROGRAMME PRINCIPAL
 analyseListeDesGroupes()
-#f = rechercheFamilleDuGroupe("GIM1A-TD2")
+recherchePere()
+#f = rechercheFamilleDuGroupe("promo2")
 #println(f)

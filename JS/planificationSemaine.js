@@ -157,39 +157,12 @@ function fabriqueCreneauFromFormulaire() {
         alert("La durée ne correspond pas, elle doit être découpée par période de 15 minutes (exemple: 15, 30, 45, 60...) pour une durée max de 5 heures(300 minutes).");
         return;
     }
- 	const words = lieu.replace(/ /g,'').split(',');
-	var i;
-	for (i=0; i<words.length; i++){
-		words[i]= words[i].toUpperCase();
-	
 
-		var url="http://localhost:8000/selectSalles?nomSalles="+words[i];
-		$.getJSON( url, function( data ) {
-	            // Récupère l'objet JSON (en fait un tableau de JSON)
-	            // Mais s'il est vide la chaîne retournée est ']' ; donc quitter !
-	            if (data == "]") {
-	                return;
-	            }
-	            obj = JSON.parse(data);
-	            // Balaye tous les éléments du tableau
-	            for (var i = 0; i<obj.length; i++) {
-	                var OkOuPasOk = obj[i]["OkOuPasOk"];
-	    		}
-	    		if (OkOuPasOk == false){
-			   		alert("La/les salle(s) doit(vent) exister. Vous devez les écrire séparer par des virgules.");
-	   				return;
-				}
-	    });	
-	}
-	
-	    matiere = matiere.charAt(0).toUpperCase() + matiere.slice(1).toLowerCase();
-	   	prof = prof.charAt(0).toUpperCase() + prof.slice(1).toLowerCase();
-	    public = public.charAt(0).toUpperCase() + public.slice(1).toLowerCase();
-	    
-	    creeCreneau(type.toUpperCase(), matiere, prof, lieu.toUpperCase(), public, duree);
-
-	
-}
+        matiere = matiere.charAt(0).toUpperCase() + matiere.slice(1).toLowerCase();
+       	prof = prof.charAt(0).toUpperCase() + prof.slice(1).toLowerCase();
+        public = public.charAt(0).toUpperCase() + public.slice(1).toLowerCase();
+        creeCreneau(type.toUpperCase(), matiere, prof, lieu.toUpperCase(), public, duree);
+    }
 
  //fonction qui remplit la liste des profs
     function afficherProf(){
@@ -252,6 +225,55 @@ function fabriqueCreneauFromFormulaire() {
         
     }
 
+    function fabriqueOngletsDep(){
+        var select = document.getElementById("departements");
+        var optn = "gim";
+        var el = document.createElement("li");
+        var a = document.createElement('a'); 
+        var link = document.createTextNode("GIM-1A-FI");
+        a.appendChild(link); 
+        a.title = "#GIM-1A-FI"; 
+        a.href = "#previsionnel-0"; 
+        el.appendChild(a);
+        select.appendChild(el);
+
+        var select2 = document.getElementById("previsionnel");
+        var el2 = document.createElement("div");
+        el2.setAttribute("id", "previsionnel-0");
+        select2.appendChild(el2);
+        
+    }
+
+    function afficherPublic(){
+        var url = "http://localhost:8000/selectPublic";
+        $.getJSON( url, function( data ) {
+            // Récupère l'objet JSON (en fait un tableau de JSON)
+            // Mais s'il est vide la chaîne retournée est ']' ; donc quitter !
+            if (data == "]") {
+                return;
+            }
+            obj = JSON.parse(data);
+            // Balaye tous les éléments du tableau
+            for (var i = 0; i<obj.length; i++) {
+                var groupes = obj[i]["groupes"];
+                
+                // Construit le code du <div> qui sera injecté dans la zone du prévisionnel
+
+                ch = fabriqueListePublic(groupes);
+            }
+        }); 
+    }
+    //insère chaque prof dans la liste
+    function fabriqueListePublic(groupes){
+        var select = document.getElementById("public");
+        var optn = groupes;
+        var el = document.createElement("option");
+        el.textContent = optn;
+        el.value = optn;
+        select.appendChild(el);
+        
+    }
+
 
 /* Fonction qui crée un objet <div> associé au nouveau créneau. Le paramètre
    zone sert à savoir si la duplication s'est faite dans la corbeille ou pas */
@@ -306,6 +328,9 @@ $(document).ready(function() {
     $("#formulaire").children().hide();
     $('#btAjoutCreneau').hide();
     afficherProf();
+    afficherSalles();
+    afficherPublic();
+    fabriqueOngletsDep();
     // Permet de mettre en oeuvre le système d'onglets de jquery-ui
     $( "#previsionnel" ).tabs();
 
