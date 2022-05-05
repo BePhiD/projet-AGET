@@ -10,11 +10,13 @@ var NBCRENEAUX = 0;
 // Fonction appelée quand la page web est entièrement chargée
 $(document).ready(function() {
     // Requête AJAX en jquery : récupère HEUREDEB et NBCRENEAUX
+
     $.getJSON( "http://localhost:8000/constantes", function( data ) {
         /*$.each( data, function( key, val ) {
             console.log( key + ":" + val );
         });*/
-
+        afficherProf();
+        var ready;
         // Cache par défaut le bouton "VALIDER"
         $("#btValider").hide();
 
@@ -22,7 +24,8 @@ $(document).ready(function() {
         
         NBJOURS = parseInt(data["NBJOURS"]);
         NBCRENEAUX = parseInt(data["NBCRENEAUX"]); 
-        afficherProf();
+        
+
         
         /* Construction dynamique de la suite du tableau de planning (après la
            ligne d'en-tête). Chaque créneau possèdera un numéro entre 1 et 210.
@@ -58,6 +61,7 @@ $(document).ready(function() {
         }
         $(entete).after(codeSup);
     });
+
 
     // Règle appliquée à tous les <td> de classe 'creneau' pour afficher leur
     // état occupé/non occupé quand on clique sur le bouton 'Remplir planning'.
@@ -143,6 +147,20 @@ $(document).ready(function() {
 
     $('#btRemplissage').on('click', function(e){
         remplirPlanning();
+        var num =parseInt($("#laSemaine").val());
+        localStorage.setItem("num", num);
+    });
+
+    $('#laSemaine').on("change", function() {
+        remplirPlanning();
+        var num =parseInt($("#laSemaine").val());
+        localStorage.setItem("num", num);
+    });
+
+    $('#laRessource').on("change", function() {
+        remplirPlanning();
+        var num =parseInt($("#laSemaine").val());
+        localStorage.setItem("num", num);
     });
 
     // Evènement sur créneau (entrée de souris + touche SHIFT enfoncée)
@@ -180,13 +198,7 @@ $(document).ready(function() {
         $.ajax({url: url});
     });
 
-    // Gère les changements de valeur pour "ressource" et "semaine"
     
-    
-
-    $("#Planning").on("click",function(e){
-        remplirPlanning();
-    });
 
     // Gère les clics sur les noms de jour (CTRL -> occupé SHIFT+CTRL -> libéré)
     $(".nomJour").on("click", function(e) {

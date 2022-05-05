@@ -51,6 +51,20 @@ route("/lectureDesCreneaux") do
 	return Genie.Renderer.Json.json( Dict("etat" => D) )
 end
 
+route("/CheckSalles", method = "GET") do
+	nomSalles = params(:nomSalles, false)
+    df = checkExistanceSalles(nomSalles)
+	chJSON = "["
+	for L in eachrow(df)
+		ch = """{"OkOuPasOk": "$(L.OkOuPasOk)"},"""
+		chJSON *= ch
+	end
+	# Referme la chaîne de JSON en remplaçant la ',' finale par un ']'
+	chJSON = chJSON[1:end-1] * ']'   #TODO: bizarre que ça marche...
+	# Retourne la conversion de la chaîne en véritable objet JSON
+	return Genie.Renderer.Json.json(chJSON)
+end
+
 # Route modifiant l'état des créneaux d'une ressource pour une semaine donnée
 # l'URL d'appel sera du type :
 # http://serveur:8000/affecteLesCreneaux?ressource=belhomme&semaine=38&liste=1,2,...
@@ -336,6 +350,7 @@ function force_compile()
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/ajoutSalle?nomSalle=?")
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/selectSalles") 
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/selectPublic")
+	Genie.Requests.HTTP.request("GET", "http://serveur:8000/CheckSalles?nomSalles=?")
 
 end
   

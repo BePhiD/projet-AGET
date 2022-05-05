@@ -136,17 +136,6 @@ function fabriqueCreneauFromFormulaire() {
 		alert("Caractères interdits: '[' et ']'");
 		return;
 	}
-	//vérifie que la classe entrée existe
-	if(public.toUpperCase()!="PROMO1" && public.toUpperCase()!="PROMO2" &&
-	 public.toUpperCase()!="TD11" && public.toUpperCase()!="TD21" && 
-	 public.toUpperCase()!="TP11" && public.toUpperCase()!="TP21" && 
-	 public.toUpperCase()!="TP31" && public.toUpperCase()!="TP41" && 
-	 public.toUpperCase()!="TD12" && public.toUpperCase()!="TD22" &&
-	 public.toUpperCase()!="TP12" && public.toUpperCase()!="TP22" && 
-	 public.toUpperCase()!="TP32" && public.toUpperCase()!="TP42"){
-		alert("Le public entré doit être une classe existante.");
-        return;
-	}
 	
     //Vérification pour voir si les heures sont bien découpées par périodes de 15 minutes et d'une durée max de 4h
     if (duree != "15" && duree != "30" && duree != "45" && duree != "60" && 
@@ -158,10 +147,44 @@ function fabriqueCreneauFromFormulaire() {
         return;
     }
 
-        matiere = matiere.charAt(0).toUpperCase() + matiere.slice(1).toLowerCase();
-       	prof = prof.charAt(0).toUpperCase() + prof.slice(1).toLowerCase();
-        public = public.charAt(0).toUpperCase() + public.slice(1).toLowerCase();
-        creeCreneau(type.toUpperCase(), matiere, prof, lieu.toUpperCase(), public, duree);
+    	const words = lieu.replace(/ /g,'').split(',');
+
+		var i;
+	    var ok=false;
+	    var temp;
+	    var url;
+		for (i=0; i<words.length; i++){
+			temp = words[i].toUpperCase();
+			url = "http://localhost:8000/CheckSalles?nomSalles="+temp;
+			$.getJSON( url, function( data ) {
+            // Récupère l'objet JSON (en fait un tableau de JSON)
+            // Mais s'il est vide la chaîne retournée est ']' ; donc quitter !
+	            if (data == "]") {
+	                return;
+	            }
+	            obj = JSON.parse(data);
+	            // Balaye tous les éléments du tableau
+	            for (var i = 0; i<obj.length; i++) {
+	                var OkOuPasOk = obj[i]["OkOuPasOk"];
+	                if (OkOuPasOk == false){
+	                	alert(words[i] + " n'existe pas, veuillez créer la salle.")
+	                	ok = false
+	                	return
+	                }else{
+	                	ok = true
+	                }
+	            }
+        	}); 
+	    }
+	    alert(ok);
+    	if (ok == true){
+	        matiere = matiere.charAt(0).toUpperCase() + matiere.slice(1).toLowerCase();
+	       	prof = prof.charAt(0).toUpperCase() + prof.slice(1).toLowerCase();
+	        public = public.charAt(0).toUpperCase() + public.slice(1).toLowerCase();
+	        creeCreneau(type.toUpperCase(), matiere, prof, lieu.toUpperCase(), public, duree);
+	        return;
+    	}
+
     }
 
  //fonction qui remplit la liste des profs

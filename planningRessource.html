@@ -20,7 +20,7 @@
           <p>
             <a href="planificationSemaine.html"
                title="Définir les créneaux affectés à une semaine">
-              <img src="images/group_post_it.jpg" width="60"></a>
+              <img src="images/group_post_it.png" width="60"></a>
           </p>
           <p>
         <a href="#" id="addProf"
@@ -38,13 +38,8 @@
               <select id="laRessource">
                 
               </select>
-              <input type="button" id="Planning" value="Afficher semaine" onclick="stockagesemaine()">
               <FORM NAME="Choix">
-            <script type="text/javascript">
-                function stockagesemaine(){
-                  var num =parseInt($("#laSemaine").val());
-                  localStorage.setItem("num", num);
-                }
+           
               </script>
               <script type="text/javascript">
                 document.getElementById("laSemaine").value = localStorage.getItem("num");

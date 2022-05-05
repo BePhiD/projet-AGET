@@ -165,6 +165,24 @@ function insererProf(nomProf)
     creeFichierDatPourProfOuSalle(nomProf, "Création du prof : ")
 end
 
+function checkExistanceSalles(nomSalles)
+      print(nomSalles*"\n")
+      r = """ select nomSalle from salles """
+      df = DataFrame(DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), r))
+      df.str_sub_number = string.(df.nomSalle)
+      print(df.str_sub_number)
+      print("\n")
+        if (nomSalles in df.str_sub_number)
+             print("ok!")
+             df2 = DataFrame(OkOuPasOk=true)
+             return df2
+        end
+      print("pas ok!")
+      df2 = DataFrame(OkOuPasOk=false)
+      return df2
+      
+end
+
 function insererSalle(nomSalle)
     r = getSalleidmax()
     r = size(r, 1)
