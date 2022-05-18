@@ -175,7 +175,7 @@ lstOnglets = []
             push!(lstOnglets, e)
         end
     end
-    print(lstOnglets)
+    return lstOnglets
 end
 
 ### PROGRAMME PRINCIPAL

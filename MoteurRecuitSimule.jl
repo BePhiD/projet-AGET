@@ -35,6 +35,7 @@ end
 Par défaut la collection de créneaux à placer est vide. Le moteur ne pourra
 tourner que si le moteur est 'alimenté' en créneaux à traiter. =#
 function prepareMoteur(numSemaine)
+
     M = Moteur("", numSemaine, Dict(),Dict(),Dict(), [],[],
                PROBA_INITIALE, 0, 0, 0.0)
     M.info = "Je suis le moteur qui bosse sur la semaine $numSemaine..."
@@ -101,9 +102,9 @@ function chargeLesGroupes(M)
 end
 
 #fonction chargée de la création du csv
-function createCSV(numSemaine)
+function createCSV(numSemaine, tour)
   # new file created
-  nom = "s"*string(numSemaine)*".csv"
+  nom = "s"*string(numSemaine)*"_"*string(tour)*".csv"
   touch(nom)
 end
 
@@ -205,6 +206,7 @@ function runMoteur(M)
     M.rendement = round(10000 * nbCrBienPlaces / M.nbCreneaux) / 100
 end
 
+#Créer le csv
 function creerCsvDepuisDonnees(numSemaine, jour, matiere, typeDeCours, numApogee, heure, duree, professeur, salleDeCours, public, nom)
   df = DataFrame(semaine = [numSemaine], JourduCours = [jour],  matiere = [matiere], typeCr = [typeDeCours], numApogee = [numApogee], heure = [heure], duree = [duree], professeur = [professeur], salleDeCours = [salleDeCours], public = [public])
   CSV.write(nom, df, header = false, append = true, delim=';')
@@ -212,8 +214,8 @@ end
 
 # Fonction qui affiche l'emploi du temps calculé
 #TODO: devra modifier le fichier original
-function afficheEDT(M, numSemaine)
-    nom = "s"*string(numSemaine)*".csv"
+function afficheEDT(M, numSemaine, tour)
+    nom = "s"*string(numSemaine)*"_"*string(tour)*".csv"
     println("[++++]Créneaux placés...")
     for e in M.collCreneauxP   
     #remplit le csv après calcul
@@ -234,23 +236,27 @@ function afficheEDT(M, numSemaine)
 end
 
 ### PROGRAMME PRINCIPAL
-numSemaine = parse(Int, ARGS[1])          # lit la ligne de commande
-
-nbEDTCalcules = 1
-createCSV(numSemaine)
-# file handling in write mode
-nom = "s"*string(numSemaine)*".csv" 
-efg = open(nom, "w")
-try
-    global nbEDTCalcules = parse(Int, ARGS[2])  # global sinon interne au try
-catch
-    println("Par défaut calcul d'un seul emploi du temps.")
-end
-for tour in 1:nbEDTCalcules
-    println("*** Tour n°", tour, "/", nbEDTCalcules, " ***")
-    moteur = prepareMoteur(numSemaine)
-    runMoteur(moteur)
-    #à modifier
-    #creerCsvDepuisDonnees(numSemaine, "jour", "nomModule", "maths", "numApogee", "08h00", 180, "Meignen", "C2", "promo1", nom)
-    afficheEDT(moteur, numSemaine)
+function programmePrincipal(semaine, nbEDTCalcules)
+	semaine = Int(semaine)
+	nbEDTCalcules = Base.parse(Int64, nbEDTCalcules)
+	for tour in 1:nbEDTCalcules
+		print("ici la v1!")
+		createCSV(semaine, tour)
+		print("ici la v2!")
+		# file handling in write mode
+		nom = "s"*string(semaine)*"_"*string(tour)*".csv"
+		print("ici la v3!")
+		efg = open(nom, "w")
+		print("ici la v4!")
+	    println("*** Tour n°", tour, "/", nbEDTCalcules, " ***")
+	    print("ici la v5!")
+	    moteur = prepareMoteur(semaine)
+	    print("ici la v6!")
+	    runMoteur(moteur)
+	    print("ici la v7!")
+	    #à modifier
+	    #creerCsvDepuisDonnees(semaine, "jour", "nomModule", "maths", "numApogee", "08h00", 180, "Meignen", "C2", "promo1", nom)
+	    afficheEDT(moteur, semaine, tour)
+	    print("ici la v8!")
+	end
 end

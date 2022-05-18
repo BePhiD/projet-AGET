@@ -112,16 +112,15 @@ $(document).ready(function() {
             obj = JSON.parse(data);
             // Balaye tous les éléments du tableau
             for (var i = 0; i<obj.length; i++) {
-                var uuid = obj[i]["uuid"];
                 var nomProf = obj[i]["nomProf"];
                 
                 // Construit le code du <div> qui sera injecté dans la zone du prévisionnel
-                ch = fabriqueListeProf(uuid, nomProf);
+                ch = fabriqueListeProf(nomProf);
             }
         }); 
     }
     //insère chaque prof dans la liste
-    function fabriqueListeProf(uuid, nomProf){
+    function fabriqueListeProf(nomProf){
         var select = document.getElementById("laRessource");
         var optn = nomProf;
         var el = document.createElement("option");

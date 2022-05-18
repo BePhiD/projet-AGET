@@ -11,6 +11,7 @@ include("CONSTANTES.jl")         # pour disposer des constantes de l'application
 include("PlanningSemaine.jl")           # pour affecter un créneau dans un x.dat
 include("bddPlanificationSemaine.jl")   # pour gérer la base de données
 include("Groupes.jl")
+include("MoteurRecuitSimule.jl")
 
 # Info trouvée notamment sur :
 # https://docs.juliahub.com/Genie/8eazC/0.31.5/guides/Simple_API_backend.html
@@ -57,6 +58,26 @@ route("/CheckSalles", method = "GET") do
 	chJSON = "["
 	for L in eachrow(df)
 		ch = """{"OkOuPasOk": "$(L.OkOuPasOk)"},"""
+		chJSON *= ch
+	end
+	# Referme la chaîne de JSON en remplaçant la ',' finale par un ']'
+	chJSON = chJSON[1:end-1] * ']'   #TODO: bizarre que ça marche...
+	# Retourne la conversion de la chaîne en véritable objet JSON
+	return Genie.Renderer.Json.json(chJSON)
+end
+
+route("/recherchePere", method = "GET") do
+    df = recherchePere() 
+	chJSON = "["
+	df1 = DataFrame(grandPere = "")
+	df2 = DataFrame(grandPere = "")
+	for e in df
+		df2 =DataFrame(grandPere = e)
+		append!(df1,df2)
+	end
+	for L in eachrow(df1)
+		print(L.grandPere)
+		ch = """{"grandPere": "$(L.grandPere)"},"""
 		chJSON *= ch
 	end
 	# Referme la chaîne de JSON en remplaçant la ',' finale par un ']'
@@ -149,6 +170,12 @@ route("/selectPublic", method = "GET") do
 	return Genie.Renderer.Json.json(chJSON)
 end
 
+route("/lancerMoteur", method = "GET") do
+	numSemaine = params(:numSemaine, false)
+	nbEDTCalcules = params(:nbEDTCalcules, false)
+	programmePrincipal(numSemaine, nbEDTCalcules)
+end
+
 route("/selectDepartements", method = "GET") do
 	# Appelle la fonction spécifique du module bddPlanificationSemaine.jl
 	lstDep = RetourListeDepartements()
@@ -177,8 +204,7 @@ route("/selectProf", method = "GET") do
 	# Place chaque ligne de la BDD dans une chaîne simulant un tableau de JSON
 	chJSON = "["
 	for L in eachrow(df)
-		ch = """{"uuid": "$(L.uuid)",
-		         "nomProf": "$(L.nomProf)"},"""
+		ch = """{"nomProf": "$(L.nomProf)"},"""
 		chJSON *= ch
 	end
 	# Referme la chaîne de JSON en remplaçant la ',' finale par un ']'
@@ -196,14 +222,32 @@ route("/ajoutProf", method = "GET") do
 	# Retourne la conversion de la chaîne en véritable objet JSON
 end
 
+route("/supprimerProf", method = "GET") do
+	nomProf = params(:nomProf, false)
+	# Appelle la fonction spécifique du module bddPlanificationSemaine.jl
+	supprimerProf(nomProf)
+	# Referme la chaîne de JSON en remplaçant la ',' finale par un ']'
+	#TODO: bizarre que ça marche...
+	# Retourne la conversion de la chaîne en véritable objet JSON
+end
+
+route("/supprimerSalle", method = "GET") do
+	nomSalle = params(:nomSalle, false)
+	# Appelle la fonction spécifique du module bddPlanificationSemaine.jl
+	supprimerSalle(nomSalle)
+	# Referme la chaîne de JSON en remplaçant la ',' finale par un ']'
+	#TODO: bizarre que ça marche...
+	# Retourne la conversion de la chaîne en véritable objet JSON
+end
+
+
 route("/selectSalles", method = "GET") do
 	# Appelle la fonction spécifique du module bddPlanificationSemaine.jl
 	df = selectDonneesSalles()
 	# Place chaque ligne de la BDD dans une chaîne simulant un tableau de JSON
 	chJSON = "["
 	for L in eachrow(df)
-		ch = """{"uuid": "$(L.uuid)",
-		         "nomSalle": "$(L.nomSalle)"},"""
+		ch = """{"nomSalle": "$(L.nomSalle)"},"""
 		chJSON *= ch
 	end
 	# Referme la chaîne de JSON en remplaçant la ',' finale par un ']'
@@ -351,7 +395,10 @@ function force_compile()
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/selectSalles") 
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/selectPublic")
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/CheckSalles?nomSalles=?")
-
+	Genie.Requests.HTTP.request("GET", "http://serveur:8000/recherchePere")
+	Genie.Requests.HTTP.request("GET", "http://serveur:8000/lancerMoteur?numSemaine=?&nbEDTCalcules=?")
+	Genie.Requests.HTTP.request("GET", "http://serveur:8000/supprimerProf?nomProf=?")
+	Genie.Requests.HTTP.request("GET", "http://serveur:8000/supprimerSalle?nomSalle=?")
 end
   
 @async force_compile()

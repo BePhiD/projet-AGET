@@ -17,6 +17,7 @@ using DataFrames
 # Variables globales/CONSTANTES
 NOM_DATABASE_EDT = "bddAutomaticEDT.sql"
 
+#créer la table previsionnelEDT si elle n'existe pas
 function creeFichierEtTableBDD()
 #= Fonction qui devrait être appelée une seule fois, pour créer la BDD
    contenant tous les créneaux inscrits dans le prévisionnel. Certains seront
@@ -42,6 +43,19 @@ function creeFichierEtTableBDD()
    SQLite.execute(db, reqCreation)
 end
 
+#Supprime un prof de la table depuis la page de planning semaine(popup)
+function supprimerProf(nomProf)
+    req = """ DELETE FROM professeurs where nomProf = "$nomProf" """
+    DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req)
+end
+
+#supprime une salle de la table depuis la page de planning semaine(popup2)
+function supprimerSalle(nomSalle)
+    req = """ DELETE FROM salles where nomSalle = "$nomSalle" """
+    DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req)
+end
+
+#supprimer et recréé la table des professeurs
 function creeFichierEtTablePROF()
 #= Fonction qui devrait être appelée une seule fois, pour créer la BDD
    contenant tous les profs.  =#
@@ -49,14 +63,14 @@ function creeFichierEtTablePROF()
    reqsup = """DROP TABLE IF EXISTS professeurs"""
    SQLite.execute(db, reqsup)
    reqCreation = """CREATE TABLE IF NOT EXISTS professeurs (
-       uuid INTEGER PRIMARY KEY NOT NULL,
-       nomProf VARCHAR(30)
+       nomProf VARCHAR(30) PRIMARY KEY NOT NULL
    )"""
    # Ouvre la base de données (mais si le fichier n'existe pas il est créé)
    # Crée la table (TODO: devrait être vidée chaque année !)
    SQLite.execute(db, reqCreation)
 end
 
+#supprimer et recréé la table des salles
 function creeFichierEtTableSalles()
 #= Fonction qui devrait être appelée une seule fois, pour créer la BDD
    contenant toutes les salles.  =#
@@ -64,8 +78,7 @@ function creeFichierEtTableSalles()
    reqsup = """DROP TABLE IF EXISTS salles"""
    SQLite.execute(db, reqsup)
    reqCreation = """CREATE TABLE IF NOT EXISTS salles (
-       uuid INTEGER PRIMARY KEY NOT NULL,
-       nomSalle VARCHAR(30)
+       nomSalle VARCHAR(30) PRIMARY KEY NOT NULL
    )"""
    # Ouvre la base de données (mais si le fichier n'existe pas il est créé)
    # Crée la table (TODO: devrait être vidée chaque année !)
@@ -78,18 +91,6 @@ function inserePROF(id, nom)
     DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req)
 end
 
-# recupere l'id max du dernier prof dans la base
-function getprofidmax()
-  req = """ SELECT uuid from professeurs """
-  rep = DataFrame(DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req))
-  return rep
-end
-
-function getSalleidmax()
-  req = """ SELECT uuid from salles """
-  rep = DataFrame(DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req))
-  return rep
-end
 
 # remplit le csv previsionnel
 function createCSVcreneau(numSemaine, matiere, typeCr, duree, professeur, salleDeCours, public)
@@ -157,14 +158,12 @@ end
 
 # insere un prof depuis la page de semaine
 function insererProf(nomProf)
-    r = getprofidmax()
-    r = size(r, 1)
-    r = r + 1
-    req = """ INSERT INTO professeurs VALUES("$r", "$nomProf") """
+    req = """ INSERT INTO professeurs VALUES("$nomProf") """
     DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req)
     creeFichierDatPourProfOuSalle(nomProf, "Création du prof : ")
 end
 
+#vérifie l'existence d'UNE salle
 function checkExistanceSalles(nomSalles)
       print(nomSalles*"\n")
       r = """ select nomSalle from salles """
@@ -183,34 +182,29 @@ function checkExistanceSalles(nomSalles)
       
 end
 
+#Insere une salle dans la base depuis page planning semaine
 function insererSalle(nomSalle)
-    r = getSalleidmax()
-    r = size(r, 1)
-    r = r + 1
-    req = """ INSERT INTO salles VALUES("$r", "$nomSalle") """
+    req = """ INSERT INTO salles VALUES("$nomSalle") """
     DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req)
     creeFichierDatPourProfOuSalle(nomSalle, "Création de la Salle : ")
 end
 
 # insere un prof depuis le moteur
 function insererProfdepuisMoteur(nomProf)
-    r = getprofidmax()
-    r = size(r, 1)
-    r = r + 1
-    print(r)
-    req = """ INSERT INTO professeurs VALUES("$r", "$nomProf") """
+    req = """ INSERT INTO professeurs VALUES("$nomProf") """
     DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req) 
 end
 
-#= Fonction qui affiche les données de la table prof =#
+#= Fonction qui récupère les données de la table prof =#
 function selectDonneesprof()
-    r = """ select * from professeurs """
+    r = """ select * from professeurs ORDER BY nomProf"""
     df = DataFrame(DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), r))
     return df
 end
 
+#Fonction qui récupère les données de la table des salles
 function selectDonneesSalles()
-    r = """ select * from salles """
+    r = """ select * from salles ORDER BY nomSalle"""
     df = DataFrame(DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), r))
     return df
 end
@@ -239,3 +233,4 @@ updateCreneauBDD("dhhkhgh655865FDFDG", 38, "GIM-2A-FI", "CM", "MATH2",
 afficheDonnees() =#
 #creeFichierEtTablePROF()
 #creeFichierEtTableSalles()
+#checkExistanceSalles("C2")

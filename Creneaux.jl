@@ -10,7 +10,7 @@
 
 include("CONSTANTES.jl")        # pour importer les constantes du système
 include("PlanningSemaine.jl")
-
+ 
 
 # Définition de la structure Creneau (élément pédagogique à placer dans l'EDT)
 mutable struct Creneau

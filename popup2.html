@@ -10,16 +10,16 @@
     <script src="./JS/jquery-ui.js"></script>
     <script src="./JS/ajoutProf.js"></script>
 <body>
-	<h1>Supprimer un professeur:</h1>
+	<h1>Supprimer une salle:</h1>
 	<div class="grossediv">
 		<div class="divtxt">
 			<select id="lesProfs">
 
 			</select>
 			<script type="text/javascript">
-				creerlisteprof();
-				function creerlisteprof(){
-			        var url = "http://localhost:8000/selectProf";
+				creerlistesalle();
+				function creerlistesalle(){
+			        var url = "http://localhost:8000/selectSalles";
 			        $.getJSON( url, function( data ) {
 			            // Récupère l'objet JSON (en fait un tableau de JSON)
 			            // Mais s'il est vide la chaîne retournée est ']' ; donc quitter !
@@ -29,17 +29,17 @@
 			            obj = JSON.parse(data);
 			            // Balaye tous les éléments du tableau
 			            for (var i = 0; i<obj.length; i++) {
-			                var nomProf = obj[i]["nomProf"];
+			                var nomSalle = obj[i]["nomSalle"];
 			                
 			                // Construit le code du <div> qui sera injecté dans la zone du prévisionnel
-			                ch = fabriqueListeProf(nomProf);
+			                ch = fabriqueListesalle(nomSalle);
 			            }
 			        }); 
 			    }
     //insère chaque prof dans la liste
-    function fabriqueListeProf(nomProf){
+    function fabriqueListesalle(nomSalle){
         var select = document.getElementById("lesProfs");
-        var optn = nomProf;
+        var optn = nomSalle;
         var el = document.createElement("option");
         el.textContent = optn;
         el.value = optn;
@@ -51,16 +51,16 @@
 		<br>
 			<div class="divbtn">
 				<script type="text/javascript">
-					function ValiderSupprimerprof(){
+					function ValiderSupprimersalle(){
 						
-							var nom = document.getElementById("lesProfs").value.charAt(0).toUpperCase() + document.getElementById("lesProfs").value.slice(1).toLowerCase();
-						var url = "http://localhost:8000/supprimerProf?nomProf="+ nom;
+							var nom = document.getElementById("lesProfs").value.toUpperCase();
+						var url = "http://localhost:8000/supprimerSalle?nomSalle="+ nom;
 						$.ajax({url: url});
-						alert("La personne a été supprimée");
+						alert("La salle a été supprimée");
 						location.reload();
 					}
 				</script>
-			<button id="btnVD" class="btnVD" onclick="ValiderSupprimerprof()"> Valider</button>
+			<button id="btnVD" class="btnVD" onclick="ValiderSupprimersalle()"> Valider</button>
 		</div>
 	</div>
 </body>

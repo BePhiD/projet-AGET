@@ -176,7 +176,6 @@ function fabriqueCreneauFromFormulaire() {
 	            }
         	}); 
 	    }
-	    alert(ok);
     	if (ok == true){
 	        matiere = matiere.charAt(0).toUpperCase() + matiere.slice(1).toLowerCase();
 	       	prof = prof.charAt(0).toUpperCase() + prof.slice(1).toLowerCase();
@@ -185,6 +184,112 @@ function fabriqueCreneauFromFormulaire() {
 	        return;
     	}
 
+    }
+
+
+    function creerLesOnglets(){
+    	var number=-1;
+    	var url = "http://localhost:8000/recherchePere";
+        $.getJSON( url, function( data ) {
+            // Récupère l'objet JSON (en fait un tableau de JSON)
+            // Mais s'il est vide la chaîne retournée est ']' ; donc quitter !
+            if (data == "]") {
+                return;
+            }
+            obj = JSON.parse(data);
+            // Balaye tous les éléments du tableau
+            for (var i = 0; i<obj.length; i++) {
+            	if (number >=0){
+	                var grandPere = obj[i]["grandPere"];
+	                // Construit le code du <div> qui sera injecté dans la zone du prévisionnel
+	                ch = fabriqueUnOnglet(grandPere, number);
+            	}
+                number= number+1;
+            }
+        }); 
+    }
+
+    function fabriqueUnOnglet(grandPere, number){
+    	if (number == 0){
+	    	var select = document.getElementById("departements");
+	        var el = document.createElement("li");
+	        el.setAttribute("class", "ui-tabs-tab ui-corner-top ui-state-default ui-tab ui-tabs-active ui-state-active");
+	        el.setAttribute("role","tab");
+	        el.setAttribute("tabindex", number.toString());
+	        el.setAttribute("aria-controls", "previsionnel-"+number.toString());
+	        var number2 = number+1;
+	        el.setAttribute("aria-labelledby", "ui-id-"+number2.toString());
+	        el.setAttribute("aria-selected", "true");
+	        el.setAttribute("aria-expanded", "true");
+	        var a = document.createElement('a'); 
+	        a.setAttribute("id","ui-id-"+number2.toString());
+	        a.setAttribute("class","ui-tabs-anchor");
+	        var link = document.createTextNode(grandPere);
+	        a.appendChild(link); 
+	        a.title = "#"+grandPere; 
+	        a.href = "#previsionnel-"+number.toString(); 
+	        a.setAttribute("tabindex", "-1");
+	        el.appendChild(a);
+	        select.appendChild(el);
+
+	        var select2 = document.getElementById("previsionnel");
+	        var el2 = document.createElement("div");
+	        el2.setAttribute("id", "previsionnel-"+number.toString());
+	        el2.setAttribute("class", "ui-tabs-panel ui-corner-bottom ui-widget-content");
+	        el2.setAttribute("aria-labelledby", "ui-id-"+number2.toString());
+	        el2.setAttribute("role", "tabpanel");
+	        el2.setAttribute("aria-hidden", "false");
+	        select2.appendChild(el2);	
+		}else{
+			var select = document.getElementById("departements");
+	        var el = document.createElement("li");
+	        el.setAttribute("class", "ui-tabs-tab ui-corner-top ui-state-default ui-tab");
+	        el.setAttribute("role","tab");
+	        el.setAttribute("tabindex", "-"+number.toString());
+	        el.setAttribute("aria-controls", "previsionnel-"+number.toString());
+	        var number2 = number+1;
+	        el.setAttribute("aria-labelledby", "ui-id-"+number2.toString());
+	        el.setAttribute("aria-selected", "false");
+	        el.setAttribute("aria-expanded", "false");
+	        var a = document.createElement('a'); 
+	        a.setAttribute("id","ui-id-"+number2.toString());
+	        a.setAttribute("class","ui-tabs-anchor");
+	        var link = document.createTextNode(grandPere);
+	        a.appendChild(link); 
+	        a.title = "#"+grandPere; 
+	        a.href = "#previsionnel-"+number.toString(); 
+	        a.setAttribute("tabindex", "-1");
+	        el.appendChild(a);
+	        select.appendChild(el);
+
+	        var select2 = document.getElementById("previsionnel");
+	        var el2 = document.createElement("div");
+	        el2.setAttribute("id", "previsionnel-"+number.toString());
+	        el2.setAttribute("class", "ui-tabs-panel ui-corner-bottom ui-widget-content");
+	        el2.setAttribute("aria-labelledby", "ui-id-"+number2.toString());
+	        el2.setAttribute("role", "tabpanel");
+	        el2.setAttribute("aria-hidden", "true");
+	        el2.setAttribute("style", "display: none;");
+	        select2.appendChild(el2);
+		}	        
+	}
+
+    function fabriqueOngletsDep(){
+        var select = document.getElementById("departements");
+        var el = document.createElement("li");
+        var a = document.createElement('a'); 
+        var link = document.createTextNode("GIM-1A-FI");
+        a.appendChild(link); 
+        a.title = "#GIM-1A-FI"; 
+        a.href = "#previsionnel-0"; 
+        el.appendChild(a);
+        select.appendChild(el);
+
+        var select2 = document.getElementById("previsionnel");
+        var el2 = document.createElement("div");
+        el2.setAttribute("id", "previsionnel-0");
+        select2.appendChild(el2);
+        
     }
 
  //fonction qui remplit la liste des profs
@@ -199,16 +304,15 @@ function fabriqueCreneauFromFormulaire() {
             obj = JSON.parse(data);
             // Balaye tous les éléments du tableau
             for (var i = 0; i<obj.length; i++) {
-                var uuid = obj[i]["uuid"];
                 var nomProf = obj[i]["nomProf"];
                 
                 // Construit le code du <div> qui sera injecté dans la zone du prévisionnel
-                ch = fabriqueListeProf(uuid, nomProf);
+                ch = fabriqueListeProf(nomProf);
             }
         }); 
     }
     //insère chaque prof dans la liste
-    function fabriqueListeProf(uuid, nomProf){
+    function fabriqueListeProf(nomProf){
         var select = document.getElementById("prof");
         var optn = nomProf;
         var el = document.createElement("option");
@@ -229,16 +333,15 @@ function fabriqueCreneauFromFormulaire() {
             obj = JSON.parse(data);
             // Balaye tous les éléments du tableau
             for (var i = 0; i<obj.length; i++) {
-                var uuid = obj[i]["uuid"];
                 var nomSalle = obj[i]["nomSalle"];
                 
                 // Construit le code du <div> qui sera injecté dans la zone du prévisionnel
-                ch = fabriqueListeSalle(uuid, nomSalle);
+                ch = fabriqueListeSalle(nomSalle);
             }
         }); 
     }
     //insère chaque prof dans la liste
-    function fabriqueListeSalle(uuid, nomSalle){
+    function fabriqueListeSalle(nomSalle){
         var select = document.getElementById("lieu");
         var optn = nomSalle;
         var el = document.createElement("option");
@@ -248,24 +351,7 @@ function fabriqueCreneauFromFormulaire() {
         
     }
 
-    function fabriqueOngletsDep(){
-        var select = document.getElementById("departements");
-        var optn = "gim";
-        var el = document.createElement("li");
-        var a = document.createElement('a'); 
-        var link = document.createTextNode("GIM-1A-FI");
-        a.appendChild(link); 
-        a.title = "#GIM-1A-FI"; 
-        a.href = "#previsionnel-0"; 
-        el.appendChild(a);
-        select.appendChild(el);
-
-        var select2 = document.getElementById("previsionnel");
-        var el2 = document.createElement("div");
-        el2.setAttribute("id", "previsionnel-0");
-        select2.appendChild(el2);
-        
-    }
+    
 
     function afficherPublic(){
         var url = "http://localhost:8000/selectPublic";
@@ -324,7 +410,7 @@ function creeCreneau(type, matiere, prof, lieu, public, duree, zone="") {
         var nomOnglet = "corbeille";         // et on retient son nom
     }
     // Rend ce nouvel élément du DOM "draggable"
-    $("#"+uuid).draggable({
+    $("#"+uuid).draggable({ 
         opacity: 0.5,
         revert: "invalid"
     });
@@ -353,7 +439,7 @@ $(document).ready(function() {
     afficherProf();
     afficherSalles();
     afficherPublic();
-    fabriqueOngletsDep();
+    //creerLesOnglets();
     // Permet de mettre en oeuvre le système d'onglets de jquery-ui
     $( "#previsionnel" ).tabs();
 
@@ -443,6 +529,26 @@ $(document).ready(function() {
             $('#btAjoutCreneau').show();         // montre le bouton '+'
         });
     }
+
+$("#lancerMot").on("click", function(){
+	numSemaine = $("#laSemaine").val();
+	var result = prompt("Nombre de tour(s) souhaité(s) (max: 10):");
+	try{
+		if (parseInt(result) <= 10 && parseInt(result) > 0){
+			var url2 ="http://localhost:8000/lancerMoteur?numSemaine="+numSemaine+"&nbEDTCalcules="+result;
+			$.ajax({url: url2});
+		}else{
+			alert("la valeur doit être contenue entre 1 et 10.");
+		}
+	}catch(e){
+		alert("Il ne faut qu'un nombre! Pas d'autres caractères!");
+	}
+});
+
+$("#supProf").on("click", function(){
+	var myWindow = window.open("popup.html", "", "width=600,height=500,top=200,left=360");
+	
+});
 
 $("#makeCSV").on("click", function() {
 		numSemaine = $("#laSemaine").val().toString();
@@ -576,6 +682,11 @@ $("#makeCSV").on("click", function() {
         }
     });
 
+
+$("#supSalle").on("click", function(){
+	var myWindow = window.open("popup2.html", "", "width=600,height=500,top=200,left=360");
+	
+});
 	
     // Action après clic sur bouton "+"
     $('#btAjoutCreneau').on('click', function(e) {
