@@ -237,7 +237,7 @@ end
 
 ### PROGRAMME PRINCIPAL
 function programmePrincipal(semaine, nbEDTCalcules)
-	semaine = Int(semaine)
+	semaine = Base.parse(Int64, semaine)
 	nbEDTCalcules = Base.parse(Int64, nbEDTCalcules)
 	for tour in 1:nbEDTCalcules
 		print("ici la v1!")

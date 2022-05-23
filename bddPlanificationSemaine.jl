@@ -9,13 +9,25 @@
 # Les créneaux font partie d'une promo ou bien sont dans une corbeille.
 
 include("CONSTANTES.jl")        # pour importer les constantes du système
-include("Creneaux.jl")
 using SQLite
 using CSV
 using DataFrames
 
 # Variables globales/CONSTANTES
 NOM_DATABASE_EDT = "bddAutomaticEDT.sql"
+
+#Réinitialise toutes les données, vidant la base de toutes informations
+function viderToutesInfos()
+  creeFichierEtTableBDD()
+  creeFichierEtTablePROF()
+  creeFichierEtTableSalles()
+  rm("creneau", recursive=true)
+  mkdir("creneau")
+  rm("PLANNINGS", recursive=true)
+  mkdir("PLANNINGS")
+  rm("DATAS", recursive=true)
+  mkdir("DATAS")
+end
 
 #créer la table previsionnelEDT si elle n'existe pas
 function creeFichierEtTableBDD()
@@ -39,6 +51,8 @@ function creeFichierEtTableBDD()
    )"""
    # Ouvre la base de données (mais si le fichier n'existe pas il est créé)
    db = SQLite.DB(NOM_DATABASE_EDT)
+   reqsup = """DROP TABLE IF EXISTS previsionnelEDT"""
+   SQLite.execute(db, reqsup)
    # Crée la table (TODO: devrait être vidée chaque année !)
    SQLite.execute(db, reqCreation)
 end
@@ -192,7 +206,11 @@ end
 # insere un prof depuis le moteur
 function insererProfdepuisMoteur(nomProf)
     req = """ INSERT INTO professeurs VALUES("$nomProf") """
+    try
     DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req) 
+    catch
+      print("Ce professeur existe déjà!")
+    end
 end
 
 #= Fonction qui récupère les données de la table prof =#
@@ -234,3 +252,10 @@ afficheDonnees() =#
 #creeFichierEtTablePROF()
 #creeFichierEtTableSalles()
 #checkExistanceSalles("C2")
+
+
+
+
+#POUR VIDER BASE ET DONNEES INTERNE!!!!!
+#NE SURTOUT PAS LANCER LE SERVEUR SI LA LIGNE CI-DESSOUS N'EST PAS EN COMMENTAIRE!!!!!
+#viderToutesInfos()

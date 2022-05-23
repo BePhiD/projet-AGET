@@ -49,7 +49,7 @@ function analyseListeDesCreneaux(numSemaine)
         salles    = [strip(s) for s in salles]  # retire les espaces en trop
         nomModule = tabCr[3]
         typeCr    = tabCr[4]
-        duree     = parse(Int, tabCr[7])
+        duree     = Base.parse(Int64, string(tabCr[7]))
         # Crée une instance d'objet de la structure Creneau (par défaut valide)
         c = Creneau(groupe, prof, salles, nomModule, typeCr, duree,
                     "", "", "",0, 0, 0)

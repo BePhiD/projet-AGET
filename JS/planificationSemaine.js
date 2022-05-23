@@ -146,7 +146,7 @@ function fabriqueCreneauFromFormulaire() {
         alert("La durée ne correspond pas, elle doit être découpée par période de 15 minutes (exemple: 15, 30, 45, 60...) pour une durée max de 5 heures(300 minutes).");
         return;
     }
-
+    /*
     	const words = lieu.replace(/ /g,'').split(',');
 
 		var i;
@@ -163,6 +163,8 @@ function fabriqueCreneauFromFormulaire() {
 	                return;
 	            }
 	            obj = JSON.parse(data);
+        	}); 
+
 	            // Balaye tous les éléments du tableau
 	            for (var i = 0; i<obj.length; i++) {
 	                var OkOuPasOk = obj[i]["OkOuPasOk"];
@@ -174,7 +176,6 @@ function fabriqueCreneauFromFormulaire() {
 	                	ok = true
 	                }
 	            }
-        	}); 
 	    }
     	if (ok == true){
 	        matiere = matiere.charAt(0).toUpperCase() + matiere.slice(1).toLowerCase();
@@ -184,9 +185,16 @@ function fabriqueCreneauFromFormulaire() {
 	        return;
     	}
 
+	*/
+			matiere = matiere.charAt(0).toUpperCase() + matiere.slice(1).toLowerCase();
+            prof = prof.charAt(0).toUpperCase() + prof.slice(1).toLowerCase();
+            public = public.charAt(0).toUpperCase() + public.slice(1).toLowerCase();
+            creeCreneau(type.toUpperCase(), matiere, prof, lieu.toUpperCase(), public, duree);
+            return;
+	     
     }
 
-
+    //fonction qui permet d'afficher les onglets à partir du fichier .cfg | non fonctionnel
     function creerLesOnglets(){
     	var number=-1;
     	var url = "http://localhost:8000/recherchePere";
@@ -209,6 +217,7 @@ function fabriqueCreneauFromFormulaire() {
         }); 
     }
 
+    //fonction qui fabrique un des onglets de creerLesOngletq
     function fabriqueUnOnglet(grandPere, number){
     	if (number == 0){
 	    	var select = document.getElementById("departements");
@@ -274,6 +283,7 @@ function fabriqueCreneauFromFormulaire() {
 		}	        
 	}
 
+/*
     function fabriqueOngletsDep(){
         var select = document.getElementById("departements");
         var el = document.createElement("li");
@@ -291,6 +301,7 @@ function fabriqueCreneauFromFormulaire() {
         select2.appendChild(el2);
         
     }
+*/
 
  //fonction qui remplit la liste des profs
     function afficherProf(){
@@ -322,6 +333,7 @@ function fabriqueCreneauFromFormulaire() {
         
     }
 
+    //fonction qui remplit la liste des salles
     function afficherSalles(){
         var url = "http://localhost:8000/selectSalles";
         $.getJSON( url, function( data ) {
@@ -340,7 +352,7 @@ function fabriqueCreneauFromFormulaire() {
             }
         }); 
     }
-    //insère chaque prof dans la liste
+    //insère chaque salle dans la liste
     function fabriqueListeSalle(nomSalle){
         var select = document.getElementById("lieu");
         var optn = nomSalle;
@@ -352,7 +364,7 @@ function fabriqueCreneauFromFormulaire() {
     }
 
     
-
+     //fonction qui remplit la liste des publics
     function afficherPublic(){
         var url = "http://localhost:8000/selectPublic";
         $.getJSON( url, function( data ) {
@@ -372,7 +384,7 @@ function fabriqueCreneauFromFormulaire() {
             }
         }); 
     }
-    //insère chaque prof dans la liste
+    //insère chaque public dans la liste
     function fabriqueListePublic(groupes){
         var select = document.getElementById("public");
         var optn = groupes;
@@ -435,10 +447,10 @@ $(document).ready(function() {
     
 	
     $("#formulaire").children().hide();
-    $('#btAjoutCreneau').hide();
     afficherProf();
     afficherSalles();
     afficherPublic();
+    
     //creerLesOnglets();
     // Permet de mettre en oeuvre le système d'onglets de jquery-ui
     $( "#previsionnel" ).tabs();
@@ -458,10 +470,19 @@ $(document).ready(function() {
         } 
     });
     remplirCreneaux();
-
+	if ($("#laSemaine").val()>0 && $("#laSemaine").val()<53){
+    		$('#btAjoutCreneau').show(); 
+    }else{
+    		$('#btAjoutCreneau').hide();
+    }
     // Action après saisie/changement de numéro de semaine
     $("#laSemaine").on("change", function() {
     	remplirCreneaux();
+    	if ($("#laSemaine").val()>0 && $("#laSemaine").val()<53){
+    		$('#btAjoutCreneau').show(); 
+    	}else{
+    		$('#btAjoutCreneau').hide();
+    	}
     });
 
 
@@ -530,6 +551,7 @@ $(document).ready(function() {
         });
     }
 
+//lance le moteur recuit simule quand on appuit sur le bouton correspondant
 $("#lancerMot").on("click", function(){
 	numSemaine = $("#laSemaine").val();
 	var result = prompt("Nombre de tour(s) souhaité(s) (max: 10):");
@@ -545,11 +567,13 @@ $("#lancerMot").on("click", function(){
 	}
 });
 
+//permet de supprimer un prof quand on appuit sur le bouton correspondant
 $("#supProf").on("click", function(){
 	var myWindow = window.open("popup.html", "", "width=600,height=500,top=200,left=360");
 	
 });
 
+//permet de creer le cvs prévisionnel quand on appuit sur le bouton correspondant
 $("#makeCSV").on("click", function() {
 		numSemaine = $("#laSemaine").val().toString();
 		var url2 = "http://localhost:8000/createanddeleteCsv?numSemaine="+numSemaine; 
@@ -595,65 +619,7 @@ $("#makeCSV").on("click", function() {
 	});
 
 
-/*
-    // Action suite au clic sur le bouton "makeCSV"
-    $("#makeCSV").on("click", function() {
-		var numeroSemaine = $("#laSemaine").val();
-    	var url = "http://localhost:8000/selectCreneaux?semaine="+numeroSemaine;
-        $.getJSON( url, function( data ) {
-            // Récupère l'objet JSON (en fait un tableau de JSON)
-            // Mais s'il est vide la chaîne retournée est ']' ; donc quitter !
-            if (data == "]") {
-                return;
-            }
-            obj = JSON.parse(data);
-            // Balaye tous les éléments du tableau
-			var fichcsv=fabriquecsv();
-            for (var i = 0; i<obj.length; i++) {
-                var uuid = obj[i]["uuid"];
-                var typeDeCours = obj[i]["typeDeCours"];
-                var nomModule = obj[i]["nomModule"];
-                var prof = obj[i]["prof"];
-                var salles = obj[i]["salles"];
-                var groupe = obj[i]["groupe"];
-                var dureeEnMin = obj[i]["dureeEnMin"];
-                var tab = obj[i]["tab"];
-                remplirCSV(uuid, typeDeCours, nomModule, prof, salles, groupe, dureeEnMin, tab, numeroSemaine, fichcsv);
-        	}
-
-    	});
-    })
-
-    function remplirCSV(uuid, typeDeCours, nomModule, prof, salles, groupe, dureeEnMin, tab, numeroSemaine){
-		var fs = require('fs');
-		var csv = require('fast-csv');
-		var ws = fs. createWriteStream('my.csv');
-		csv.write([
-		        [numeroSemaine, '', nomModule, typeDeCours, 'numApogee', '', dureeEnMin, prof, salles, groupe] 
-		    ]).pipe(ws);
-    }
-	
-    function fabriquecsv(){
-    	var fs = require('fs');
-		var csv = require('fast-csv');
-		var ws = fs. createWriteStream('my.csv');
-		csv.write([
-		
-		]).pipe(ws);
-	}
-	
-	*/
-	
-	//function checkServer(url, timeout) {
-	//  	const controller = new AbortController();
-	// 	const signal = controller.signal;
-	// 	const options = { mode: 'no-cors', signal };
-	//  	return fetch(url, options)
-	//    .then(setTimeout(() => { controller.abort() }, timeout))
-	//    .then(response => console.log('Check server response:', response.statusText))
-	//    .catch(error => console.error('Check server error:', error.message));
-	//}
-	
+	//permet d'ajouter un professeur quand on appuit sur le bouton correspondant
 	$("#addProf").on("click", function() {
         var result = prompt("Nom de famille du nouveau Professeur:");
         if(result.trim() != ""){
@@ -662,6 +628,7 @@ $("#makeCSV").on("click", function() {
             var url = "http://localhost:8000/ajoutProf?nomProf="+ nom;
         $.ajax({url: url});
         alert("La personne a été ajouté");
+        location.reload();
         }else{
             alert("La zone ne doit pas être vide.");
             return;
@@ -676,6 +643,7 @@ $("#makeCSV").on("click", function() {
             var url = "http://localhost:8000/ajoutSalle?nomSalle="+ nom;
         $.ajax({url: url});
         alert("La salle a été ajouté");
+        location.reload();
         }else{
             alert("La zone ne doit pas être vide.");
             return;

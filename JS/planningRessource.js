@@ -197,7 +197,11 @@ $(document).ready(function() {
         $.ajax({url: url});
     });
 
+    //supprime un professeur quand on appuis sur le bouton correspondant
+    $("#supProf").on("click", function(){
+    var myWindow = window.open("popup.html", "", "width=600,height=500,top=200,left=360");
     
+    });
 
     // Gère les clics sur les noms de jour (CTRL -> occupé SHIFT+CTRL -> libéré)
     $(".nomJour").on("click", function(e) {
