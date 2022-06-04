@@ -15,8 +15,7 @@ $(document).ready(function() {
         /*$.each( data, function( key, val ) {
             console.log( key + ":" + val );
         });*/
-        afficherProf();
-        var ready;
+        
         // Cache par défaut le bouton "VALIDER"
         $("#btValider").hide();
 
@@ -101,7 +100,7 @@ $(document).ready(function() {
         });
     }
     //fonction qui remplit la liste des profs
-    function afficherProf(){
+    async function afficherProf(){
         var url = "http://localhost:8000/selectProf";
         $.getJSON( url, function( data ) {
             // Récupère l'objet JSON (en fait un tableau de JSON)
@@ -117,7 +116,18 @@ $(document).ready(function() {
                 // Construit le code du <div> qui sera injecté dans la zone du prévisionnel
                 ch = fabriqueListeProf(nomProf);
             }
+            return 1;
         }); 
+    }
+
+    try{
+        afficherProf().then(
+            setTimeout(function () {
+                remplirPlanning()
+            }, 200)
+        );
+    }catch(e){
+        alert(e);
     }
     //insère chaque prof dans la liste
     function fabriqueListeProf(nomProf){

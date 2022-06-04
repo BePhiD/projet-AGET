@@ -146,37 +146,8 @@ function fabriqueCreneauFromFormulaire() {
         alert("La durée ne correspond pas, elle doit être découpée par période de 15 minutes (exemple: 15, 30, 45, 60...) pour une durée max de 5 heures(300 minutes).");
         return;
     }
-    /*
-    	const words = lieu.replace(/ /g,'').split(',');
-
-		var i;
-	    var ok=false;
-	    var temp;
-	    var url;
-		for (i=0; i<words.length; i++){
-			temp = words[i].toUpperCase();
-			url = "http://localhost:8000/CheckSalles?nomSalles="+temp;
-			$.getJSON( url, function( data ) {
-            // Récupère l'objet JSON (en fait un tableau de JSON)
-            // Mais s'il est vide la chaîne retournée est ']' ; donc quitter !
-	            if (data == "]") {
-	                return;
-	            }
-	            obj = JSON.parse(data);
-        	}); 
-
-	            // Balaye tous les éléments du tableau
-	            for (var i = 0; i<obj.length; i++) {
-	                var OkOuPasOk = obj[i]["OkOuPasOk"];
-	                if (OkOuPasOk == false){
-	                	alert(words[i] + " n'existe pas, veuillez créer la salle.")
-	                	ok = false
-	                	return
-	                }else{
-	                	ok = true
-	                }
-	            }
-	    }
+    
+    	
     	if (ok == true){
 	        matiere = matiere.charAt(0).toUpperCase() + matiere.slice(1).toLowerCase();
 	       	prof = prof.charAt(0).toUpperCase() + prof.slice(1).toLowerCase();
@@ -185,13 +156,48 @@ function fabriqueCreneauFromFormulaire() {
 	        return;
     	}
 
-	*/
-			matiere = matiere.charAt(0).toUpperCase() + matiere.slice(1).toLowerCase();
-            prof = prof.charAt(0).toUpperCase() + prof.slice(1).toLowerCase();
-            public = public.charAt(0).toUpperCase() + public.slice(1).toLowerCase();
-            creeCreneau(type.toUpperCase(), matiere, prof, lieu.toUpperCase(), public, duree);
-            return;
+	
+			
 	     
+    }
+
+    async function verifClasseExiste(lieu){
+        const words = lieu.replace(/ /g,'').split(',');
+
+        var i;
+        var ok=false;
+        var temp;
+        var url;
+        for (i=0; i<words.length; i++){
+            temp = words[i].toUpperCase();
+            url = "http://localhost:8000/CheckSalles?nomSalles="+temp;
+            $.getJSON( url, function( data ) {
+            // Récupère l'objet JSON (en fait un tableau de JSON)
+            // Mais s'il est vide la chaîne retournée est ']' ; donc quitter !
+                if (data == "]") {
+                    return;
+                }
+                obj = JSON.parse(data);
+            }); 
+
+                // Balaye tous les éléments du tableau
+                setTimeout(function () {
+                    for (var i = 0; i<obj.length; i++) {
+                        var OkOuPasOk = obj[i]["OkOuPasOk"];
+                        if (OkOuPasOk == false){
+                            alert(words[i] + " n'existe pas, veuillez créer la salle.");
+                            ok = false;
+                            return ok;
+                        }else{
+                            ok = true;
+                        }
+                    }
+                }, 200);
+
+                setTimeout(function () {
+                    return ok;
+                }, 200);
+        }
     }
 
     //fonction qui permet d'afficher les onglets à partir du fichier .cfg | non fonctionnel

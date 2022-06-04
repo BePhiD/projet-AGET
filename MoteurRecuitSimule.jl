@@ -104,7 +104,7 @@ end
 #fonction chargée de la création du csv
 function createCSV(numSemaine, tour)
   # new file created
-  nom = "s"*string(numSemaine)*"_"*string(tour)*".csv"
+  nom = "PLANNINGS_CALCULES\\s"*string(numSemaine)*"_"*string(tour)*".csv"
   touch(nom)
 end
 
@@ -215,7 +215,7 @@ end
 # Fonction qui affiche l'emploi du temps calculé
 #TODO: devra modifier le fichier original
 function afficheEDT(M, numSemaine, tour)
-    nom = "s"*string(numSemaine)*"_"*string(tour)*".csv"
+    nom = "PLANNINGS_CALCULES\\s"*string(numSemaine)*"_"*string(tour)*".csv"
     println("[++++]Créneaux placés...")
     for e in M.collCreneauxP   
     #remplit le csv après calcul
