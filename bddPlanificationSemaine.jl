@@ -19,14 +19,10 @@ NOM_DATABASE_EDT = "bddAutomaticEDT.sql"
 #Réinitialise toutes les données, vidant la base de toutes informations
 function viderToutesInfos()
   creeFichierEtTableBDD()
-  creeFichierEtTablePROF()
-  creeFichierEtTableSalles()
-  rm("creneau", recursive=true)
-  mkdir("creneau")
   rm("PLANNINGS", recursive=true)
   mkdir("PLANNINGS")
-  rm("DATAS", recursive=true)
-  mkdir("DATAS")
+  rm("PLANNINGS_CALCULES", recursive=true)
+  mkdir("PLANNINGS_CALCULES")
 end
 
 #créer la table previsionnelEDT si elle n'existe pas
@@ -69,7 +65,7 @@ function supprimerSalle(nomSalle)
     DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req)
 end
 
-#supprimer et recréé la table des professeurs
+#supprime et recréé la table des professeurs
 function creeFichierEtTablePROF()
 #= Fonction qui devrait être appelée une seule fois, pour créer la BDD
    contenant tous les profs.  =#
@@ -80,11 +76,10 @@ function creeFichierEtTablePROF()
        nomProf VARCHAR(30) PRIMARY KEY NOT NULL
    )"""
    # Ouvre la base de données (mais si le fichier n'existe pas il est créé)
-   # Crée la table (TODO: devrait être vidée chaque année !)
    SQLite.execute(db, reqCreation)
 end
 
-#supprimer et recréé la table des salles
+#supprime et recréé la table des salles
 function creeFichierEtTableSalles()
 #= Fonction qui devrait être appelée une seule fois, pour créer la BDD
    contenant toutes les salles.  =#
@@ -95,7 +90,6 @@ function creeFichierEtTableSalles()
        nomSalle VARCHAR(30) PRIMARY KEY NOT NULL
    )"""
    # Ouvre la base de données (mais si le fichier n'existe pas il est créé)
-   # Crée la table (TODO: devrait être vidée chaque année !)
    SQLite.execute(db, reqCreation)
 end
 
@@ -109,19 +103,20 @@ end
 # remplit le csv previsionnel
 function createCSVcreneau(numSemaine, matiere, typeCr, duree, professeur, salleDeCours, public)
   nom = "s"*string(numSemaine)*".csv"
-  df = DataFrame(semaine = [numSemaine], JourduCours = "",  matiere = [matiere], typeCr = [typeCr], numApogee = "numApogee", heure = "", duree = [duree], professeur = [professeur], salleDeCours = [salleDeCours], public = [public])
-  CSV.write("creneau\\"*nom, df, header = false, append = true, delim=';')
+  df = DataFrame(semaine = [numSemaine], JourduCours = "",  matiere = [matiere], typeCr = [typeCr],
+  numApogee = "numApogee", heure = "", duree = [duree], professeur = [professeur], salleDeCours = [salleDeCours], public = [public])
+  CSV.write("PLANNINGS\\"*nom, df, header = false, append = true, delim=';')
 end
 
 # creer le csv previsionnel et supprime l'ancien s'il existe
 function deleteandcreateCSVcreneau(numSemaine)
   nom = "s"*string(numSemaine)*".csv"
   try
-  rm("creneau\\"*nom)
+  rm("PLANNINGS\\"*nom)
   catch e
   print(e)
   end
-  touch("creneau\\"*nom)
+  touch("PLANNINGS\\"*nom)
 end
 
 #= Fonction qui insère un créneau dans la base de données =#

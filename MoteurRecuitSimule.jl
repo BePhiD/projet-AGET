@@ -240,23 +240,13 @@ function programmePrincipal(semaine, nbEDTCalcules)
 	semaine = Base.parse(Int64, semaine)
 	nbEDTCalcules = Base.parse(Int64, nbEDTCalcules)
 	for tour in 1:nbEDTCalcules
-		print("ici la v1!")
 		createCSV(semaine, tour)
-		print("ici la v2!")
 		# file handling in write mode
 		nom = "s"*string(semaine)*"_"*string(tour)*".csv"
-		print("ici la v3!")
 		efg = open(nom, "w")
-		print("ici la v4!")
 	    println("*** Tour n°", tour, "/", nbEDTCalcules, " ***")
-	    print("ici la v5!")
 	    moteur = prepareMoteur(semaine)
-	    print("ici la v6!")
 	    runMoteur(moteur)
-	    print("ici la v7!")
-	    #à modifier
-	    #creerCsvDepuisDonnees(semaine, "jour", "nomModule", "maths", "numApogee", "08h00", 180, "Meignen", "C2", "promo1", nom)
 	    afficheEDT(moteur, semaine, tour)
-	    print("ici la v8!")
 	end
 end

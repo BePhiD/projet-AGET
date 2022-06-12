@@ -82,7 +82,7 @@ function verifieValiditeDesCreneaux(lstCreneaux)
     for c in lstCreneaux
         erreur = ""                 # vide par défaut
         # Vérifie le prof
-        if !(lowercasefirst(c.prof) * ".dat" in fichiersPresents)
+        if !(uppercasefirst(c.prof) * ".dat" in fichiersPresents)
             # Crée le .dat du prof puisqu'il n'est pas connu
             creeFichierDatPourProfOuSalle(c.prof, "Création du prof : ")
             push!(fichiersPresents, c.prof * ".dat")

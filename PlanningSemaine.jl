@@ -25,7 +25,11 @@ function AffecteCreneau(P, jour, deb, nb, value=false)
     #= Affecte un créneau dans la matrice P désigné par son jour, le rang du
        début et le nombre de cases successives. Pour bloquer un créneau on le
        positionne à false (défaut). Pour le libérer on lui affectera true. =#
-    P[jour,deb:deb+nb-1] .= value
+    try  
+      P[jour,deb:deb+nb-1] .= value
+    catch
+       print(string(jour) * "   " * string(deb) * "   "* string(nb))
+    end
 end
 
 function LibereCreneau(P, jour, deb, nb)

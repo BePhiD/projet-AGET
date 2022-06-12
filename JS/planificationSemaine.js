@@ -147,14 +147,27 @@ function fabriqueCreneauFromFormulaire() {
         return;
     }
     
+    	try{
+            verifClasseExiste(lieu).then(
+            setTimeout(function () {
+                if (ok == "true"){
+                
+                        matiere = matiere.charAt(0).toUpperCase() + matiere.slice(1).toLowerCase();
+                        prof = prof.charAt(0).toUpperCase() + prof.slice(1).toLowerCase();
+                        public = public.charAt(0).toUpperCase() + public.slice(1).toLowerCase();
+                        creeCreneau(type.toUpperCase(), matiere, prof, lieu.toUpperCase(), public, duree);
+                        return;
+            }else{
+                alert("Une ou plusieurs des salles inscrites n'existe(nt) pas." )
+            }
+            }, 1000)
+        );
+            
+        }catch(e){
+            alert(e);
+        }
+
     	
-    	if (ok == true){
-	        matiere = matiere.charAt(0).toUpperCase() + matiere.slice(1).toLowerCase();
-	       	prof = prof.charAt(0).toUpperCase() + prof.slice(1).toLowerCase();
-	        public = public.charAt(0).toUpperCase() + public.slice(1).toLowerCase();
-	        creeCreneau(type.toUpperCase(), matiere, prof, lieu.toUpperCase(), public, duree);
-	        return;
-    	}
 
 	
 			
@@ -165,7 +178,7 @@ function fabriqueCreneauFromFormulaire() {
         const words = lieu.replace(/ /g,'').split(',');
 
         var i;
-        var ok=false;
+        ok=false;
         var temp;
         var url;
         for (i=0; i<words.length; i++){
@@ -183,21 +196,17 @@ function fabriqueCreneauFromFormulaire() {
                 // Balaye tous les éléments du tableau
                 setTimeout(function () {
                     for (var i = 0; i<obj.length; i++) {
-                        var OkOuPasOk = obj[i]["OkOuPasOk"];
-                        if (OkOuPasOk == false){
-                            alert(words[i] + " n'existe pas, veuillez créer la salle.");
-                            ok = false;
-                            return ok;
-                        }else{
-                            ok = true;
-                        }
+                        ok = obj[i]["OkOuPasOk"];
+                        
                     }
-                }, 200);
+                    
+                }, 500);
 
-                setTimeout(function () {
-                    return ok;
-                }, 200);
+                
         }
+        setTimeout(function () {
+            return 1;
+        }, 700);
     }
 
     //fonction qui permet d'afficher les onglets à partir du fichier .cfg | non fonctionnel
@@ -451,7 +460,7 @@ function creeCreneau(type, matiere, prof, lieu, public, duree, zone="") {
 $(document).ready(function() {
     // Désactive tous les éléments du formulaire par défaut et le bouton '+'
     
-	
+	ok = false;
     $("#formulaire").children().hide();
     afficherProf();
     afficherSalles();
@@ -609,16 +618,9 @@ $("#makeCSV").on("click", function() {
                 // Construit le code du <div> qui sera injecté dans la zone du prévisionnel
                 ch = fabriqueCreneauHTML(uuid, typeDeCours, nomModule, prof,
                                         salles, groupe, dureeEnMin, tab);
-                // Détermine dans quelle zone il va falloir insérer le créneau
-                if (tab == "corbeille") {
-                    corb = corb+1; 
-                }
-                else {
-                    // En fonction de la valeur de 'tab' il faudra déterminer
-                    // dans quel onglet le créneau doit se placer.
-                    url3 = url = "http://localhost:8000/createCsv?numSemaine="+numSemaine+"&matiere="+nomModule+"&typeCr="+typeDeCours+"&duree="+dureeEnMin.toString()+"&professeur="+prof+"&salleDeCours="+salles+"&public="+groupe
-                    $.ajax({url: url3});               
-                }
+                url3 = url = "http://localhost:8000/createCsv?numSemaine="+numSemaine+"&matiere="+nomModule+"&typeCr="+typeDeCours+"&duree="+dureeEnMin.toString()+"&professeur="+prof+"&salleDeCours="+salles+"&public="+groupe.toUpperCase()
+                $.ajax({url: url3});               
+                
 			}
 		});
 		alert("Création CSV prévisionnel finie!");
@@ -707,17 +709,7 @@ $("#supSalle").on("click", function(){
 				alert("Caractères interdits: '[' et ']'");
 				return;
 		}
-		//vérifie que la classe entrée existe
-		if(public.toUpperCase()!="PROMO1" && public.toUpperCase()!="PROMO2" &&
-		 public.toUpperCase()!="TD11" && public.toUpperCase()!="TD21" && 
-		 public.toUpperCase()!="TP11" && public.toUpperCase()!="TP21" && 
-		 public.toUpperCase()!="TP31" && public.toUpperCase()!="TP41" && 
-		 public.toUpperCase()!="TD12" && public.toUpperCase()!="TD22" &&
-		 public.toUpperCase()!="TP12" && public.toUpperCase()!="TP22" && 
-		 public.toUpperCase()!="TP32" && public.toUpperCase()!="TP42"){
-			alert("Le public entré doit être une classe existante.");
-	        return;
-	}
+		
         //Vérification pour voir si les heures sont bien découpées par périodes de 15 minutes et d'une durée max de 4h
     if (duree != "15" && duree != "30" && duree != "45" && duree != "60" && 
         duree != "75" && duree != "90" && duree != "105" && duree != "120" && 
@@ -728,44 +720,53 @@ $("#supSalle").on("click", function(){
         return;
     }
     
-    
-    //Vérifie si le mot info est entré dans la matière, si oui, il est converti en majuscule.
-    if(matiere.toUpperCase().includes("INFO")){
-        creeCreneau(type.toUpperCase(), matiere.toUpperCase(), prof, lieu, public, duree);
-        return;
-    }
+    try{
+            verifClasseExiste(lieu).then(
+            setTimeout(function () {
+                if (ok == "true"){
+                
+                        matiere = matiere.charAt(0).toUpperCase() + matiere.slice(1).toLowerCase();
+                        prof = prof.charAt(0).toUpperCase() + prof.slice(1).toLowerCase();
+                        type = type.toUpperCase();
+                        lieu = lieu.toUpperCase();
+                        // Fabrique le texte "html" du créneau puis l'affiche (donc sans <div>)
+                        ch = "<b>" + type + "&nbsp;" + matiere + "</b><br>";
+                        ch += prof + "<br>" + lieu + "<br>";
+                        ch += public + "<br>" + duree;
+                        $("#"+uuid).html(ch);
+                        // Change tous ses attributs pour qu'ils correspondent aux données
+                        // sauf le nom de l'onglet qui restera le même.
+                        $("#"+uuid).attr("data-type", type);
+                        $("#"+uuid).attr("data-matiere", matiere);
+                        $("#"+uuid).attr("data-prof", prof);
+                        $("#"+uuid).attr("data-lieu", lieu);
+                        $("#"+uuid).attr("data-public", public);
+                        $("#"+uuid).attr("data-duree", duree);
+                        // Efface le contenu des champs du formulaire
+                        remplitFormulaire("", "", "", "", "", "", "");
+                        // Désactive le bouton Modifier et remet le bouton Créer
+                        $('#btModifier').hide();
+                        $('#btCreer').show();
+                        // Ré-enregistre ce créneau via un appel à une API julia (UPDATE)
+                        var numeroSemaine = $("#laSemaine").val();
+                        // La MAJ gardera l'onglet/corbeille inchangé
+                        var nomOnglet = $("#"+uuid).attr("data-onglet");
+                        var jsonObj = fromAttrToJSON(numeroSemaine, nomOnglet, uuid);
+                        // Requête AJAX pour modifier le créneau
+                        var url = "http://localhost:8000/updateCreneau?creneau=";
+                        url += JSON.stringify(jsonObj);
+                        $.ajax({url: url});
+            }else{
+                alert("Une ou plusieurs des salles inscrites n'existe(nt) pas. " )
+            }
+            }, 1000)
+        );
+            
+        }catch(e){
+            alert(e);
+        }
     //S'il ne s'agit pas du mot info, alors on ne transforme que la première lettre en majuscule.
-    matiere = matiere.charAt(0).toUpperCase() + matiere.slice(1).toLowerCase();
-    prof = prof.charAt(0).toUpperCase() + prof.slice(1).toLowerCase();
-    type = type.toUpperCase();
-    lieu = lieu.toUpperCase();
-        // Fabrique le texte "html" du créneau puis l'affiche (donc sans <div>)
-        ch = "<b>" + type + "&nbsp;" + matiere + "</b><br>";
-        ch += prof + "<br>" + lieu + "<br>";
-        ch += public + "<br>" + duree;
-        $("#"+uuid).html(ch);
-        // Change tous ses attributs pour qu'ils correspondent aux données
-        // sauf le nom de l'onglet qui restera le même.
-        $("#"+uuid).attr("data-type", type);
-        $("#"+uuid).attr("data-matiere", matiere);
-        $("#"+uuid).attr("data-prof", prof);
-        $("#"+uuid).attr("data-lieu", lieu);
-        $("#"+uuid).attr("data-public", public);
-        $("#"+uuid).attr("data-duree", duree);
-        // Efface le contenu des champs du formulaire
-        remplitFormulaire("", "", "", "", "", "", "");
-        // Désactive le bouton Modifier et remet le bouton Créer
-        $('#btModifier').hide();
-        $('#btCreer').show();
-        // Ré-enregistre ce créneau via un appel à une API julia (UPDATE)
-        var numeroSemaine = $("#laSemaine").val();
-        // La MAJ gardera l'onglet/corbeille inchangé
-        var nomOnglet = $("#"+uuid).attr("data-onglet");
-        var jsonObj = fromAttrToJSON(numeroSemaine, nomOnglet, uuid);
-        // Requête AJAX pour modifier le créneau
-        var url = "http://localhost:8000/updateCreneau?creneau=";
-        url += JSON.stringify(jsonObj);
-        $.ajax({url: url});
+    
     });
 
     /*----------------------------------------
