@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
-# Auteur : Philippe Belhomme
+# Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 # Date Création : mercredi 09 février 2022
-# Date Modification : mardi 15 février 2022
+# Date Modification : dimanche 03 juillet 2022
 # Langage : Julia
 
 # Module : bddPlanificationSemaine
@@ -13,19 +13,16 @@ using SQLite
 using CSV
 using DataFrames
 
-# Variables globales/CONSTANTES
-NOM_DATABASE_EDT = "bddAutomaticEDT.sql"
-
-#Réinitialise toutes les données, vidant la base de toutes informations
+# Réinitialise toutes les données, vidant la BDD SQLite de toutes informations
 function viderToutesInfos()
   creeFichierEtTableBDD()
-  rm("PLANNINGS", recursive=true)
-  mkdir("PLANNINGS")
-  rm("PLANNINGS_CALCULES", recursive=true)
-  mkdir("PLANNINGS_CALCULES")
+  rm(REPERTOIRE_SEM, recursive=true)
+  mkdir(REPERTOIRE_SEM)
+  rm(REPERTOIRE_PLAN, recursive=true)
+  mkdir(REPERTOIRE_PLAN)
 end
 
-#créer la table previsionnelEDT si elle n'existe pas
+# Crée la table previsionnelEDT si elle n'existe pas
 function creeFichierEtTableBDD()
 #= Fonction qui devrait être appelée une seule fois, pour créer la BDD
    contenant tous les créneaux inscrits dans le prévisionnel. Certains seront
@@ -34,12 +31,12 @@ function creeFichierEtTableBDD()
    reqCreation = """CREATE TABLE IF NOT EXISTS previsionnelEDT (
        uuid VARCHAR(36) PRIMARY KEY NOT NULL,
        numSemaine INTEGER,
-       tab VARCHAR(15),
-       typeDeCours VARCHAR(20),
-       nomModule VARCHAR(20),
-       prof VARCHAR(20),
-       salles VARCHAR(40),
-       groupe VARCHAR(20),
+       tab VARCHAR(30),
+       typeDeCours VARCHAR(30),
+       nomModule VARCHAR(30),
+       prof VARCHAR(30),
+       salles VARCHAR(80),
+       groupe VARCHAR(30),
        dureeEnMin INTEGER,
        nomDuJour VARCHAR(20) DEFAULT "",
        horaire VARCHAR(20) DEFAULT "",
@@ -53,70 +50,106 @@ function creeFichierEtTableBDD()
    SQLite.execute(db, reqCreation)
 end
 
-#Supprime un prof de la table depuis la page de planning semaine(popup)
-function supprimerProf(nomProf)
+# Insère un prof depuis la page de semaine
+function insereProf(nomProf)
+    req = """ INSERT INTO professeurs VALUES("$nomProf") """
+    DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req)
+    creeFichierDatPourProfOuSalle(nomProf, "Création du prof : ")
+end
+
+# Supprime un prof de la table depuis la page de planning semaine (via popup)
+function supprimeProf(nomProf)
+    #TODO: on devrait vérifier s'il n'est pas utilisé dans un planning !!!
     req = """ DELETE FROM professeurs where nomProf = "$nomProf" """
     DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req)
+    # Supprime aussi le .dat du prof
+    try
+        rm(REPERTOIRE_DATA * SEP * nomProf * ".dat")
+    catch
+        println("Le fichier .dat du prof ", nomProf, " n'existait pas...")
+    end
 end
 
-#supprime une salle de la table depuis la page de planning semaine(popup2)
-function supprimerSalle(nomSalle)
+#Insere une salle dans la base depuis page planning semaine
+function insereSalle(nomSalle)
+    req = """ INSERT INTO salles VALUES("$nomSalle") """
+    DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req)
+    creeFichierDatPourProfOuSalle(nomSalle, "Création de la Salle : ")
+end
+
+# Supprime une salle de la table depuis la page de planning semaine (via popup2)
+function supprimeSalle(nomSalle)
+    #TODO: on devrait vérifier si elle n'est pas utilisée dans un planning !!!
     req = """ DELETE FROM salles where nomSalle = "$nomSalle" """
     DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req)
+    # Supprime aussi le .dat de la salle
+    try
+        rm(REPERTOIRE_DATA * SEP * nomSalle * ".dat")
+    catch
+        println("Le fichier .dat de la salle ", nomSalle, " n'existait pas...")
+    end
 end
 
-#supprime et recréé la table des professeurs
-function creeFichierEtTablePROF()
+# Supprime et recrée la table des professeurs
+function creeFichierEtTableProf()
 #= Fonction qui devrait être appelée une seule fois, pour créer la BDD
    contenant tous les profs.  =#
    db = SQLite.DB(NOM_DATABASE_EDT)
-   reqsup = """DROP TABLE IF EXISTS professeurs"""
-   SQLite.execute(db, reqsup)
+   reqSup = """DROP TABLE IF EXISTS professeurs"""
+   SQLite.execute(db, reqSup)
    reqCreation = """CREATE TABLE IF NOT EXISTS professeurs (
        nomProf VARCHAR(30) PRIMARY KEY NOT NULL
    )"""
-   # Ouvre la base de données (mais si le fichier n'existe pas il est créé)
    SQLite.execute(db, reqCreation)
 end
 
-#supprime et recréé la table des salles
+# Supprime et recrée la table des salles
 function creeFichierEtTableSalles()
 #= Fonction qui devrait être appelée une seule fois, pour créer la BDD
    contenant toutes les salles.  =#
    db = SQLite.DB(NOM_DATABASE_EDT)
-   reqsup = """DROP TABLE IF EXISTS salles"""
-   SQLite.execute(db, reqsup)
+   reqSup = """DROP TABLE IF EXISTS salles"""
+   SQLite.execute(db, reqSup)
    reqCreation = """CREATE TABLE IF NOT EXISTS salles (
-       nomSalle VARCHAR(30) PRIMARY KEY NOT NULL
+       nomSalle VARCHAR(20) PRIMARY KEY NOT NULL
    )"""
-   # Ouvre la base de données (mais si le fichier n'existe pas il est créé)
    SQLite.execute(db, reqCreation)
 end
 
-# insere un prof dans la base
-function inserePROF(id, nom)
-    req = """ INSERT INTO professeurs VALUES("$id", "$nom") """
-    DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req)
+# Remplit le CSV previsionnel
+function createCSVcreneau(numSemaine, matiere, typeCr, duree, prof, salle, public)
+    nom = "s" * string(numSemaine) * ".csv"
+    df = DataFrame(semaine = [numSemaine], JourduCours = "",  matiere = [matiere],
+                    typeCr = [typeCr], numApogee = "numApogee", heure = "",
+                    duree = [duree], professeur = [prof], salleDeCours = [salle],
+                    public = [public])
+    CSV.write(REPERTOIRE_SEM * '\\' * nom, df, header = false, append = true, delim=';')
 end
 
-
-# remplit le csv previsionnel
-function createCSVcreneau(numSemaine, matiere, typeCr, duree, professeur, salleDeCours, public)
-  nom = "s"*string(numSemaine)*".csv"
-  df = DataFrame(semaine = [numSemaine], JourduCours = "",  matiere = [matiere], typeCr = [typeCr],
-  numApogee = "numApogee", heure = "", duree = [duree], professeur = [professeur], salleDeCours = [salleDeCours], public = [public])
-  CSV.write("PLANNINGS\\"*nom, df, header = false, append = true, delim=';')
-end
-
-# creer le csv previsionnel et supprime l'ancien s'il existe
-function deleteandcreateCSVcreneau(numSemaine)
-  nom = "s"*string(numSemaine)*".csv"
-  try
-  rm("PLANNINGS\\"*nom)
-  catch e
-  print(e)
-  end
-  touch("PLANNINGS\\"*nom)
+#= Supprime le CSV previsionnel et le répertoire des csv calculés, s'il existe,
+   puis crée un nouveau CSV prévisionnel 'vide' et un nouveau dossier qui
+   contiendra les CSV calculés. =#
+function deleteAndCreateCSVcreneau(numSemaine)
+    nomCSVPrev = "s" * string(numSemaine) * ".csv"
+    try
+        # Suppression du fichier CSV prévisionnel
+        rm(REPERTOIRE_SEM * SEP * nomCSVPrev)
+    catch e
+        print(e)
+    end
+    touch(REPERTOIRE_SEM * SEP * nomCSVPrev)   # crée un CSV vide
+    try
+        # Suppression du répertoire des CSV calculés pour la semaine désignée
+        rm(REPERTOIRE_PLAN * SEP * string(numSemaine), recursive=true)
+    catch e
+        print(e)
+    end
+    try
+        # Création du répertoire des CSV calculés pour la semaine désignée
+        mkdir(REPERTOIRE_PLAN * SEP * string(numSemaine))
+    catch e
+        print(e)
+    end
 end
 
 #= Fonction qui insère un créneau dans la base de données =#
@@ -165,46 +198,21 @@ function afficheDonnees()
     println(df)
 end
 
-# insere un prof depuis la page de semaine
-function insererProf(nomProf)
-    req = """ INSERT INTO professeurs VALUES("$nomProf") """
-    DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req)
-    creeFichierDatPourProfOuSalle(nomProf, "Création du prof : ")
+# Vérifie l'existence d'UNE SEULE salle à la fois
+function checkExistanceSalle(nomSalle)
+    r = """ select nomSalle from salles """
+    df = DataFrame(DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), r))
+    reponse = nomSalle in df.nomSalle ? true : false
+    return DataFrame(OkOuPasOk = reponse)
 end
 
-#vérifie l'existence d'UNE salle
-function checkExistanceSalles(nomSalles)
-      print(nomSalles*"\n")
-      r = """ select nomSalle from salles """
-      df = DataFrame(DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), r))
-      df.str_sub_number = string.(df.nomSalle)
-      print(df.str_sub_number)
-      print("\n")
-        if (nomSalles in df.str_sub_number)
-             print("ok!")
-             df2 = DataFrame(OkOuPasOk=true)
-             return df2
-        end
-      print("pas ok!")
-      df2 = DataFrame(OkOuPasOk=false)
-      return df2
-      
-end
-
-#Insere une salle dans la base depuis page planning semaine
-function insererSalle(nomSalle)
-    req = """ INSERT INTO salles VALUES("$nomSalle") """
-    DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req)
-    creeFichierDatPourProfOuSalle(nomSalle, "Création de la Salle : ")
-end
-
-# insere un prof depuis le moteur
-function insererProfdepuisMoteur(nomProf)
+# Insere un prof depuis le moteur
+function insereProfdepuisMoteur(nomProf)
     req = """ INSERT INTO professeurs VALUES("$nomProf") """
     try
-    DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req) 
+        DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req) 
     catch
-      print("Ce professeur existe déjà!")
+        print("Ce professeur existe déjà !")
     end
 end
 
@@ -215,7 +223,7 @@ function selectDonneesprof()
     return df
 end
 
-#Fonction qui récupère les données de la table des salles
+# Fonction qui récupère les données de la table des salles
 function selectDonneesSalles()
     r = """ select * from salles ORDER BY nomSalle"""
     df = DataFrame(DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), r))
@@ -226,31 +234,9 @@ end
 # ----> Création de la table au départ après avoir effacé le fichier
 # (puis commenter les deux lignes suivantes) 
 #creeFichierEtTableBDD()
-#afficheDonnees()
-#creeFichierEtTablePROF()
-#inserePROF("1","Belhomme") 
-#inserePROF("2","Lanchon")
-#inserePROF("3","Lepesteur")
-#inserePROF("4","Libine")
-#inserePROF("5","Roubaud")
-#inserePROF("6","Samyn")
-#= insereCreneauBDD("dhhkhgh655865FDFDG", 38, "GIM-1A-FI", "CM", "Maths",
-                 "lanchon", "B1,B6,AmphiC", "promo1", 90)
-insereCreneauBDD("fhggfh555HGFGFG344", 38, "corbeille", "TP", "INFO1",
-                 "belhomme", "C3,C4,B2", "TP11", 180)
-afficheDonnees()
-supprimeCreneauBDD("fhggfh555HGFGFG344")
-afficheDonnees()
-updateCreneauBDD("dhhkhgh655865FDFDG", 38, "GIM-2A-FI", "CM", "MATH2",
-                 "pignoux", "B1", "promo2", 60)
-afficheDonnees() =#
-#creeFichierEtTablePROF()
-#creeFichierEtTableSalles()
-#checkExistanceSalles("C2")
+#creeFichierEtTableProf()
+#checkExistanceSalle("C2")
 
-
-
-
-#POUR VIDER BASE ET DONNEES INTERNE!!!!!
-#NE SURTOUT PAS LANCER LE SERVEUR SI LA LIGNE CI-DESSOUS N'EST PAS EN COMMENTAIRE!!!!!
+# POUR VIDER BASE ET DONNEES INTERNE !!!
+# NE SURTOUT PAS LANCER LE SERVEUR SI LA LIGNE CI-DESSOUS N'EST PAS EN COMMENTAIRE !
 #viderToutesInfos()

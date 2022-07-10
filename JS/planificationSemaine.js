@@ -1,8 +1,8 @@
 // Fichier Javascript/Jquery pour créer les la liste des créneaux d'une semaine
 // du projet EDTAutomatic (moteur de recuit simulé écrit en Julia)
-// Auteur : Philippe Belhomme
+// Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 // Date de création : lundi 31 janvier 2022 (isolement Covid...)
-// Date de modification : mardi 15 février 2022
+// Date de modification : mardi 05 juillet 2022
 
 /* ------------------------
 -- Fonctions utilitaires --
@@ -110,12 +110,10 @@ function dropCreneau(event, ui, idZoneDuDrop) {
     // Réenregistre ce créneau dans la BDD via un appel à une API julia (UPDATE)
     var numeroSemaine = $("#laSemaine").val();
     // Requête AJAX pour déplacer le créneau (onglet <--> corbeille)
-    var url = "http://localhost:8000/moveCreneau?creneau="+uuid;
+    var url = "http://localhost:8000/moveCreneau?creneau=" + uuid;
     url += "&zone=" + nomOnglet + "&numSemaine=" + numeroSemaine;
     $.ajax({url: url});
 }
-
-
 
 // Fonction qui fabrique un nouveau créneau à partir des infos du formulaire
 function fabriqueCreneauFromFormulaire() {
@@ -126,290 +124,139 @@ function fabriqueCreneauFromFormulaire() {
         alert("Il manque des informations !");
         return;
     }
-    //vérifie que [ et ] ne sont pas contenue dans les champs, ce qui empecherait de lire le JSON
-    if (type.includes("[") || type.includes("]") ||
-    matiere.includes("[") || matiere.includes("]") ||
-    prof.includes("[") || prof.includes("]") ||
-    lieu.includes("[") || lieu.includes("]") ||
-    public.includes("[") || public.includes("]") ||
-    duree.includes("[") || duree.includes("]")){
-		alert("Caractères interdits: '[' et ']'");
-		return;
-	}
-	
-    //Vérification pour voir si les heures sont bien découpées par périodes de 15 minutes et d'une durée max de 4h
-    if (duree != "15" && duree != "30" && duree != "45" && duree != "60" && 
-        duree != "75" && duree != "90" && duree != "105" && duree != "120" && 
-        duree != "135" && duree != "150" && duree != "165" && duree != "180" && 
-        duree != "195" && duree != "210" && duree != "225" && duree != "240" && 
-        duree != "255" && duree != "270" && duree != "285" && duree != "300"){
-        alert("La durée ne correspond pas, elle doit être découpée par période de 15 minutes (exemple: 15, 30, 45, 60...) pour une durée max de 5 heures(300 minutes).");
-        return;
-    }
     
-    	try{
-            verifClasseExiste(lieu).then(
-            setTimeout(function () {
-                if (ok == "true"){
-                
-                        matiere = matiere.charAt(0).toUpperCase() + matiere.slice(1).toLowerCase();
-                        prof = prof.charAt(0).toUpperCase() + prof.slice(1).toLowerCase();
-                        public = public.charAt(0).toUpperCase() + public.slice(1).toLowerCase();
-                        creeCreneau(type.toUpperCase(), matiere, prof, lieu.toUpperCase(), public, duree);
-                        return;
-            }else{
-                alert("Une ou plusieurs des salles inscrites n'existe(nt) pas." )
-            }
-            }, 1000)
-        );
-            
-        }catch(e){
-            alert(e);
-        }
-
-    	
-
-	
-			
-	     
-    }
-
-    async function verifClasseExiste(lieu){
-        const words = lieu.replace(/ /g,'').split(',');
-
-        var i;
-        ok=false;
-        var temp;
-        var url;
-        for (i=0; i<words.length; i++){
-            temp = words[i].toUpperCase();
-            url = "http://localhost:8000/CheckSalles?nomSalles="+temp;
-            $.getJSON( url, function( data ) {
-            // Récupère l'objet JSON (en fait un tableau de JSON)
-            // Mais s'il est vide la chaîne retournée est ']' ; donc quitter !
-                if (data == "]") {
-                    return;
-                }
-                obj = JSON.parse(data);
-            }); 
-
-                // Balaye tous les éléments du tableau
-                setTimeout(function () {
-                    for (var i = 0; i<obj.length; i++) {
-                        ok = obj[i]["OkOuPasOk"];
-                        
-                    }
-                    
-                }, 500);
-
-                
-        }
+    try {
+        verifClasseExiste(lieu).then(
         setTimeout(function () {
-            return 1;
-        }, 700);
-    }
+            if (ok == "true") {
+                matiere = matiere.charAt(0).toUpperCase() + matiere.slice(1).toLowerCase();
+                prof = prof.charAt(0).toUpperCase() + prof.slice(1).toLowerCase();
+                public = public.charAt(0).toUpperCase() + public.slice(1).toLowerCase();
+                creeCreneau(type.toUpperCase(), matiere, prof, lieu.toUpperCase(), public, duree);
+                return;
+        } else {
+            alert("Une ou plusieurs des salles inscrites n'existe(nt) pas !");
+        }
+        }, 1000)); 
+    } catch(e) {
+        alert(e);
+    }			     
+}
 
-    //fonction qui permet d'afficher les onglets à partir du fichier .cfg | non fonctionnel
-    function creerLesOnglets(){
-    	var number=-1;
-    	var url = "http://localhost:8000/recherchePere";
+async function verifClasseExiste(lieu) {
+    const words = lieu.replace(/ /g,'').split(',');
+    var i;
+    var temp;
+    var url;
+    ok = false;
+
+    for (i=0; i<words.length; i++) {
+        temp = words[i].toUpperCase();
+        url = "http://localhost:8000/checkSalle?nomSalle="+temp;
         $.getJSON( url, function( data ) {
-            // Récupère l'objet JSON (en fait un tableau de JSON)
-            // Mais s'il est vide la chaîne retournée est ']' ; donc quitter !
+        // Récupère l'objet JSON (en fait un tableau de JSON)
+        // Mais s'il est vide la chaîne retournée est ']' ; donc quitter !
             if (data == "]") {
                 return;
             }
             obj = JSON.parse(data);
-            // Balaye tous les éléments du tableau
-            for (var i = 0; i<obj.length; i++) {
-            	if (number >=0){
-	                var grandPere = obj[i]["grandPere"];
-	                // Construit le code du <div> qui sera injecté dans la zone du prévisionnel
-	                ch = fabriqueUnOnglet(grandPere, number);
-            	}
-                number= number+1;
-            }
         }); 
-    }
 
-    //fonction qui fabrique un des onglets de creerLesOngletq
-    function fabriqueUnOnglet(grandPere, number){
-    	if (number == 0){
-	    	var select = document.getElementById("departements");
-	        var el = document.createElement("li");
-	        el.setAttribute("class", "ui-tabs-tab ui-corner-top ui-state-default ui-tab ui-tabs-active ui-state-active");
-	        el.setAttribute("role","tab");
-	        el.setAttribute("tabindex", number.toString());
-	        el.setAttribute("aria-controls", "previsionnel-"+number.toString());
-	        var number2 = number+1;
-	        el.setAttribute("aria-labelledby", "ui-id-"+number2.toString());
-	        el.setAttribute("aria-selected", "true");
-	        el.setAttribute("aria-expanded", "true");
-	        var a = document.createElement('a'); 
-	        a.setAttribute("id","ui-id-"+number2.toString());
-	        a.setAttribute("class","ui-tabs-anchor");
-	        var link = document.createTextNode(grandPere);
-	        a.appendChild(link); 
-	        a.title = "#"+grandPere; 
-	        a.href = "#previsionnel-"+number.toString(); 
-	        a.setAttribute("tabindex", "-1");
-	        el.appendChild(a);
-	        select.appendChild(el);
-
-	        var select2 = document.getElementById("previsionnel");
-	        var el2 = document.createElement("div");
-	        el2.setAttribute("id", "previsionnel-"+number.toString());
-	        el2.setAttribute("class", "ui-tabs-panel ui-corner-bottom ui-widget-content");
-	        el2.setAttribute("aria-labelledby", "ui-id-"+number2.toString());
-	        el2.setAttribute("role", "tabpanel");
-	        el2.setAttribute("aria-hidden", "false");
-	        select2.appendChild(el2);	
-		}else{
-			var select = document.getElementById("departements");
-	        var el = document.createElement("li");
-	        el.setAttribute("class", "ui-tabs-tab ui-corner-top ui-state-default ui-tab");
-	        el.setAttribute("role","tab");
-	        el.setAttribute("tabindex", "-"+number.toString());
-	        el.setAttribute("aria-controls", "previsionnel-"+number.toString());
-	        var number2 = number+1;
-	        el.setAttribute("aria-labelledby", "ui-id-"+number2.toString());
-	        el.setAttribute("aria-selected", "false");
-	        el.setAttribute("aria-expanded", "false");
-	        var a = document.createElement('a'); 
-	        a.setAttribute("id","ui-id-"+number2.toString());
-	        a.setAttribute("class","ui-tabs-anchor");
-	        var link = document.createTextNode(grandPere);
-	        a.appendChild(link); 
-	        a.title = "#"+grandPere; 
-	        a.href = "#previsionnel-"+number.toString(); 
-	        a.setAttribute("tabindex", "-1");
-	        el.appendChild(a);
-	        select.appendChild(el);
-
-	        var select2 = document.getElementById("previsionnel");
-	        var el2 = document.createElement("div");
-	        el2.setAttribute("id", "previsionnel-"+number.toString());
-	        el2.setAttribute("class", "ui-tabs-panel ui-corner-bottom ui-widget-content");
-	        el2.setAttribute("aria-labelledby", "ui-id-"+number2.toString());
-	        el2.setAttribute("role", "tabpanel");
-	        el2.setAttribute("aria-hidden", "true");
-	        el2.setAttribute("style", "display: none;");
-	        select2.appendChild(el2);
-		}	        
-	}
-
-/*
-    function fabriqueOngletsDep(){
-        var select = document.getElementById("departements");
-        var el = document.createElement("li");
-        var a = document.createElement('a'); 
-        var link = document.createTextNode("GIM-1A-FI");
-        a.appendChild(link); 
-        a.title = "#GIM-1A-FI"; 
-        a.href = "#previsionnel-0"; 
-        el.appendChild(a);
-        select.appendChild(el);
-
-        var select2 = document.getElementById("previsionnel");
-        var el2 = document.createElement("div");
-        el2.setAttribute("id", "previsionnel-0");
-        select2.appendChild(el2);
-        
-    }
-*/
-
- //fonction qui remplit la liste des profs
-    function afficherProf(){
-        var url = "http://localhost:8000/selectProf";
-        $.getJSON( url, function( data ) {
-            // Récupère l'objet JSON (en fait un tableau de JSON)
-            // Mais s'il est vide la chaîne retournée est ']' ; donc quitter !
-            if (data == "]") {
-                return;
-            }
-            obj = JSON.parse(data);
-            // Balaye tous les éléments du tableau
+        // Balaye tous les éléments du tableau
+        setTimeout(function () {
             for (var i = 0; i<obj.length; i++) {
-                var nomProf = obj[i]["nomProf"];
-                
-                // Construit le code du <div> qui sera injecté dans la zone du prévisionnel
-                ch = fabriqueListeProf(nomProf);
+                ok = obj[i]["OkOuPasOk"]; 
             }
-        }); 
+        }, 500);
     }
-    //insère chaque prof dans la liste
-    function fabriqueListeProf(nomProf){
-        var select = document.getElementById("prof");
-        var optn = nomProf;
-        var el = document.createElement("option");
-        el.textContent = optn;
-        el.value = optn;
-        select.appendChild(el);
-        
-    }
+    setTimeout(function () {
+        return 1;
+    }, 700);
+}
 
-    //fonction qui remplit la liste des salles
-    function afficherSalles(){
-        var url = "http://localhost:8000/selectSalles";
-        $.getJSON( url, function( data ) {
-            // Récupère l'objet JSON (en fait un tableau de JSON)
-            // Mais s'il est vide la chaîne retournée est ']' ; donc quitter !
-            if (data == "]") {
-                return;
-            }
-            obj = JSON.parse(data);
-            // Balaye tous les éléments du tableau
-            for (var i = 0; i<obj.length; i++) {
-                var nomSalle = obj[i]["nomSalle"];
-                
-                // Construit le code du <div> qui sera injecté dans la zone du prévisionnel
-                ch = fabriqueListeSalle(nomSalle);
-            }
-        }); 
-    }
-    //insère chaque salle dans la liste
-    function fabriqueListeSalle(nomSalle){
-        var select = document.getElementById("lieu");
-        var optn = nomSalle;
-        var el = document.createElement("option");
-        el.textContent = optn;
-        el.value = optn;
-        select.appendChild(el);
-        
-    }
+// Fonction qui remplit la liste des profs
+function afficherProf() {
+    var url = "http://localhost:8000/selectProf";
+    $.getJSON( url, function( data ) {
+        // Récupère l'objet JSON (en fait un tableau de JSON)
+        // Mais s'il est vide la chaîne retournée est ']' ; donc quitter !
+        if (data == "]") {
+            return;
+        }
+        obj = JSON.parse(data);
+        // Balaye tous les éléments du tableau
+        for (var i = 0; i<obj.length; i++) {
+            var nomProf = obj[i]["nomProf"];
+            // Construit le code du <div> qui sera injecté dans la zone du prévisionnel
+            ch = fabriqueListeProf(nomProf);
+        }
+    });
+}
 
-    
-     //fonction qui remplit la liste des publics
-    function afficherPublic(){
-        var url = "http://localhost:8000/selectPublic";
-        $.getJSON( url, function( data ) {
-            // Récupère l'objet JSON (en fait un tableau de JSON)
-            // Mais s'il est vide la chaîne retournée est ']' ; donc quitter !
-            if (data == "]") {
-                return;
-            }
-            obj = JSON.parse(data);
-            // Balaye tous les éléments du tableau
-            for (var i = 0; i<obj.length; i++) {
-                var groupes = obj[i]["groupes"];
-                
-                // Construit le code du <div> qui sera injecté dans la zone du prévisionnel
+// Fonction qui insère chaque prof dans la liste déroulante
+function fabriqueListeProf(nomProf) {
+    var select = document.getElementById("prof");
+    var el = document.createElement("option");
+    el.textContent = nomProf;
+    el.value = nomProf;
+    select.appendChild(el);
+}
 
-                ch = fabriqueListePublic(groupes);
-            }
-        }); 
-    }
-    //insère chaque public dans la liste
-    function fabriqueListePublic(groupes){
-        var select = document.getElementById("public");
-        var optn = groupes;
-        var el = document.createElement("option");
-        el.textContent = optn;
-        el.value = optn;
-        select.appendChild(el);
-        
-    }
+// Fonction qui remplit la liste déroulante des salles
+function afficherSalles() {
+    var url = "http://localhost:8000/selectSalles";
+    $.getJSON( url, function( data ) {
+        // Récupère l'objet JSON (en fait un tableau de JSON)
+        // Mais s'il est vide la chaîne retournée est ']' ; donc quitter !
+        if (data == "]") {
+            return;
+        }
+        obj = JSON.parse(data);
+        // Balaye tous les éléments du tableau
+        for (var i = 0; i<obj.length; i++) {
+            var nomSalle = obj[i]["nomSalle"];
+            // Construit le code du <div> qui sera injecté dans la zone du prévisionnel
+            ch = fabriqueListeSalle(nomSalle);
+        }
+    }); 
+}
 
+// Fonction qui insère chaque salle dans la liste déroulante
+function fabriqueListeSalle(nomSalle) {
+    var select = document.getElementById("lieu");
+    var el = document.createElement("option");
+    el.textContent = nomSalle;
+    el.value = nomSalle;
+    select.appendChild(el);
+}
+
+// Fonction qui remplit la liste des publics
+function afficherPublic() {
+    var url = "http://localhost:8000/selectPublic";
+    $.getJSON( url, function( data ) {
+        // Récupère l'objet JSON (en fait un tableau de JSON)
+        // Mais s'il est vide la chaîne retournée est ']' ; donc quitter !
+        if (data == "]") {
+            return;
+        }
+        obj = JSON.parse(data);
+        // Balaye tous les éléments du tableau
+        for (var i = 0; i<obj.length; i++) {
+            var groupes = obj[i]["groupes"];
+            // Construit le code du <div> qui sera injecté dans la zone du prévisionnel
+            ch = fabriqueListePublic(groupes);
+        }
+    }); 
+}
+
+// Fonction qui insère chaque public dans la liste
+function fabriqueListePublic(groupes){
+    var select = document.getElementById("public");
+    var el = document.createElement("option");
+    el.textContent = groupes;
+    el.value = groupes;
+    select.appendChild(el);
+}
 
 /* Fonction qui crée un objet <div> associé au nouveau créneau. Le paramètre
    zone sert à savoir si la duplication s'est faite dans la corbeille ou pas */
@@ -459,17 +306,14 @@ function creeCreneau(type, matiere, prof, lieu, public, duree, zone="") {
 --------------------------------------------------------------*/
 $(document).ready(function() {
     // Désactive tous les éléments du formulaire par défaut et le bouton '+'
-    
 	ok = false;
     $("#formulaire").children().hide();
     afficherProf();
     afficherSalles();
     afficherPublic();
     
-    //creerLesOnglets();
     // Permet de mettre en oeuvre le système d'onglets de jquery-ui
     $( "#previsionnel" ).tabs();
-
     // Rend la corbeille "droppable"
     $("#corbeille").droppable({
         accept: ".creneau",         // la corbeille n'accepte que des créneaux
@@ -484,26 +328,26 @@ $(document).ready(function() {
             dropCreneau(event, ui, "#previsionnel");
         } 
     });
+    // Charge dans l'espace de travail les créneaux prévus cette semaine là
     remplirCreneaux();
-	if ($("#laSemaine").val()>0 && $("#laSemaine").val()<53){
-    		$('#btAjoutCreneau').show(); 
-    }else{
-    		$('#btAjoutCreneau').hide();
+    // Gère le bouton '+' pour ajouter un créneau
+	if ($("#laSemaine").val() > 0 && $("#laSemaine").val() < 53) {
+    	$('#btAjoutCreneau').show(); 
+    }
+    else {
+    	$('#btAjoutCreneau').hide();
     }
     // Action après saisie/changement de numéro de semaine
     $("#laSemaine").on("change", function() {
-    	remplirCreneaux();
-    	if ($("#laSemaine").val()>0 && $("#laSemaine").val()<53){
+    	remplirCreneaux();            // charge les créneaux prévus
+    	if ($("#laSemaine").val() > 0 && $("#laSemaine").val() < 53) {
     		$('#btAjoutCreneau').show(); 
     	}else{
     		$('#btAjoutCreneau').hide();
     	}
     });
 
-
-   
-
-    function remplirCreneaux(){
+    function remplirCreneaux() {
         // Efface tous les éléments du DOM qui ont la classe 'creneau'
         $(".creneau").each(function () {
             var obj = $(this)[0];
@@ -530,7 +374,7 @@ $(document).ready(function() {
                 var groupe = obj[i]["groupe"];
                 var dureeEnMin = obj[i]["dureeEnMin"];
                 var tab = obj[i]["tab"];
-                // Construit le code du <div> qui sera injecté dans la zone du prévisionnel
+                // Code du <div> qui sera injecté dans la zone du prévisionnel
                 ch = fabriqueCreneauHTML(uuid, typeDeCours, nomModule, prof,
                                         salles, groupe, dureeEnMin, tab);
                 // Détermine dans quelle zone il va falloir insérer le créneau
@@ -548,8 +392,8 @@ $(document).ready(function() {
                 }
                 // Ajoute le créneau au bon endroit (onglet ou corbeille)
                 $(zone).append(ch);
-                if (zone == "#corbeille") {       // il appartenait à la corbeille
-                    $("#"+uuid).addClass("corbeille");    // il acquiert sa classe
+                if (zone == "#corbeille") {     // il appartenait à la corbeille
+                    $("#"+uuid).addClass("corbeille");  // il acquiert sa classe
                 }
                 else {
                     $("#"+uuid).removeClass("corbeille"); // sinon la retire
@@ -566,38 +410,12 @@ $(document).ready(function() {
         });
     }
 
-//lance le moteur recuit simule quand on appuit sur le bouton correspondant
-$("#lancerMot").on("click", function(){
-	numSemaine = $("#laSemaine").val();
-	var result = prompt("Nombre de tour(s) souhaité(s) (max: 10):");
-	try{
-		if (parseInt(result) <= 10 && parseInt(result) > 0){
-			var url2 ="http://localhost:8000/lancerMoteur?numSemaine="+numSemaine+"&nbEDTCalcules="+result;
-			$.ajax({url: url2});
-		}else{
-			alert("la valeur doit être contenue entre 1 et 10.");
-		}
-	}catch(e){
-		alert("Il ne faut qu'un nombre! Pas d'autres caractères!");
-	}
-});
-
-//permet de supprimer un prof quand on appuit sur le bouton correspondant
-$("#supProf").on("click", function(){
-	var myWindow = window.open("popup.html", "", "width=600,height=500,top=200,left=360");
-	
-});
-
-//permet de creer le cvs prévisionnel quand on appuit sur le bouton correspondant
-$("#makeCSV").on("click", function() {
-		numSemaine = $("#laSemaine").val().toString();
-		var url2 = "http://localhost:8000/createanddeleteCsv?numSemaine="+numSemaine; 
-		var id;
-		var url;
-		$.ajax({url: url2});
-		var corb= 0;
-		var url3;
-        var url = "http://localhost:8000/selectCreneaux?semaine="+numSemaine;
+    // Permet de créer le CSV prévisionnel quand on appuie sur le bon bouton
+    $("#makeCSV").on("click", function() {
+        numSemaine = $("#laSemaine").val().toString();
+        var url2 = "http://localhost:8000/deleteAndCreateCSV?numSemaine=" + numSemaine; 
+        $.ajax({url: url2});
+        var url = "http://localhost:8000/selectCreneaux?semaine=" + numSemaine;
         $.getJSON( url, function( data ) {
             // Récupère l'objet JSON (en fait un tableau de JSON)
             // Mais s'il est vide la chaîne retournée est ']' ; donc quitter !
@@ -615,56 +433,83 @@ $("#makeCSV").on("click", function() {
                 var groupe = obj[i]["groupe"];
                 var dureeEnMin = obj[i]["dureeEnMin"];
                 var tab = obj[i]["tab"];
-                // Construit le code du <div> qui sera injecté dans la zone du prévisionnel
+                // Code du <div> qui sera injecté dans la zone du prévisionnel
                 ch = fabriqueCreneauHTML(uuid, typeDeCours, nomModule, prof,
                                         salles, groupe, dureeEnMin, tab);
-                url3 = url = "http://localhost:8000/createCsv?numSemaine="+numSemaine+"&matiere="+nomModule+"&typeCr="+typeDeCours+"&duree="+dureeEnMin.toString()+"&professeur="+prof+"&salleDeCours="+salles+"&public="+groupe.toUpperCase()
-                $.ajax({url: url3});               
-                
-			}
-		});
-		alert("Création CSV prévisionnel finie!");
-	});
+                var url3 = "http://localhost:8000/createCsv?numSemaine="+numSemaine+"&matiere="+nomModule+"&typeCr="+typeDeCours+"&duree="+dureeEnMin.toString()+"&professeur="+prof+"&salleDeCours="+salles+"&public="+groupe.toUpperCase()
+                $.ajax({url: url3});
+            }
+        });
+        alert("Création du CSV prévisionnel... OK.");
+    });
 
+    // Lance le moteur de recuit simulé quand on appuie sur le bon bouton
+    $("#lancerMot").on("click", function() {
+        numSemaine = $("#laSemaine").val();
+        var result = prompt("Nombre de tour(s) souhaité(s) (max: 10):");
+        try {
+            if (parseInt(result) <= 10 && parseInt(result) > 0) {
+                var url ="http://localhost:8000/lancerMoteur?numSemaine="+numSemaine+"&nbEDTCalcules="+result;
+                $.ajax({url: url});
+            }
+            else {
+                alert("La valeur doit être comprise entre 1 et 10 !");
+            }
+        } catch(e) {
+            alert("Il me faut un nombre entre 1 et 10 ! Rien d'autre...");
+        }
+    });
 
-	//permet d'ajouter un professeur quand on appuit sur le bouton correspondant
-	$("#addProf").on("click", function() {
-        var result = prompt("Nom de famille du nouveau Professeur:");
-        if(result.trim() != ""){
+	/* Permet d'ajouter un prof quand on appuie sur le bon bouton. Le nom aura
+       la première lettre en majuscule, les autres en minuscules et chaque
+       espace sera remplacé par un tiret. */
+    $("#addProf").on("click", function() {
+        var result = prompt("Nom de famille du nouveau professeur ?");
+        if(result.trim() != "") {
             var nom = result.charAt(0).toUpperCase() + result.slice(1).toLowerCase();  
             nom = nom.replace(" ", '-');
-            var url = "http://localhost:8000/ajoutProf?nomProf="+ nom;
-        $.ajax({url: url});
-        alert("La personne a été ajouté");
-        location.reload();
-        }else{
-            alert("La zone ne doit pas être vide.");
+            var url = "http://localhost:8000/ajouterProf?nomProf=" + nom;
+            $.ajax({url: url});
+            alert("Le professeur a bien été ajouté.");
+            location.reload();  // recharge la page web pour mettre à jour la liste
+        }
+        else {
+            alert("Vous n'avez saisi aucun nom de prof !!!");
             return;
         }
     });
 
+    // Permet de supprimer un prof quand on appuie sur le bon bouton
+    $("#supProf").on("click", function() {
+        var myWin = window.open("popupNouveauProf.html", "",
+                                "width=600, height=400, top=200, left=360");
+    });
+
+    /* Permet d'ajouter une salle quand on appuie sur le bon bouton. Le nom sera
+       entièrement en majuscule et chaque espace sera remplacé par un tiret. */
     $("#addSalle").on("click", function() {
-        var result = prompt("Nom de la nouvelle salle:");
-        if(result.trim() != ""){
+        var result = prompt("Nom de la nouvelle salle ?");
+        if(result.trim() != "") {
             var nom = result.toUpperCase();  
             nom = nom.replace(" ", '-');
-            var url = "http://localhost:8000/ajoutSalle?nomSalle="+ nom;
-        $.ajax({url: url});
-        alert("La salle a été ajouté");
-        location.reload();
-        }else{
-            alert("La zone ne doit pas être vide.");
+            var url = "http://localhost:8000/ajouterSalle?nomSalle=" + nom;
+            $.ajax({url: url});
+            alert("La salle a bien été ajoutée.");
+            location.reload();  // recharge la page web pour mettre à jour la liste
+        }
+        else {
+            alert("Vous n'avez saisi aucun nom de salle !!!");
             return;
         }
     });
 
-
-$("#supSalle").on("click", function(){
-	var myWindow = window.open("popup2.html", "", "width=600,height=500,top=200,left=360");
+    // Permet de supprimer une salle quand on appuie sur le bon bouton
+    $("#supSalle").on("click", function() {
+        var myWin = window.open("popupNouvelleSalle.html", "",
+                                "width=600, height=400, top=200, left=360");
+    });
 	
-});
-	
-    // Action après clic sur bouton "+"
+    // Action après clic sur bouton "+" dans la zone de création de créneau
     $('#btAjoutCreneau').on('click', function(e) {
         // Vérifie qu'il y a bien un numéro de semaine entre 1 et 52 sinon sort
         var numSemaine = parseInt($("#laSemaine").val());
@@ -696,77 +541,54 @@ $("#supSalle").on("click", function(){
         var uuid    = $("#uuid").val();         // trim inutile car champ caché
         if (type == "" || matiere == "" || prof == "" ||
             lieu == "" || public == ""  || duree == "") {
-            alert("Il manque des informations !")
+            alert("Il manque des informations importantes !")
             return;
         }
-         //vérifie que [ et ] ne sont pas contenue dans les champs, ce qui empecherait de lire le JSON
-	    if (type.includes("[") || type.includes("]") ||
-		    matiere.includes("[") || matiere.includes("]") ||
-		    prof.includes("[") || prof.includes("]") ||
-		    lieu.includes("[") || lieu.includes("]") ||
-		    public.includes("[") || public.includes("]") ||
-		    duree.includes("[") || duree.includes("]")){
-				alert("Caractères interdits: '[' et ']'");
-				return;
-		}
-		
-        //Vérification pour voir si les heures sont bien découpées par périodes de 15 minutes et d'une durée max de 4h
-    if (duree != "15" && duree != "30" && duree != "45" && duree != "60" && 
-        duree != "75" && duree != "90" && duree != "105" && duree != "120" && 
-        duree != "135" && duree != "150" && duree != "165" && duree != "180" && 
-        duree != "195" && duree != "210" && duree != "225" && duree != "240" && 
-        duree != "255" && duree != "270" && duree != "285" && duree != "300"){
-        alert("La durée ne correspond pas, elle doit être découpée par période de 15 minutes (exemple: 15, 30, 45, 60...) pour une durée max de 5 heures(300 minutes).");
-        return;
-    }
-    
-    try{
+
+        try {
             verifClasseExiste(lieu).then(
             setTimeout(function () {
                 if (ok == "true"){
-                
-                        matiere = matiere.charAt(0).toUpperCase() + matiere.slice(1).toLowerCase();
-                        prof = prof.charAt(0).toUpperCase() + prof.slice(1).toLowerCase();
-                        type = type.toUpperCase();
-                        lieu = lieu.toUpperCase();
-                        // Fabrique le texte "html" du créneau puis l'affiche (donc sans <div>)
-                        ch = "<b>" + type + "&nbsp;" + matiere + "</b><br>";
-                        ch += prof + "<br>" + lieu + "<br>";
-                        ch += public + "<br>" + duree;
-                        $("#"+uuid).html(ch);
-                        // Change tous ses attributs pour qu'ils correspondent aux données
-                        // sauf le nom de l'onglet qui restera le même.
-                        $("#"+uuid).attr("data-type", type);
-                        $("#"+uuid).attr("data-matiere", matiere);
-                        $("#"+uuid).attr("data-prof", prof);
-                        $("#"+uuid).attr("data-lieu", lieu);
-                        $("#"+uuid).attr("data-public", public);
-                        $("#"+uuid).attr("data-duree", duree);
-                        // Efface le contenu des champs du formulaire
-                        remplitFormulaire("", "", "", "", "", "", "");
-                        // Désactive le bouton Modifier et remet le bouton Créer
-                        $('#btModifier').hide();
-                        $('#btCreer').show();
-                        // Ré-enregistre ce créneau via un appel à une API julia (UPDATE)
-                        var numeroSemaine = $("#laSemaine").val();
-                        // La MAJ gardera l'onglet/corbeille inchangé
-                        var nomOnglet = $("#"+uuid).attr("data-onglet");
-                        var jsonObj = fromAttrToJSON(numeroSemaine, nomOnglet, uuid);
-                        // Requête AJAX pour modifier le créneau
-                        var url = "http://localhost:8000/updateCreneau?creneau=";
-                        url += JSON.stringify(jsonObj);
-                        $.ajax({url: url});
-            }else{
-                alert("Une ou plusieurs des salles inscrites n'existe(nt) pas. " )
-            }
-            }, 1000)
-        );
-            
-        }catch(e){
-            alert(e);
+                    matiere = matiere.charAt(0).toUpperCase() + matiere.slice(1).toLowerCase();
+                    prof = prof.charAt(0).toUpperCase() + prof.slice(1).toLowerCase();
+                    type = type.toUpperCase();
+                    lieu = lieu.toUpperCase();
+                    // Fabrique le texte "html" du créneau puis l'affiche (donc sans <div>)
+                    ch = "<b>" + type + "&nbsp;" + matiere + "</b><br>";
+                    ch += prof + "<br>" + lieu + "<br>";
+                    ch += public + "<br>" + duree;
+                    $("#"+uuid).html(ch);
+                    /* Change tous ses attributs pour qu'ils correspondent aux
+                       données, sauf le nom de l'onglet qui restera le même. */
+                    $("#"+uuid).attr("data-type", type);
+                    $("#"+uuid).attr("data-matiere", matiere);
+                    $("#"+uuid).attr("data-prof", prof);
+                    $("#"+uuid).attr("data-lieu", lieu);
+                    $("#"+uuid).attr("data-public", public);
+                    $("#"+uuid).attr("data-duree", duree);
+                    // Efface le contenu des champs du formulaire
+                    remplitFormulaire("", "", "", "", "", "", "");
+                    // Désactive le bouton Modifier et remet le bouton Créer
+                    $('#btModifier').hide();
+                    $('#btCreer').show();
+                    // Ré-enregistre ce créneau via l'appel d'une API julia (UPDATE)
+                    var numeroSemaine = $("#laSemaine").val();
+                    // La MAJ gardera l'onglet/corbeille inchangé
+                    var nomOnglet = $("#"+uuid).attr("data-onglet");
+                    var jsonObj = fromAttrToJSON(numeroSemaine, nomOnglet, uuid);
+                    // Requête AJAX pour modifier le créneau
+                    var url = "http://localhost:8000/updateCreneau?creneau=";
+                    url += JSON.stringify(jsonObj);
+                    $.ajax({url: url});
+                }
+                else {
+                    alert("Une ou plusieurs des salles inscrites n'existe(nt) pas..." )
+                }
+            }, 1000)); 
         }
-    //S'il ne s'agit pas du mot info, alors on ne transforme que la première lettre en majuscule.
-    
+        catch(e) {
+            alert(e);
+        }    
     });
 
     /*----------------------------------------
@@ -824,7 +646,7 @@ $("#supSalle").on("click", function(){
         }
         
         // Demande de copie du créneau (il apparaîtra juste à côté).
-        // Ce nouveau créneau aura forcément un nouvel uuid
+        // Ce nouveau créneau aura forcément un nouvel uuid.
         if (action == "actionDupliquer") {
             let {type, matiere, prof, lieu, public, duree} = attributsFromUUID($("#uuid").val());
             // Regarde si le 'parent' de l'objet est la corbeille

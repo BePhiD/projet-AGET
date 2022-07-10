@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
-# Auteur : Philippe Belhomme
-# Date Création : Vendredi 28 décembre 2018
-# Date Modification : Vendredi 08 mars 2019
+# Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
+# Date Création : vendredi 28 décembre 2018
+# Date Modification : mardi 05 juillet 2022
 # Langage : Julia
 
 # Module : PlanningSemaine
@@ -11,12 +11,12 @@ include("CONSTANTES.jl")      # pour importer les constantes du système
 
 function PlanningSemaine(vide=false)
     #= Tableau de créneaux, tous mis à true par défaut (donc libres).
-       Chaque créneau dure 15 mn (plus petite division d'horaire).
+       Chaque créneau dure 15 mn (c'est la plus petite division d'horaire).
        Il y a NBJOURS lignes (commence à 1 pour lundi) et
        NBCRENEAUX colonnes (42 si horaire de 8h à 18h30).
        matrice[3][5] désigne donc le mercredi de 9h à 9h15.
        Si 'vide' est vrai, on ne retire pas les créneaux interdits. =#
-    P = fill(true, (NBJOURS,NBCRENEAUX))
+    P = fill(true, (NBJOURS, NBCRENEAUX))
     if !vide RetireCreneauxInterdits(P) end
     return P
 end
@@ -26,20 +26,21 @@ function AffecteCreneau(P, jour, deb, nb, value=false)
        début et le nombre de cases successives. Pour bloquer un créneau on le
        positionne à false (défaut). Pour le libérer on lui affectera true. =#
     try  
-      P[jour,deb:deb+nb-1] .= value
+        P[jour, deb:deb+nb-1] .= value
     catch
-       print(string(jour) * "   " * string(deb) * "   "* string(nb))
+        print("!!! Erreur dans AffecteCreneau...  ")
+        println(string(jour) * "/" * string(deb) * "/" * string(nb) * "/" * string(value))
     end
 end
 
+#= Libère un créneau dans P désigné par son jour, le rang de début et le
+   nombre de cases successives. =#
 function LibereCreneau(P, jour, deb, nb)
-    #= Libère un créneau dans P désigné par son jour, le rang de début et le
-       nombre de cases successives. =#
     AffecteCreneau(P, jour, deb, nb, true)
 end
 
+#= Positionne à false les créneaux listés comme interdits. =#
 function RetireCreneauxInterdits(P)
-    # Positionne à false les créneaux listés comme interdits.
     for ci in CRENEAUX_INTERDITS AffecteCreneau(P,ci[1],ci[2],ci[3]) end
 end 
 
@@ -58,11 +59,19 @@ function LibereCreneauHoraireDuree(P, jour, heure, mn, duree)
     AffecteCreneauHoraireDuree(P, jour, heure, mn, duree, true)
 end
 
+#= Effectue l'intersection entre le planning P et ceux passés en paramètre.
+   Retourne une copie du planning P =#
 function Intersection(P, autres...)
-    #= Effectue l'intersection entre le planning P et ceux passés en paramètre.
-       Retourne une copie du planning P =#
     nP = copy(P)
     for e in autres   nP = nP .& e   end
+    return nP
+end
+
+#= Effectue l'union entre le planning P et ceux passés en paramètre.
+   Retourne une copie du planning P =#
+function Union(P, autres...)
+    nP = copy(P)
+    for e in autres   nP = nP .| e   end
     return nP
 end
 

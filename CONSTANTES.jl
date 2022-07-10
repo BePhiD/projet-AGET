@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme
 # Date Création : Jeudi 13 décembre 2018
-# Date Modification : Mardi 18 janvier 2022
+# Date Modification : dimanche 3 juillet 2022
 # Langage : Julia
 
 # Module : CONSTANTES
@@ -62,13 +62,17 @@ CRENEAUX_INTERDITS = [(1,20,5),(2,20,5),(3,20,5),(4,20,5),(5,20,5),   # le midi
                      ]
 
 # Répertoires où sont stockées les données du système (.cfg, .dat...)
-REPERTOIRE_CFG  = "CONFIG"
-REPERTOIRE_DATA = "DATAS"
-REPERTOIRE_SEM  = "PLANNINGS"
+REPERTOIRE_CFG   = "CONFIG"
+REPERTOIRE_DATA  = "DATAS"
+REPERTOIRE_SEM   = "PLANNINGS"
+REPERTOIRE_PLAN  = "PLANNINGS_CALCULES"
 # Noms des fichiers de configuration des éléments du système
 LISTE_PROFS   = "ListeDesProfs.cfg"
 LISTE_SALLES  = "ListeDesSalles.cfg"
 LISTE_GROUPES = "ListeDesGroupes.cfg"
+
+# Nom de la base de données SQLite gérant tout le système
+NOM_DATABASE_EDT = "bddAutomaticEDT.sql"
 
 # Messages d'erreur pour les divers modules
 ERR_CR_GROUPE      = "Groupe du créneau inconnu... "

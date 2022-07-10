@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme
 # Date Création : Lundi 31 décembre 2018
-# Date Modification : Vendredi 24 mai 2019
+# Date Modification : mardi 05 juillet 2022
 # Langage : Julia
 
 # Module : Groupes
@@ -23,6 +23,8 @@ nouveauNoeud() = noeud([],[])
 # Dictionnaire de la hiérarchie des groupes
 hierarchieGroupes = Dict()
 
+#= Fonction appelée à l'import du module pour vérifier si tous les créneaux
+   prévus possèdent bien un fichier .dat pour chaque ressource mise en oeuvre =#
 function analyseListeDesGroupes()
     # Lecture du fichier de config des groupes (de la forme 'fils<pere')
     lstRelations  = readlines(open(REPERTOIRE_CFG * '/' * LISTE_GROUPES, "r"))
@@ -54,7 +56,9 @@ function analyseListeDesGroupes()
     construitHierarchieDesGroupes()  # --> variable globale 'hierarchieGroupes'
 end
 
-function RetourListeGroupes()
+#= Retourne la liste complête de TOUS les groupes (CM/TD/TP) utilisables par le
+   système. Ces groupes sont lus depuis un fichier de configuration. =#
+function retourneListeGroupes()
     # Lecture du fichier de config des groupes (de la forme 'fils<pere')
     lstRelations  = readlines(open(REPERTOIRE_CFG * '/' * LISTE_GROUPES, "r"))
     fichiersPresents = readdir(REPERTOIRE_DATA)
@@ -72,28 +76,12 @@ function RetourListeGroupes()
     return lstGroupes
 end
 
-function RetourListeDepartements()
-    # Lecture du fichier de config des groupes (de la forme 'fils<pere')
-    lstRelations  = readlines(open(REPERTOIRE_CFG * '/' * LISTE_DEPARTS, "r"))
-    fichiersPresents = readdir(REPERTOIRE_DATA)
-    lstDep = []                # groupes déduits des relations 'fils<père'
-    # Création des groupes pas encore sérialisés
-    for e in lstRelations
-        if startswith(strip(e),'#') continue end    # on saute les commentaires
-        if length(strip(e)) == 0 continue end       # on saute les lignes vides
-        # Extrait les noms qui apparaîssent autour du '<' (élimine les ' ')
-        ids = e
-        # Stocke ces noms dans la liste des groupes s'ils n'y sont pas encore
-        if !(strip(ids) in lstGroupes) push!(lstGroupes, strip(ids)) end
-    end
-    return lstDep
-end
-
+#= Construit un dictionnaire de la hiérarchie des groupes promo/TD/TP.
+   Stocke cette hiérarchie dans un dictionnaire de 'noeuds' ; les clés du
+   dictionnaire sont les noms des groupes, les champs 'pere' et 'fils' sont
+   des tableaux de Strings pointant vers d'autres clés.
+   Modifie la variable globale 'hierarchieGroupes'. =#
 function construitHierarchieDesGroupes()
-    #= Construit un dictionnaire de la hiérarchie des groupes promo/TD/TP.
-       Stocke cette hiérarchie dans un dictionnaire de 'noeuds' ; les clés du
-       dictionnaire sont les noms des groupes, les champs 'pere' et 'fils' sont
-       des tableaux de Strings pointant vers d'autres clés. =#
     lstRelations  = readlines(open(REPERTOIRE_CFG * '/' * LISTE_GROUPES, "r"))
     # Obtention des relations 'fils<pere'
     for e in lstRelations
@@ -119,9 +107,8 @@ function construitHierarchieDesGroupes()
     end
 end
 
+#= Recherche toute la famille d'un groupe (ascendants + descendants) 'nom'. =#
 function rechercheFamilleDuGroupe(nom)
-    # Recherche toute la famille d'un groupe (ascendants et descendants)
-    # Recherche des ascendants du groupe 'nom'
     ascendants = []
     # On place d'abord la génération juste au-dessus, si elle existe
     if ! isempty(hierarchieGroupes[nom].pere)
@@ -129,13 +116,13 @@ function rechercheFamilleDuGroupe(nom)
         # Puis on cherche à placer les générations précédentes
         onContinue = true
         while onContinue
-            onContinue = false                # baisse le 'drapeau'
+            onContinue = false                    # baisse le 'drapeau'
             for p in ascendants
                 if ! isempty(hierarchieGroupes[p].pere)
                     for pp in hierarchieGroupes[p].pere
                         if !(pp in ascendants)
                             push!(ascendants, pp)
-                            onContinue = true     # garanti de continuer
+                            onContinue = true     # garantit de continuer
                         end
                     end
                 end
@@ -168,18 +155,7 @@ function rechercheFamilleDuGroupe(nom)
     return famille
 end
 
-function recherchePere()
-lstOnglets = []
-    for e in keys(hierarchieGroupes)
-        if (isempty(hierarchieGroupes[e].pere))
-            push!(lstOnglets, e)
-        end
-    end
-    return lstOnglets
-end
-
 ### PROGRAMME PRINCIPAL
 analyseListeDesGroupes()
-#recherchePere()
 #f = rechercheFamilleDuGroupe("promo2")
 #println(f)

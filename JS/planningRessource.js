@@ -1,7 +1,7 @@
 // Fichier Javascript/Jquery pour gérer l'aspect dynamique des plannings
 // du projet EDTAutomatic (moteur de recuit simulé écrit en Julia)
 // Auteur : Philippe Belhomme
-// Date de modification : vendredi 21 janvier 2022
+// Date de modification : dimanche 3 juillet 2022
 
 // Variables globales
 var NBJOURS = 0;
@@ -145,7 +145,7 @@ $(document).ready(function() {
         if(result.trim() != ""){
             var nom = result.charAt(0).toUpperCase() + result.slice(1).toLowerCase();  
             nom = nom.replace(" ", '-');
-            var url = "http://localhost:8000/ajoutProf?nomProf="+ nom;
+            var url = "http://localhost:8000/ajouterProf?nomProf="+ nom;
         $.ajax({url: url});
         alert("La personne a été ajouté");
         }else{

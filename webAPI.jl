@@ -1,8 +1,8 @@
 #= 
 API pour le système de création automatique d'emploi du temps (écrit en julia)
-Auteur : Philippe Belhomme
+Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 Dates de création : lundi 27 décembre 2021
-  de modification : mardi 08 avril 2022
+  de modification : dimanche 03 juillet 2022 (train Clermont-Ferrand)
 =#
 
 using Genie, Genie.Router, Genie.Renderer.Html, Genie.Requests, Genie.Renderer.Json
@@ -21,15 +21,15 @@ route("/constantes") do
 	# Récupère des infos CONSTANTES pour construire la page web et les
 	# retourne au format JSON
 	Genie.Renderer.Json.json( Dict("HEUREDEB" => string(HEUREDEB),
-	           "NBCRENEAUX" => string(NBCRENEAUX),
-			   "NBJOURS" => string(NBJOURS)) )  
+	        					   "NBCRENEAUX" => string(NBCRENEAUX),
+								   "NBJOURS" => string(NBJOURS)) )  
 end
 
 # Route récupérant l'état de TOUS les créneaux d'une ressource pour une semaine
 # l'URL d'appel sera du type :
 # http://serveur:8000/lectureDesCreneaux?ressource=belhomme&semaine=38
 route("/lectureDesCreneaux") do
-	# Récupère le nom de la ressource et le numéro de la semaine.
+	# Récupère le nom de la ressource et le numéro de la semaine
 	ressource = params(:ressource, "?")
 	semaine   = params(:semaine, "?")      # !!! de type String
 	if semaine == "?"
@@ -45,43 +45,26 @@ route("/lectureDesCreneaux") do
 	   (booléen True si créneau libre, False si occupé) =#
 	D = Dict()     # dictionnaire vide au départ
 	for i in 1:NBJOURS * NBCRENEAUX
-		# On va connaître l'état du créneau : occupé (false)/non occupé (true).
+		# On va connaître l'état du créneau : occupé=false/non occupé=true
 		jour, debut = convPosWebEnTupleJourDeb(i)
 		D[i] = P[jour, debut]
 	end
 	return Genie.Renderer.Json.json( Dict("etat" => D) )
 end
 
-route("/CheckSalles", method = "GET") do
-	nomSalles = params(:nomSalles, false)
-    df = checkExistanceSalles(nomSalles)
+# Swann : route pour tester si une salle existe dans la BDD SQLite
+# l'URL d'appel sera du type :
+# http://serveur:8000/checkSalle?nomSalle=C1
+route("/checkSalle", method = "GET") do
+	nomSalle = params(:nomSalle, false)
+    df = checkExistanceSalle(nomSalle)
 	chJSON = "["
-	for L in eachrow(df)
-		ch = """{"OkOuPasOk": "$(L.OkOuPasOk)"},"""
+	for ligne in eachrow(df)
+		ch = """{"OkOuPasOk": "$(ligne.OkOuPasOk)"},"""
 		chJSON *= ch
 	end
-	# Referme la chaîne de JSON en remplaçant la ',' finale par un ']'
-	chJSON = chJSON[1:end-1] * ']'   #TODO: bizarre que ça marche...
-	# Retourne la conversion de la chaîne en véritable objet JSON
-	return Genie.Renderer.Json.json(chJSON)
-end
-
-route("/recherchePere", method = "GET") do
-    df = recherchePere() 
-	chJSON = "["
-	df1 = DataFrame(grandPere = "")
-	df2 = DataFrame(grandPere = "")
-	for e in df
-		df2 =DataFrame(grandPere = e)
-		append!(df1,df2)
-	end
-	for L in eachrow(df1)
-		print(L.grandPere)
-		ch = """{"grandPere": "$(L.grandPere)"},"""
-		chJSON *= ch
-	end
-	# Referme la chaîne de JSON en remplaçant la ',' finale par un ']'
-	chJSON = chJSON[1:end-1] * ']'   #TODO: bizarre que ça marche...
+	# Referme la chaîne JSON en remplaçant la ',' finale par un ']'
+	chJSON = chJSON[1:end-1] * ']'
 	# Retourne la conversion de la chaîne en véritable objet JSON
 	return Genie.Renderer.Json.json(chJSON)
 end
@@ -99,7 +82,7 @@ route("/affecteLesCreneaux", method = "GET") do
 		return    # pour précompilation...
 	end
 	semaine = Base.parse(Int, semaine) # passage de String à Int64
-	liste = params(:liste, false)     # chaine de numéros séparés par une ','
+	liste = params(:liste, false)      # chaine de numéros séparés par une ','
 	# TODO: tester si au moins une des 3 valeurs est false pour quitter...
 
 	#= Il faut maintenant modifier chaque créneau dans le fichier xxx.dat de la
@@ -111,7 +94,7 @@ route("/affecteLesCreneaux", method = "GET") do
 		jour, deb = convPosWebEnTupleJourDeb(Base.parse(Int, creneau))
 		AffecteCreneau(obj[semaine], jour, deb, 1)
 	end
-	io = open(REPERTOIRE_DATA * '/' * ressource * ".dat", "w")
+	io = open(REPERTOIRE_DATA * SEP * ressource * ".dat", "w")
     serialize(io, obj)
     close(io)
 end
@@ -131,140 +114,114 @@ route("/selectCreneaux", method = "GET") do
 	df = selectCreneauxBDD(semaine)
 	# Place chaque ligne de la BDD dans une chaîne simulant un tableau de JSON
 	chJSON = "["
-	for L in eachrow(df)
-		ch = """{"uuid": "$(L.uuid)",
-		         "tab": "$(L.tab)",
-				 "typeDeCours": "$(L.typeDeCours)",
-				 "nomModule": "$(L.nomModule)",
-				 "prof": "$(L.prof)",
-				 "salles": "$(L.salles)",
-				 "groupe": "$(L.groupe)",
-				 "dureeEnMin": $(L.dureeEnMin)},"""
+	for ligne in eachrow(df)
+		ch = """{"uuid": "$(ligne.uuid)",
+		         "tab": "$(ligne.tab)",
+				 "typeDeCours": "$(ligne.typeDeCours)",
+				 "nomModule": "$(ligne.nomModule)",
+				 "prof": "$(ligne.prof)",
+				 "salles": "$(ligne.salles)",
+				 "groupe": "$(ligne.groupe)",
+				 "dureeEnMin": $(ligne.dureeEnMin)},"""
 		chJSON *= ch
 	end
 	# Referme la chaîne de JSON en remplaçant la ',' finale par un ']'
-	chJSON = chJSON[1:end-1] * ']'   #TODO: bizarre que ça marche...
+	chJSON = chJSON[1:end-1] * ']'
 	# Retourne la conversion de la chaîne en véritable objet JSON
 	return Genie.Renderer.Json.json(chJSON)
 end
 
+# Swann : 
 route("/selectPublic", method = "GET") do
-	# Appelle la fonction spécifique du module bddPlanificationSemaine.jl
-	lstGroupes = RetourListeGroupes()
+	# Appelle la fonction spécifique du module Groupes.jl
+	lstGroupes = retourneListeGroupes()
 	df1 = DataFrame(groupes = "")
 	df2 = DataFrame(groupes = "")
 	for e in lstGroupes
-		df2 =DataFrame(groupes = e)
-		append!(df1,df2)
+		df2 = DataFrame(groupes = e)
+		append!(df1, df2)
 	end
 	# Place chaque ligne de la BDD dans une chaîne simulant un tableau de JSON
 	chJSON = "["
-	print(df1)
-	for L in eachrow(df1)
-		ch = """{"groupes": "$(L.groupes)"},"""
+	for ligne in eachrow(df1)
+		ch = """{"groupes": "$(ligne.groupes)"},"""
 		chJSON *= ch
 	end
 	# Referme la chaîne de JSON en remplaçant la ',' finale par un ']'
-	chJSON = chJSON[1:end-1] * ']'   #TODO: bizarre que ça marche...
+	chJSON = chJSON[1:end-1] * ']'
 	# Retourne la conversion de la chaîne en véritable objet JSON
 	return Genie.Renderer.Json.json(chJSON)
 end
 
+#= Swann : action effectuée lorsque l'on clique sur le bouton "lancerMoteur".
+   On récupère le numéro de la semaine, le nombre d'emplois du temps que l'on
+   souhaite calculer, puis on appelle la fonction "programmePrincipal" qui se
+   trouve dans le fichier 'MoteurRecuitSimuke.jl' =#
 route("/lancerMoteur", method = "GET") do
 	numSemaine = params(:numSemaine, false)
 	nbEDTCalcules = params(:nbEDTCalcules, false)
 	programmePrincipal(numSemaine, nbEDTCalcules)
 end
 
-route("/selectDepartements", method = "GET") do
-	# Appelle la fonction spécifique du module bddPlanificationSemaine.jl
-	lstDep = RetourListeDepartements()
-	df1 = DataFrame(dep = "")
-	df2 = DataFrame(dep = "")
-	for e in lstDep
-		df2 =DataFrame(dep = e)
-		append!(df1,df2)
-	end
-	# Place chaque ligne de la BDD dans une chaîne simulant un tableau de JSON
-	chJSON = "["
-	print(df1)
-	for L in eachrow(df1)
-		ch = """{"dep": "$(L.dep)"},"""
-		chJSON *= ch
-	end
-	# Referme la chaîne de JSON en remplaçant la ',' finale par un ']'
-	chJSON = chJSON[1:end-1] * ']'   #TODO: bizarre que ça marche...
-	# Retourne la conversion de la chaîne en véritable objet JSON
-	return Genie.Renderer.Json.json(chJSON)
-end
-
+# Swann : 
 route("/selectProf", method = "GET") do
 	# Appelle la fonction spécifique du module bddPlanificationSemaine.jl
 	df = selectDonneesprof()
 	# Place chaque ligne de la BDD dans une chaîne simulant un tableau de JSON
 	chJSON = "["
-	for L in eachrow(df)
-		ch = """{"nomProf": "$(L.nomProf)"},"""
+	for ligne in eachrow(df)
+		ch = """{"nomProf": "$(ligne.nomProf)"},"""
 		chJSON *= ch
 	end
 	# Referme la chaîne de JSON en remplaçant la ',' finale par un ']'
-	chJSON = chJSON[1:end-1] * ']'   #TODO: bizarre que ça marche...
+	chJSON = chJSON[1:end-1] * ']'
 	# Retourne la conversion de la chaîne en véritable objet JSON
 	return Genie.Renderer.Json.json(chJSON)
 end
 
-route("/ajoutProf", method = "GET") do
+# Swann : 
+route("/ajouterProf", method = "GET") do
 	nomProf = params(:nomProf, false)
 	# Appelle la fonction spécifique du module bddPlanificationSemaine.jl
-	insererProf(nomProf)
-	# Referme la chaîne de JSON en remplaçant la ',' finale par un ']'
-	#TODO: bizarre que ça marche...
-	# Retourne la conversion de la chaîne en véritable objet JSON
+	insereProf(nomProf)
 end
 
+# Swann : 
 route("/supprimerProf", method = "GET") do
 	nomProf = params(:nomProf, false)
 	# Appelle la fonction spécifique du module bddPlanificationSemaine.jl
-	supprimerProf(nomProf)
-	# Referme la chaîne de JSON en remplaçant la ',' finale par un ']'
-	#TODO: bizarre que ça marche...
-	# Retourne la conversion de la chaîne en véritable objet JSON
+	supprimeProf(nomProf)
 end
 
+# Swann : 
+route("/ajouterSalle", method = "GET") do
+	nomSalle = params(:nomSalle, false)
+	# Appelle la fonction spécifique du module bddPlanificationSemaine.jl
+	insereSalle(nomSalle)
+end
+
+# Swann : 
 route("/supprimerSalle", method = "GET") do
 	nomSalle = params(:nomSalle, false)
 	# Appelle la fonction spécifique du module bddPlanificationSemaine.jl
-	supprimerSalle(nomSalle)
-	# Referme la chaîne de JSON en remplaçant la ',' finale par un ']'
-	#TODO: bizarre que ça marche...
-	# Retourne la conversion de la chaîne en véritable objet JSON
+	supprimeSalle(nomSalle)
 end
 
-
+# Swann : 
 route("/selectSalles", method = "GET") do
 	# Appelle la fonction spécifique du module bddPlanificationSemaine.jl
 	df = selectDonneesSalles()
 	# Place chaque ligne de la BDD dans une chaîne simulant un tableau de JSON
 	chJSON = "["
-	for L in eachrow(df)
-		ch = """{"nomSalle": "$(L.nomSalle)"},"""
+	for ligne in eachrow(df)
+		ch = """{"nomSalle": "$(ligne.nomSalle)"},"""
 		chJSON *= ch
 	end
 	# Referme la chaîne de JSON en remplaçant la ',' finale par un ']'
-	chJSON = chJSON[1:end-1] * ']'   #TODO: bizarre que ça marche...
+	chJSON = chJSON[1:end-1] * ']'
 	# Retourne la conversion de la chaîne en véritable objet JSON
 	return Genie.Renderer.Json.json(chJSON)
 end
-
-route("/ajoutSalle", method = "GET") do
-	nomSalle = params(:nomSalle, false)
-	# Appelle la fonction spécifique du module bddPlanificationSemaine.jl
-	insererSalle(nomSalle)
-	# Referme la chaîne de JSON en remplaçant la ',' finale par un ']'
-	#TODO: bizarre que ça marche...
-	# Retourne la conversion de la chaîne en véritable objet JSON
-end
-
 
 #= Route permettant d'enregistrer dans une base de données les créneaux créés
    au travers de l'interface web/jquery "planificationSemaine.html"
@@ -289,7 +246,7 @@ route("/insertCreneau", method = "GET") do
 	# Insère le créneau dans la base de données
 	insereCreneauBDD(uuid, week, tab, type, matiere, prof, lieu, public, duree,
 	                 "", "", "")
-	afficheDonnees()
+	#afficheDonnees()
 end
 
 #= Route permettant de mettre à jour dans une base de données les créneaux gérés
@@ -303,35 +260,37 @@ route("/updateCreneau", method = "GET") do
 		return    # pour précompilation...
 	end
 	jsonObj = parse(creneau)
-	uuid = jsonObj["uuid"]
-	week = Base.parse(Int, jsonObj["week"])
-	tab = jsonObj["tab"]
-	type = jsonObj["data"]["type"]
+	uuid    = jsonObj["uuid"]
+	week    = Base.parse(Int, jsonObj["week"])
+	tab     = jsonObj["tab"]
+	type    = jsonObj["data"]["type"]
 	matiere = jsonObj["data"]["matiere"]
-	prof = jsonObj["data"]["prof"]
-	lieu = jsonObj["data"]["lieu"]
-	public = jsonObj["data"]["public"]
-	duree = Base.parse(Int, jsonObj["data"]["duree"])
+	prof    = jsonObj["data"]["prof"]
+	lieu    = jsonObj["data"]["lieu"]
+	public  = jsonObj["data"]["public"]
+	duree   = Base.parse(Int, jsonObj["data"]["duree"])
 	# Modifie le créneau connu par son uuid
 	updateCreneauBDD(uuid, week, tab, type, matiere, prof, lieu, public, duree,
 	                 "", "", "")
-	afficheDonnees() 
+	#afficheDonnees() 
 end
 
+# Swann : 
 route("/createCsv", method = "GET") do
 	numSemaine = params(:numSemaine, false)
 	matiere = params(:matiere, false)
 	typeCr = params(:typeCr, false)
 	duree = params(:duree, false)
-	professeur = params(:professeur, false)
-	salleDeCours = params(:salleDeCours, false)
+	prof = params(:professeur, false)
+	salle = params(:salleDeCours, false)
 	public = params(:public, false)
-	createCSVcreneau(numSemaine, matiere, typeCr, duree, professeur, salleDeCours, public)
+	createCSVcreneau(numSemaine, matiere, typeCr, duree, prof, salle, public)
 end
 
-route("/createanddeleteCsv", method = "GET") do
+# Swann : 
+route("/deleteAndCreateCSV", method = "GET") do
 	numSemaine = params(:numSemaine, false)
-	deleteandcreateCSVcreneau(numSemaine)
+	deleteAndCreateCSVcreneau(numSemaine)
 end
 
 #= Route permettant de supprimer de la BDD un créneau spécifié par son uuid
@@ -344,7 +303,7 @@ route("/deleteCreneau", method = "GET") do
 		return    # pour précompilation...
 	end
 	supprimeCreneauBDD(uuid)
-	afficheDonnees()
+	#afficheDonnees()
 end
 
 #= Route permettant de changer l'onglet d'un créneau spécifié par son uuid
@@ -359,7 +318,7 @@ route("/moveCreneau", method = "GET") do
 		return    # pour précompilation...
 	end
 	moveCreneauBDD(uuid, zone, Base.parse(Int, numSemaine))
-	afficheDonnees()
+	#afficheDonnees()
 end
 
 Genie.config.run_as_server = true
@@ -372,13 +331,9 @@ Genie.config.cors_headers["Access-Control-Allow-Methods"] = "GET,POST"
 Genie.config.cors_allowed_origins = ["*"]
 
 #= Fonction qui force la "compilation de toutes les routes du serveur. Pour
-l'instant génère des erreurs mais ça ne bloque pas le système... A voir. =#
+l'instant génère des erreurs mais ne bloque pas le système... TODO: à voir. =#
 function force_compile()
 	println("Lancement de la compilation des routes...")
-	#sleep(5)
-	#for (name, r) in Router.named_routes()
-	  #Genie.Requests.HTTP.request(r.method, "http://localhost:8000" * tolink(name))
-	#end
 	Genie.Requests.HTTP.request("GET", "http://localhost:8000/constantes")
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/lectureDesCreneaux?ressource=?&semaine=?")
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/affecteLesCreneaux?ressource=?&semaine=?&liste=?")
@@ -388,14 +343,13 @@ function force_compile()
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/deleteCreneau?creneau=?")
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/moveCreneau?creneau=?&zone=?")
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/selectProf")
-	Genie.Requests.HTTP.request("GET", "http://serveur:8000/ajoutProf?nomProf=?")
+	Genie.Requests.HTTP.request("GET", "http://serveur:8000/ajouterProf?nomProf=?")
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/createCsv?numSemaine=?&matiere=?&typeCr=?&duree=?&professeur=?&salleDeCours=?&public=?")
-	Genie.Requests.HTTP.request("GET", "http://serveur:8000/createanddeleteCsv?numSemaine=?")
-	Genie.Requests.HTTP.request("GET", "http://serveur:8000/ajoutSalle?nomSalle=?")
+	Genie.Requests.HTTP.request("GET", "http://serveur:8000/deleteAndCreateCSV?numSemaine=?")
+	Genie.Requests.HTTP.request("GET", "http://serveur:8000/ajouterSalle?nomSalle=?")
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/selectSalles") 
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/selectPublic")
-	Genie.Requests.HTTP.request("GET", "http://serveur:8000/CheckSalles?nomSalles=?")
-	Genie.Requests.HTTP.request("GET", "http://serveur:8000/recherchePere")
+	Genie.Requests.HTTP.request("GET", "http://serveur:8000/checkSalle?nomSalle=?")
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/lancerMoteur?numSemaine=?&nbEDTCalcules=?")
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/supprimerProf?nomProf=?")
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/supprimerSalle?nomSalle=?")

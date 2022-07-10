@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
-# Auteur : Philippe Belhomme
-# Date Création : Jeudi 21 février 2019
-# Date Modification : Vendredi 24 mai 2019
+# Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
+# Date Création : jeudi 21 février 2019
+# Date Modification : mardi 05 juillet 2022
 # Langage : Julia
 
 # Module : MoteurRecuitSimule
@@ -31,11 +31,10 @@ mutable struct Moteur
     rendement::Float32          # rendement de placement de ce moteur
 end
 
-#= Prépare tous les élements nécessaires au traitement d'une semaine.
+#= Prépare tous les éléments nécessaires au traitement d'une semaine.
 Par défaut la collection de créneaux à placer est vide. Le moteur ne pourra
 tourner que si le moteur est 'alimenté' en créneaux à traiter. =#
 function prepareMoteur(numSemaine)
-
     M = Moteur("", numSemaine, Dict(),Dict(),Dict(), [],[],
                PROBA_INITIALE, 0, 0, 0.0)
     M.info = "Je suis le moteur qui bosse sur la semaine $numSemaine..."
@@ -52,6 +51,7 @@ function prepareMoteur(numSemaine)
     return M
 end
 
+# Permet de relire depuis le disque dur un fichier .dat sérialisé auparavant
 function deserialiseFichierDat(fic)
     return deserialize(open(REPERTOIRE_DATA * SEP * fic * ".dat", "r"))
 end
@@ -93,7 +93,7 @@ function chargeLesGroupes(M)
                                    hierarchieGroupes[grp].fils)
             for f in famille
                 if !(f in keys(M.dctG))
-                    M.dctG[f] = deserialiseFichierDat(f)
+                    M.dctG[f] = deserialiseFichierDat(f)[M.numSemaine]
                     onContinue = true     # lève le drapeau !
                 end
             end
@@ -101,27 +101,30 @@ function chargeLesGroupes(M)
     end
 end
 
-#fonction chargée de la création du csv
-function createCSV(numSemaine, tour)
-  # new file created
-  nom = "PLANNINGS_CALCULES\\s"*string(numSemaine)*"_"*string(tour)*".csv"
-  touch(nom)
-end
-
 # Cherche à placer dans l'EDT les créneaux non placés du moteur
 function positionneLesCreneauxNonPlaces(M)
     for tour in 1:length(M.collCreneauxNP)
         cr = popfirst!(M.collCreneauxNP)        # retire le créneau de la pile
         nbQH = Int(cr.dureeEnMin / 15)          # nombre de quarts d'heure
+        # Construire une union de toutes les salles possibles
+        unionDesSalles = PlanningSemaine()      # planning vide
         for salle in cr.salles                  # balaye toutes les salles
-            j,d = ouEstCePossible(nbQH,M.dctS[salle]) # tuple (j,d) ou (0,0)
-            if j != 0
-                cr.salleRetenue = salle         # retient la salle utilisée
-                break                           # quitte le for...
+            unionDesSalles = Union(unionDesSalles, M.dctS[salle])
+        end
+        # Rechercher la première place possible dans cette union
+        j,d = ouEstCePossible(nbQH, unionDesSalles) # tuple (j,d) ou (0,0)
+        # Trouver la première salle (dans l'ordre) qui peut recevoir le créneau
+        if j != 0
+            for salle in cr.salles              # balaye toutes les salles
+                x,y = ouEstCePossible(nbQH, M.dctS[salle])
+                if x == j && y == d
+                    cr.salleRetenue = salle     # retient la salle utilisée
+                    break                       # quitte le for
+                end
             end
         end
         if cr.salleRetenue == ""                # pas de salle disponible... 
-            push!(M.lCreneauxNP, cr)         # cr retourne dans la pile NP
+            push!(M.collCreneauxNP, cr)         # cr retourne dans la pile NP
             continue                            # passe au tour suivant
         end
         ### Ici on a forcément trouvé une salle possible
@@ -147,8 +150,8 @@ function positionneLesCreneauxNonPlaces(M)
             AffecteCreneau(plSalle, jour, debut, nbQH)    # ... de la salle
             AffecteCreneau(plGroupe, jour, debut, nbQH)   # ... du groupe
             # ... et DES PERE/FILS EN CASCADE, donc sa 'famille'
-            Fam = rechercheFamilleDuGroupe(cr.groupe)
-            for e in Fam  AffecteCreneau(M.dctG[e], jour, debut, nbQH)  end
+            famille = rechercheFamilleDuGroupe(cr.groupe)
+            for e in famille  AffecteCreneau(M.dctG[e], jour, debut, nbQH) end
             # Le créneau peut maintenant partir dans la liste des Placés
             push!(M.collCreneauxP, cr)
         else
@@ -167,7 +170,7 @@ function retireDesCreneauxSelonUneProbabilite(M)
             LibereCreneau(M.dctP[cr.prof],j,d,n)            # libère le prof
             LibereCreneau(M.dctS[cr.salleRetenue],j,d,n)    # libère la salle
             LibereCreneau(M.dctG[cr.groupe],j,d,n)          # libère le groupe
-            # Libére les plannings des ascendants/descendants
+            # Libère les plannings des ascendants/descendants
             famille = rechercheFamilleDuGroupe(cr.groupe)
             for e in famille  LibereCreneau(M.dctG[e],j,d,n)  end
             # Nettoie l'horaire du créneau ainsi que la salle retenue
@@ -190,6 +193,7 @@ function runMoteur(M)
     M.nbreTours = 1                       # numéro du tour actuel
     while M.nbreTours < NBTOURSMAX && length(M.collCreneauxNP) > 0
         shuffle!(M.collCreneauxNP)        # mélange sur place la collection NP
+        #TODO: ce serait bien de les trier par ordre de 'places possibles'
         for t in 1:DUREE_EQUILIBRE_THERMIQUE
             positionneLesCreneauxNonPlaces(M)
             if length(M.collCreneauxNP)>0 # s'il reste des créneaux à placer
@@ -212,21 +216,31 @@ function creerCsvDepuisDonnees(numSemaine, jour, matiere, typeDeCours, numApogee
   CSV.write(nom, df, header = false, append = true, delim=';')
 end
 
-# Fonction qui affiche l'emploi du temps calculé
-#TODO: devra modifier le fichier original
-function afficheEDT(M, numSemaine, tour)
-    nom = "PLANNINGS_CALCULES\\s"*string(numSemaine)*"_"*string(tour)*".csv"
+# Fonction qui affiche l'emploi du temps calculé et l'enregistre dans un CSV
+function afficheEnregistreEDT(M, numSemaine, tour)
+    # Crée un fichier par tour, sur le modèle : s39_1.csv, s39_2.csv, etc.
+    nom = REPERTOIRE_PLAN * SEP * string(numSemaine) * SEP
+    nom *= "s" * string(numSemaine) * "_" * string(tour) * ".csv"
+    touch(nom)
     println("[++++]Créneaux placés...")
     for e in M.collCreneauxP   
-    #remplit le csv après calcul
+        # Remplit le CSV après calcul
         println(e)
-        df = DataFrame(semaine = [numSemaine], JourduCours = [e.jour],  matiere = [e.nomModule], typeCr = [e.typeDeCours], numApogee = "numApogee", heure = [e.horaire], duree = [e.dureeEnMin], professeur = [e.prof], salleDeCours = [e.salles], public = [e.groupe])
+        df = DataFrame(semaine = [numSemaine], JourduCours = [e.jour],
+                       matiere = [e.nomModule], typeCr = [e.typeDeCours],
+                       numApogee = "numApogee", heure = [e.horaire],
+                       duree = [e.dureeEnMin], professeur = [e.prof],
+                       salleDeCours = [e.salles], public = [e.groupe])
         CSV.write(nom, df, header = false, append = true, delim=';')
     end
     println("[----]Créneaux NON placés...")
     for e in M.collCreneauxNP  
         println(e)  
-        df = DataFrame(semaine = [numSemaine], JourduCours = [e.jour],  matiere = [e.nomModule], typeCr = [e.typeDeCours], numApogee = "numApogee", heure = [e.horaire], duree = [e.dureeEnMin], professeur = [e.prof], salleDeCours = [e.salles], public = [e.groupe])
+        df = DataFrame(semaine = [numSemaine], JourduCours = [e.jour],
+                       matiere = [e.nomModule], typeCr = [e.typeDeCours],
+                       numApogee = "numApogee", heure = [e.horaire],
+                       duree = [e.dureeEnMin], professeur = [e.prof],
+                       salleDeCours = [e.salles], public = [e.groupe])
         CSV.write(nom, df, header = false, append = true, delim=';')
     end
     strStat = " (" * string(length(M.collCreneauxP)) * "/" 
@@ -240,13 +254,9 @@ function programmePrincipal(semaine, nbEDTCalcules)
 	semaine = Base.parse(Int64, semaine)
 	nbEDTCalcules = Base.parse(Int64, nbEDTCalcules)
 	for tour in 1:nbEDTCalcules
-		createCSV(semaine, tour)
-		# file handling in write mode
-		nom = "s"*string(semaine)*"_"*string(tour)*".csv"
-		efg = open(nom, "w")
 	    println("*** Tour n°", tour, "/", nbEDTCalcules, " ***")
 	    moteur = prepareMoteur(semaine)
 	    runMoteur(moteur)
-	    afficheEDT(moteur, semaine, tour)
+	    afficheEnregistreEDT(moteur, semaine, tour)
 	end
 end

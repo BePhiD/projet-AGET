@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme
 # Date Création : Mercredi 23 janvier 2019
-# Date Modification : Vendredi 24 mai 2019
+# Date Modification : mardi 05 juillet 2022
 # Langage : Julia
 
 # Module : Creneaux
@@ -17,9 +17,9 @@ mutable struct Creneau
     groupe::String
     prof::String
     salles::Array{String,1}     # tableaux de chaînes de caractères
-    nomModule::String           # doit appartenir à la constante MODULES
-    typeDeCours::String         # doit appartenir à la constante TYPES_DE_COURS
-    dureeEnMin::Int             # entier de la forme 90 pour 1h30
+    nomModule::String           # saisie libre pour plus de souplesse
+    typeDeCours::String         # saisie libre pour plus de souplesse
+    dureeEnMin::Int             # entier (ex : 90 pour 1h30) multiple de 15
     jour::String                # de la forme : "Lundi, Mardi..."
     horaire::String             # de la forme : "9h30" ou "11h15"
     salleRetenue::String        # salle choisie parmi la liste 'salles'
@@ -31,14 +31,14 @@ end
 # Variables globales du module (disponibles dans ceux qui l'importeront)
 ERR_Globales = ""               # par défaut pas d'erreurs
 
+#= Fonction qui analyse la liste des créneaux d'une semaine dont le numéro
+    est donné en paramètre. Le fichier analysé sera par exemple 's48.csv'.
+    Après la lecture du fichier la validité de chaque créneau est vérifiée.
+    Cette fonction renverra la liste des messages d'erreur (vide si ok). =#
 function analyseListeDesCreneaux(numSemaine)
-    #= Fonction qui analyse la liste des créneaux d'une semaine dont le numéro
-        est donné en paramètre. Le fichier analysé sera par exemple 's48.csv'.
-        Après la lecture du fichier la validité de chaque créneau est vérifiée.
-        Cette fonction renverra la liste des messages d'erreur (vide si ok). =#
     lstCreneaux = []            # liste des créneaux d'une semaine à calculer
     fic = "s" * string(numSemaine) * ".csv"
-    LstCr  = readlines(open(REPERTOIRE_SEM * SEP * fic, "r"))
+    LstCr = readlines(open(REPERTOIRE_SEM * SEP * fic, "r"))
     #= Boucle tous les créneaux pour les mettre dans une liste globale.
        ON RESPECTE L'ORDRE DU FICHIER FOURNI PAR LE PRÉVISIONNEL IUT =#
     for e in LstCr
@@ -65,16 +65,19 @@ function analyseListeDesCreneaux(numSemaine)
     return lstCreneaux
 end
 
+# Génère un fichier ".dat" (pour l'année) d'un prof ou d'une salle
 function creeFichierDatPourProfOuSalle(identifiant, message)
-    # Crée un nouvel élément et génère son fichier ".dat" pour l'année
     P = []                          # tableau vide (contiendra 52 plannings)
     for x in 1:NBSEMAINES  push!(P, PlanningSemaine())  end
-    io = open(REPERTOIRE_DATA * '/' * identifiant * ".dat", "w")
+    io = open(REPERTOIRE_DATA * SEP * identifiant * ".dat", "w")
     serialize(io, P)
     close(io)
     println(message, identifiant, "... OK")
 end
 
+#= Fonction qui vérifie tous les créneaux qui vont être placés (ou non...) par
+   le moteur de calcul automatique de l'emploi du temps et qui s'assure qu'ils
+   sont bien associés à un fichier .dat =#
 function verifieValiditeDesCreneaux(lstCreneaux)
     fichiersPresents = readdir(REPERTOIRE_DATA)
     include("Groupes.jl")           # construit la hiérarchie des groupes
@@ -86,7 +89,7 @@ function verifieValiditeDesCreneaux(lstCreneaux)
             # Crée le .dat du prof puisqu'il n'est pas connu
             creeFichierDatPourProfOuSalle(c.prof, "Création du prof : ")
             push!(fichiersPresents, c.prof * ".dat")
-            insererProfdepuisMoteur(c.prof)
+            insereProfdepuisMoteur(c.prof)   # ne devrait pas arriver...
         end
         # Vérifie la ou les salles
         for salle in c.salles
