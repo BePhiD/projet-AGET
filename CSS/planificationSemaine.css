@@ -46,16 +46,31 @@ table {
 .creneau {
     border: black inset 3px;
     border-radius: 6px;
-    background-color: blanchedalmond;
     width: fit-content;
     float: left;
     text-align: center;
+    font-style: normal;
     padding: 5px;
     cursor: pointer;
 }
 /* Règles pour dessiner un créneau dans la corbeille */
 .corbeille {
-    background-color:lightskyblue;
+    /*background-color:lightskyblue;*/
+    font-style: italic;
+}
+
+/* Règles pour dessiner des CM/TD/TP */
+.CM {
+    background-color:coral;
+}
+.TD {
+    background-color:cadetblue;
+}
+.TP {
+    background-color:olive;
+}
+.Autre {
+    background-color:blanchedalmond;
 }
 
 /***********************************************/

@@ -2,7 +2,7 @@
 // du projet EDTAutomatic (moteur de recuit simulé écrit en Julia)
 // Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 // Date de création : lundi 31 janvier 2022 (isolement Covid...)
-// Date de modification : mardi 05 juillet 2022
+// Date de modification : dimanche 10 juillet 2022
 
 /* ------------------------
 -- Fonctions utilitaires --
@@ -64,6 +64,35 @@ function fromAttrToJSON(numeroSemaine, nomOnglet, uuid) {
     };
 }
 
+// Fonction qui permet de colorer les créneaux selon leur type (CM/TD/TP)
+function colore_CM_TD_TP(uuid, typeDeCours) {
+    switch (typeDeCours) {
+        case 'CM':
+            $("#"+uuid).addClass("CM");     // il acquiert la classe CM
+            $("#"+uuid).removeClass("TD");  // et perd les autres
+            $("#"+uuid).removeClass("TP");
+            $("#"+uuid).removeClass("Autre");
+            break;
+        case 'TD':
+            $("#"+uuid).addClass("TD");     // il acquiert la classe TD
+            $("#"+uuid).removeClass("CM");  // et perd les autres
+            $("#"+uuid).removeClass("TP");
+            $("#"+uuid).removeClass("Autre");
+            break;
+        case 'TP':
+            $("#"+uuid).addClass("TP");     // il acquiert la classe TP
+            $("#"+uuid).removeClass("CM");  // et perd les autres
+            $("#"+uuid).removeClass("TD");
+            $("#"+uuid).removeClass("Autre");
+            break;
+        default:
+            $("#"+uuid).addClass("Autre");  // il acquiert la classe Autre
+            $("#"+uuid).removeClass("CM");  // et perd les autres
+            $("#"+uuid).removeClass("TD");
+            $("#"+uuid).removeClass("TP");
+    }
+}
+
 // Fonction activée après le 'drop' d'un créneau ; compatible corbeille/onglets
 function dropCreneau(event, ui, idZoneDuDrop) {
     /* Si la zone d'arrivée est le prévisionnel, positionne la zone sur
@@ -106,7 +135,8 @@ function dropCreneau(event, ui, idZoneDuDrop) {
     else {
         $("#"+uuid).removeClass('corbeille');
     }
-
+    // Colore le créneau selon son type de cours
+    colore_CM_TD_TP(uuid, type);
     // Réenregistre ce créneau dans la BDD via un appel à une API julia (UPDATE)
     var numeroSemaine = $("#laSemaine").val();
     // Requête AJAX pour déplacer le créneau (onglet <--> corbeille)
@@ -130,9 +160,9 @@ function fabriqueCreneauFromFormulaire() {
         setTimeout(function () {
             if (ok == "true") {
                 matiere = matiere.charAt(0).toUpperCase() + matiere.slice(1).toLowerCase();
-                prof = prof.charAt(0).toUpperCase() + prof.slice(1).toLowerCase();
-                public = public.charAt(0).toUpperCase() + public.slice(1).toLowerCase();
-                creeCreneau(type.toUpperCase(), matiere, prof, lieu.toUpperCase(), public, duree);
+                //prof = prof.charAt(0).toUpperCase() + prof.slice(1).toLowerCase();
+                creeCreneau(type.toUpperCase(), matiere, prof,
+                            lieu.toUpperCase(), public.toUpperCase(), duree);
                 return;
         } else {
             alert("Une ou plusieurs des salles inscrites n'existe(nt) pas !");
@@ -266,8 +296,8 @@ function creeCreneau(type, matiere, prof, lieu, public, duree, zone="") {
         var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
         return v.toString(16);
     });
-    // Vérifie si la création se fait dans le prévisionnel (quand zone == "")
-    // Sinon zone devrait forcément être "#corbeille"
+    // Vérifie si la création se fait dans le prévisionnel (quand zone == ""),
+    // sinon zone devrait forcément être "#corbeille".
     if (zone == "") {
         // Recherche le numéro de l'onglet actif
         var numeroOnglet = $("#previsionnel").tabs("option", "active");
@@ -293,6 +323,8 @@ function creeCreneau(type, matiere, prof, lieu, public, duree, zone="") {
     // Sauvegarde ce créneau dans la BDD via un appel à une API julia
     numeroSemaine = $("#laSemaine").val();
     jsonObj = fromAttrToJSON(numeroSemaine, nomOnglet, uuid);
+    // Colore le créneau selon son type de cours
+    colore_CM_TD_TP(uuid, type);
     // Requête AJAX pour envoyer le créneau à sauvegarder
     var url = "http://localhost:8000/insertCreneau?creneau=";
     url += JSON.stringify(jsonObj);
@@ -328,8 +360,10 @@ $(document).ready(function() {
             dropCreneau(event, ui, "#previsionnel");
         } 
     });
+    
     // Charge dans l'espace de travail les créneaux prévus cette semaine là
     remplirCreneaux();
+
     // Gère le bouton '+' pour ajouter un créneau
 	if ($("#laSemaine").val() > 0 && $("#laSemaine").val() < 53) {
     	$('#btAjoutCreneau').show(); 
@@ -403,6 +437,8 @@ $(document).ready(function() {
                     opacity: 0.5,
                     revert: "invalid"
                 });
+                // Colore les créneaux selon leur type de cours
+                colore_CM_TD_TP(uuid, typeDeCours);
             }
             /* En plaçant cette ligne ici le bouton '+' ne sera montré que
                lorsque la requête AJAX (qui est asynchrone) sera terminée. */
@@ -550,9 +586,10 @@ $(document).ready(function() {
             setTimeout(function () {
                 if (ok == "true"){
                     matiere = matiere.charAt(0).toUpperCase() + matiere.slice(1).toLowerCase();
-                    prof = prof.charAt(0).toUpperCase() + prof.slice(1).toLowerCase();
                     type = type.toUpperCase();
                     lieu = lieu.toUpperCase();
+                    // Colore le créneau selon son type de cours
+                    colore_CM_TD_TP(uuid, type);
                     // Fabrique le texte "html" du créneau puis l'affiche (donc sans <div>)
                     ch = "<b>" + type + "&nbsp;" + matiere + "</b><br>";
                     ch += prof + "<br>" + lieu + "<br>";
