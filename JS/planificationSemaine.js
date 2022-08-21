@@ -2,7 +2,7 @@
 // du projet EDTAutomatic (moteur de recuit simulé écrit en Julia)
 // Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 // Date de création : lundi 31 janvier 2022 (isolement Covid...)
-// Date de modification : dimanche 10 juillet 2022
+// Date de modification : vendredi 19 août 2022
 
 /* ------------------------
 -- Fonctions utilitaires --
@@ -448,9 +448,12 @@ $(document).ready(function() {
 
     // Permet de créer le CSV prévisionnel quand on appuie sur le bon bouton
     $("#makeCSV").on("click", function() {
+        // Gestion de l'existence du fichier CSV (suppression/recréation)
         numSemaine = $("#laSemaine").val().toString();
         var url2 = "http://localhost:8000/deleteAndCreateCSV?numSemaine=" + numSemaine; 
         $.ajax({url: url2});
+        // Gestion des créneaux qui seront inscrits dans le CSV, donc tous SAUF
+        // ceux qui sont actuellement dans la corbeille.
         var url = "http://localhost:8000/selectCreneaux?semaine=" + numSemaine;
         $.getJSON( url, function( data ) {
             // Récupère l'objet JSON (en fait un tableau de JSON)
@@ -469,11 +472,11 @@ $(document).ready(function() {
                 var groupe = obj[i]["groupe"];
                 var dureeEnMin = obj[i]["dureeEnMin"];
                 var tab = obj[i]["tab"];
-                // Code du <div> qui sera injecté dans la zone du prévisionnel
-                ch = fabriqueCreneauHTML(uuid, typeDeCours, nomModule, prof,
-                                        salles, groupe, dureeEnMin, tab);
-                var url3 = "http://localhost:8000/createCsv?numSemaine="+numSemaine+"&matiere="+nomModule+"&typeCr="+typeDeCours+"&duree="+dureeEnMin.toString()+"&professeur="+prof+"&salleDeCours="+salles+"&public="+groupe.toUpperCase()
-                $.ajax({url: url3});
+                // Les créneaux hors 'corbeille' seront inscrits dans le CSV
+                if (tab != "corbeille") {
+                    var url3 = "http://localhost:8000/createCSV?numSemaine="+numSemaine+"&matiere="+nomModule+"&typeCr="+typeDeCours+"&duree="+dureeEnMin.toString()+"&professeur="+prof+"&salleDeCours="+salles+"&public="+groupe.toUpperCase()
+                    $.ajax({url: url3});
+                }
             }
         });
         alert("Création du CSV prévisionnel... OK.");

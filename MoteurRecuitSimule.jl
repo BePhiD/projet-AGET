@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 # Date Création : jeudi 21 février 2019
-# Date Modification : mardi 05 juillet 2022
+# Date Modification : samedi 20 août 2022 (correction stratégie calcul !)
 # Langage : Julia
 
 # Module : MoteurRecuitSimule
@@ -16,7 +16,7 @@ using Random                    # pour la fonction shuffle!
 using DataFrames
 using CSV
 
-# Structure du moteur contenant tous les éléments pour calculer l'EDT
+### Structure du moteur contenant tous les éléments pour calculer l'EDT
 mutable struct Moteur
     info::String                # description du moteur
     numSemaine::Int             # numéro de la semaine à construire  
@@ -46,17 +46,17 @@ function prepareMoteur(numSemaine)
         M.nbCreneaux = length(M.collCreneauxNP)
         chargeLesProfs(M)
         chargeLesSalles(M)
-        chargeLesGroupes(M)               # avec les parents/enfants
+        chargeLesGroupes(M)     # avec les parents/enfants
     end
     return M
 end
 
-# Permet de relire depuis le disque dur un fichier .dat sérialisé auparavant
+### Permet de relire depuis le disque dur un fichier .dat sérialisé auparavant
 function deserialiseFichierDat(fic)
     return deserialize(open(REPERTOIRE_DATA * SEP * fic * ".dat", "r"))
 end
 
-# Charge le planning de la semaine traitée pour chaque prof
+### Charge le planning de la semaine traitée pour chaque prof
 function chargeLesProfs(M)
     for cr in M.collCreneauxNP
         if !(cr.prof in keys(M.dctP))
@@ -65,7 +65,7 @@ function chargeLesProfs(M)
     end
 end
 
-# Charge le planning de la semaine traitée pour chaque salle
+### Charge le planning de la semaine traitée pour chaque salle
 function chargeLesSalles(M)
     for cr in M.collCreneauxNP
         for salle in cr.salles
@@ -76,7 +76,7 @@ function chargeLesSalles(M)
     end
 end
 
-# Charge le planning de la semaine traitée pour chaque groupe
+### Charge le planning de la semaine traitée pour chaque groupe
 function chargeLesGroupes(M)
     # Charge d'abord les groupes directement concernés par un créneau à placer
     for cr in M.collCreneauxNP
@@ -101,61 +101,63 @@ function chargeLesGroupes(M)
     end
 end
 
-# Cherche à placer dans l'EDT les créneaux non placés du moteur
+### Cherche à positionner dans l'EDT les créneaux non encore placés du moteur
 function positionneLesCreneauxNonPlaces(M)
-    for tour in 1:length(M.collCreneauxNP)
-        cr = popfirst!(M.collCreneauxNP)        # retire le créneau de la pile
-        nbQH = Int(cr.dureeEnMin / 15)          # nombre de quarts d'heure
-        # Construire une union de toutes les salles possibles
-        unionDesSalles = PlanningSemaine()      # planning vide
-        for salle in cr.salles                  # balaye toutes les salles
-            unionDesSalles = Union(unionDesSalles, M.dctS[salle])
+    for tour in 1:length(M.collCreneauxNP)       # tour sera un entier
+        cr = popfirst!(M.collCreneauxNP)         # retire un créneau de la pile
+        nbQH = Int(cr.dureeEnMin / 15)           # nombre de quarts d'heure
+        # Obtenir le planning du prof concerné par le créneau
+        plProf = M.dctP[cr.prof]                 # planning du prof (alias)
+        #= Construire l'intersection du planning du groupe et de tous ses
+           PERES/FILS, donc le planning de sa 'FAMILLE' complète. =#
+        plGroupe = M.dctG[cr.groupe]             # planning du groupe (alias)
+        plFamille = PlanningSemaine(true)        # planning ENTIEREMENT vide
+        plFamille = Intersection(plFamille, plGroupe)
+        for e in rechercheFamilleDuGroupe(cr.groupe)
+            plFamille = Intersection(plFamille, M.dctG[e])
         end
-        # Rechercher la première place possible dans cette union
-        j,d = ouEstCePossible(nbQH, unionDesSalles) # tuple (j,d) ou (0,0)
-        # Trouver la première salle (dans l'ordre) qui peut recevoir le créneau
-        if j != 0
-            for salle in cr.salles              # balaye toutes les salles
-                x,y = ouEstCePossible(nbQH, M.dctS[salle])
-                if x == j && y == d
-                    cr.salleRetenue = salle     # retient la salle utilisée
-                    break                       # quitte le for
+        #= Regarder déjà si le prof et le groupe peuvent coincider =#
+        plProfGroupe = Intersection(plProf, plFamille)
+        jour, debut = ouEstCePossible(nbQH, plProfGroupe) # tuple (j,d) ou (0,0)
+        if jour != 0                             # ce serait possible...
+            # Chercher si l'une des salles est disponible (priorité = ordre)
+            # Par défaut, cr.salleRetenue == ""
+            for salle in cr.salles               # balaye toutes les salles
+                #= Construction du planning mixant toutes les entités ; c'est
+                   donc celui dans lequel on cherchera une place possible au
+                   créneau (prof + groupe + salle).
+                   bas -> 'bac à sable'
+                =#
+                plSalle = M.dctS[salle]
+                bas = Intersection(plProfGroupe, plSalle)
+                jourFinal, debutFinal = ouEstCePossible(nbQH, bas)
+                if jourFinal != 0                # on a trouvé !
+                    cr.salleRetenue = salle      # retient la salle utilisée
+                    # On stocke les informations de position/taille du créneau
+                    cr.numeroDuJour = jourFinal
+                    cr.debutDuCreneau = debutFinal
+                    cr.nombreDeQuartDHeure = nbQH
+                    #= Convertit la position en quelque chose de lisible.
+                       Ainsi : convPosEnJH(2,9) renvoit ("Mardi", "10h00") =#
+                    cr.jour, cr.horaire = convPosEnJH(jourFinal, debutFinal)
+                    # On peut maintenant fixer le créneau dans les 3 plannings
+                    AffecteCreneau(plProf, jourFinal, debutFinal, nbQH)
+                    AffecteCreneau(plGroupe, jourFinal, debutFinal, nbQH)
+                    AffecteCreneau(plSalle, jourFinal, debutFinal, nbQH)
+                    # Le créneau peut maintenant partir dans la liste des Placés
+                    push!(M.collCreneauxP, cr)
+                    break                        # quitte le for car salle ok
                 end
             end
-        end
-        if cr.salleRetenue == ""                # pas de salle disponible... 
-            push!(M.collCreneauxNP, cr)         # cr retourne dans la pile NP
-            continue                            # passe au tour suivant
-        end
-        ### Ici on a forcément trouvé une salle possible
-        plProf   = M.dctP[cr.prof]              # planning du prof (alias)
-        plGroupe = M.dctG[cr.groupe]            # planning du groupe (alias)
-        plSalle  = M.dctS[cr.salleRetenue]      # planning de la salle (alias)
-        # Planning 'bac à sable' pour fusionner ceux des entités du créneau
-        bas = PlanningSemaine()
-        #= Construction du planning mixant toutes les entités ; c'est donc
-           celui dans lequel on cherchera une place au créneau =#
-        bas = Intersection(bas, plProf, plGroupe, plSalle)
-        jour,debut = ouEstCePossible(nbQH, bas) # tuple (j,d) ou (0,0)
-        if jour != 0                            # on a trouvé une place !
-            # On stocke les informations (jour,deb,nbQH)
-            cr.numeroDuJour = jour
-            cr.debutDuCreneau = debut
-            cr.nombreDeQuartDHeure = nbQH
-            # Convertit la position en quelque chose de lisible
-            # Exemple : convPosEnJH(2,9) renvoit ("Mardi", "10h00")
-            cr.jour,cr.horaire = convPosEnJH(jour,debut)
-            # on peut placer le créneau dans le planning...
-            AffecteCreneau(plProf, jour, debut, nbQH)     # ... du prof
-            AffecteCreneau(plSalle, jour, debut, nbQH)    # ... de la salle
-            AffecteCreneau(plGroupe, jour, debut, nbQH)   # ... du groupe
-            # ... et DES PERE/FILS EN CASCADE, donc sa 'famille'
-            famille = rechercheFamilleDuGroupe(cr.groupe)
-            for e in famille  AffecteCreneau(M.dctG[e], jour, debut, nbQH) end
-            # Le créneau peut maintenant partir dans la liste des Placés
-            push!(M.collCreneauxP, cr)
-        else
-            push!(M.collCreneauxNP, cr)         # cr retourne dans la pile NP
+            #= Ici, à la fin de la boucle for, si la salle retenue est vide
+               c'est qu'aucune salle n'était disponible. Le créneau doit alors
+               retourner dans la liste des NonPlacés.
+            =#
+            if cr.salleRetenue == ""
+                push!(M.collCreneauxNP, cr)      # cr retourne dans la pile NP
+            end
+        else  # inutile d'aller plus loin, le prof et le groupe ne matchent pas
+            push!(M.collCreneauxNP, cr)          # cr retourne dans la pile NP
         end
     end
 end
@@ -170,9 +172,6 @@ function retireDesCreneauxSelonUneProbabilite(M)
             LibereCreneau(M.dctP[cr.prof],j,d,n)            # libère le prof
             LibereCreneau(M.dctS[cr.salleRetenue],j,d,n)    # libère la salle
             LibereCreneau(M.dctG[cr.groupe],j,d,n)          # libère le groupe
-            # Libère les plannings des ascendants/descendants
-            famille = rechercheFamilleDuGroupe(cr.groupe)
-            for e in famille  LibereCreneau(M.dctG[e],j,d,n)  end
             # Nettoie l'horaire du créneau ainsi que la salle retenue
             cr.numeroDuJour = cr.debutDuCreneau = 0
             cr.jour = cr.horaire = cr.salleRetenue = ""
@@ -182,14 +181,13 @@ function retireDesCreneauxSelonUneProbabilite(M)
     end
 end
 
-# La probabilité baisse à chaque tour en conservant une limite inférieure
+### La probabilité baisse à chaque tour en conservant une limite inférieure
 function faitEvoluerLaProbabilite(moteur)
     moteur.probabilite = max(moteur.probabilite - PAS_PROBA, MIN_PROBA)
 end
 
-# Fonction qui va réellement calculer l'EDT d'une semaine ; reçoit un 'moteur'
+### Fonction qui va réellement calculer l'EDT d'une semaine ; reçoit un 'moteur'
 function runMoteur(M)
-    #println(M.info)
     M.nbreTours = 1                       # numéro du tour actuel
     while M.nbreTours < NBTOURSMAX && length(M.collCreneauxNP) > 0
         shuffle!(M.collCreneauxNP)        # mélange sur place la collection NP
@@ -210,32 +208,27 @@ function runMoteur(M)
     M.rendement = round(10000 * nbCrBienPlaces / M.nbCreneaux) / 100
 end
 
-#Créer le csv
-function creerCsvDepuisDonnees(numSemaine, jour, matiere, typeDeCours, numApogee, heure, duree, professeur, salleDeCours, public, nom)
-  df = DataFrame(semaine = [numSemaine], JourduCours = [jour],  matiere = [matiere], typeCr = [typeDeCours], numApogee = [numApogee], heure = [heure], duree = [duree], professeur = [professeur], salleDeCours = [salleDeCours], public = [public])
-  CSV.write(nom, df, header = false, append = true, delim=';')
-end
-
-# Fonction qui affiche l'emploi du temps calculé et l'enregistre dans un CSV
+### Fonction qui affiche l'emploi du temps calculé et l'enregistre dans un CSV
 function afficheEnregistreEDT(M, numSemaine, tour)
     # Crée un fichier par tour, sur le modèle : s39_1.csv, s39_2.csv, etc.
     nom = REPERTOIRE_PLAN * SEP * string(numSemaine) * SEP
     nom *= "s" * string(numSemaine) * "_" * string(tour) * ".csv"
     touch(nom)
     println("[++++]Créneaux placés...")
-    for e in M.collCreneauxP   
-        # Remplit le CSV après calcul
+    for e in M.collCreneauxP
         println(e)
+        # Remplit le CSV avec les créneaux placés (donc avec la salle retenue)
         df = DataFrame(semaine = [numSemaine], JourduCours = [e.jour],
                        matiere = [e.nomModule], typeCr = [e.typeDeCours],
                        numApogee = "numApogee", heure = [e.horaire],
                        duree = [e.dureeEnMin], professeur = [e.prof],
-                       salleDeCours = [e.salles], public = [e.groupe])
+                       salleDeCours = [e.salleRetenue], public = [e.groupe])
         CSV.write(nom, df, header = false, append = true, delim=';')
     end
     println("[----]Créneaux NON placés...")
     for e in M.collCreneauxNP  
         println(e)  
+        # Remplit le CSV avec les créneaux non-placés (donc avec les salles)
         df = DataFrame(semaine = [numSemaine], JourduCours = [e.jour],
                        matiere = [e.nomModule], typeCr = [e.typeDeCours],
                        numApogee = "numApogee", heure = [e.horaire],
@@ -249,10 +242,16 @@ function afficheEnregistreEDT(M, numSemaine, tour)
     println("Tout ça en ", M.nbreTours, " tours de recuit simulé !") 
 end
 
+#######################
 ### PROGRAMME PRINCIPAL
+#######################
 function programmePrincipal(semaine, nbEDTCalcules)
 	semaine = Base.parse(Int64, semaine)
 	nbEDTCalcules = Base.parse(Int64, nbEDTCalcules)
+    # Supprime si possible le dossier qui contiendra les plannings de la semaine
+    rm(REPERTOIRE_PLAN * SEP * string(semaine), force=true, recursive=true)
+    # Recrée le dossier (il est donc vide)
+    mkdir(REPERTOIRE_PLAN * SEP * string(semaine))
 	for tour in 1:nbEDTCalcules
 	    println("*** Tour n°", tour, "/", nbEDTCalcules, " ***")
 	    moteur = prepareMoteur(semaine)

@@ -144,7 +144,7 @@ function rechercheFamilleDuGroupe(nom)
                     for ff in hierarchieGroupes[f].fils
                         if !(ff in descendants)
                             push!(descendants, ff)
-                            onContinue = true     # garanti de continuer
+                            onContinue = true     # garantit de continuer
                         end
                     end
                 end
@@ -157,5 +157,5 @@ end
 
 ### PROGRAMME PRINCIPAL
 analyseListeDesGroupes()
-#f = rechercheFamilleDuGroupe("promo2")
+#f = rechercheFamilleDuGroupe("TD11")
 #println(f)

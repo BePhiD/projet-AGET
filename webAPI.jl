@@ -2,7 +2,7 @@
 API pour le système de création automatique d'emploi du temps (écrit en julia)
 Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 Dates de création : lundi 27 décembre 2021
-  de modification : dimanche 03 juillet 2022 (train Clermont-Ferrand)
+  de modification : vendredi 19 août 2022
 =#
 
 using Genie, Genie.Router, Genie.Renderer.Html, Genie.Requests, Genie.Renderer.Json
@@ -276,7 +276,7 @@ route("/updateCreneau", method = "GET") do
 end
 
 # Swann : 
-route("/createCsv", method = "GET") do
+route("/createCSV", method = "GET") do
 	numSemaine = params(:numSemaine, false)
 	matiere = params(:matiere, false)
 	typeCr = params(:typeCr, false)
@@ -344,7 +344,7 @@ function force_compile()
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/moveCreneau?creneau=?&zone=?")
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/selectProf")
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/ajouterProf?nomProf=?")
-	Genie.Requests.HTTP.request("GET", "http://serveur:8000/createCsv?numSemaine=?&matiere=?&typeCr=?&duree=?&professeur=?&salleDeCours=?&public=?")
+	Genie.Requests.HTTP.request("GET", "http://serveur:8000/createCSV?numSemaine=?&matiere=?&typeCr=?&duree=?&professeur=?&salleDeCours=?&public=?")
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/deleteAndCreateCSV?numSemaine=?")
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/ajouterSalle?nomSalle=?")
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/selectSalles") 
