@@ -76,7 +76,7 @@ table {
 /***********************************************/
 /* Context menu pour clic droit sur un créneau */
 /***********************************************/
-.context-menu{
+.context-menu {
     display: none;
     position: absolute;
     border: 1px solid black;
@@ -86,15 +86,41 @@ table {
     box-shadow: 10px 10px 5px #888888;
     z-index: 300;
 }
-.context-menu ul{
+.context-menu ul {
     list-style: none;
     padding: 2px;
 }
-.context-menu ul li{
+.context-menu ul li {
     padding: 5px 2px;
     margin-bottom: 3px;
 }
-.context-menu ul li:hover{
+.context-menu ul li:hover {
+    cursor: pointer;
+    background-color: #7fffd4;
+}
+
+/*****************************************************************************/
+/* Context menu pour clic droit sur une zone ('previsionnel' ou 'corbeille') */
+/*****************************************************************************/
+.context-menuZ {
+    display: none;
+    position: absolute;
+    border: 1px solid black;
+    border-radius: 6px;
+    width: 250px;
+    background: white;
+    box-shadow: 10px 10px 5px #888888;
+    z-index: 300;
+}
+.context-menuZ ul {
+    list-style: none;
+    padding: 2px;
+}
+.context-menuZ ul li {
+    padding: 5px 2px;
+    margin-bottom: 3px;
+}
+.context-menuZ ul li:hover {
     cursor: pointer;
     background-color: #7fffd4;
 }

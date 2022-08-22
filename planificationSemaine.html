@@ -17,17 +17,17 @@
     <td class="barreMenuGeneral" rowspan="3">
       <p>
         <a href="planningRessource.html"
-           title="Poser des contraintes sur des ressources">
+           title="Poser des contraintes sur des ressources 'prof'">
           <img src="images/lock_verrou.png" width="60"></a>
       </p>
       <p>
         <a href="#" id="addProf"
-           title="Créer un nouveau professeur">
+           title="Créer un nouvel enseignant">
           <img src="images/prof.png" width="60"></a>
       </p>
       <p>
        <a href="#" id="supProf"
-           title="Supprimer un professeur">
+           title="Supprimer un enseignant">
           <img src="images/profenmoins.png" width="60"></a>
       </p>
       <p>
@@ -47,7 +47,7 @@
       </p>
       <p>
         <a href="#" id="lancerMot"
-           title="Lancer le moteur recuit simule">
+           title="Lancer le moteur de calcul de l'EDT">
           <img src="images/moteur.png" width="60"></a>
       </p>
       
@@ -126,26 +126,26 @@
             </select><br>
         <label for="duree">Durée (min)&nbsp;</label>
             <select id="duree">
-                <option value="15">15</option>
-                <option value="30">30</option>
-                <option value="45">45</option>
-                <option value="60">60</option> 
-                <option value="75">75</option>
-                <option value="90">90</option>
-                <option value="105">105</option>
-                <option value="120">120</option>
-                <option value="135">135</option>
-                <option value="150">150</option>
-                <option value="165">165</option>
-                <option value="180">180</option>
-                <option value="195">195</option>
-                <option value="210">210</option>
-                <option value="225">225</option>
-                <option value="240">240</option>
-                <option value="255">255</option>
-                <option value="270">270</option>
-                <option value="285">285</option>
-                <option value="300">300</option>
+                <option value="15">15 mn</option>
+                <option value="30">30 mn</option>
+                <option value="45">45 mn</option>
+                <option value="60">1 heure</option> 
+                <option value="75">1h15</option>
+                <option value="90">1h30</option>
+                <option value="105">1h45</option>
+                <option value="120">2 heures</option>
+                <option value="135">2h15</option>
+                <option value="150">2h30</option>
+                <option value="165">2h45</option>
+                <option value="180">3 heures</option>
+                <option value="195">3h15</option>
+                <option value="210">3h30</option>
+                <option value="225">3h45</option>
+                <option value="240">4 heures</option>
+                <option value="255">4h15</option>
+                <option value="270">4h30</option>
+                <option value="285">4h45</option>
+                <option value="300">5 heures</option>
             </select><br>
         <!-- Champ caché pour contenir le futur uuid des créneaux -->
         <input type="text" id="uuid" name="uuid" hidden><br>
@@ -159,12 +159,21 @@
   <tr>
     <td class='celluleZone'>
       <div id='corbeille'>
-        <!-- Context-menu : caché aussitôt via jQuery -->
+        <!-- Context-menu de créneau : caché aussitôt via jQuery -->
         <div class='context-menu'>
           <ul>
             <li><span id="actionModifier">Modifier</span></li>
             <li><span id="actionDupliquer">Dupliquer</span></li>
             <li><span id="actionSupprimer">Supprimer</span></li>
+          </ul>
+        </div>
+        <!-- Context-menu de zone (previsionnel ou corbeille) : caché aussitôt via jQuery -->
+        <div class='context-menuZ'>
+          <ul>
+            <li><span id="actionDeplacerToutVersCorbeille">TOUT DEPLACER vers corbeille</span></li>
+            <li><span id="actionCopierToutVersCorbeille">TOUT COPIER vers corbeille</span></li>
+            <li><span id="actionDeplacerDeCorbeilleVersOngletCourant">DEPLACER de corbeille vers onglet</span></li>
+            <li><span id="actionViderCorbeille">VIDER la corbeille</span></li>
           </ul>
         </div>
       </div>
