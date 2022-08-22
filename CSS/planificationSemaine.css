@@ -73,6 +73,11 @@ table {
     background-color:blanchedalmond;
 }
 
+/* Règle pour dessiner les créneaux 'multi-sélectionnés' */
+.selectionMultiple {
+    text-shadow: 2px 2px;
+}
+
 /***********************************************/
 /* Context menu pour clic droit sur un créneau */
 /***********************************************/
@@ -107,7 +112,7 @@ table {
     position: absolute;
     border: 1px solid black;
     border-radius: 6px;
-    width: 250px;
+    width: 300px;
     background: white;
     box-shadow: 10px 10px 5px #888888;
     z-index: 300;

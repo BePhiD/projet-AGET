@@ -52,19 +52,19 @@ route("/lectureDesCreneaux") do
 	return Genie.Renderer.Json.json( Dict("etat" => D) )
 end
 
-# Swann/PB : route pour tester si les salles existent dans la BDD SQLite
+# Swann : route pour tester si une salle existe dans la BDD SQLite
 # l'URL d'appel sera du type :
-# http://serveur:8000/checkSalle?nomSalle=C1,C2,AMPHI-C
+# http://serveur:8000/checkSalle?nomSalle=C1
 route("/checkSalle", method = "GET") do
-	listeDesSalles = params(:nomSalle, false)
+	nomSalle = params(:nomSalle, false)
+    df = checkExistanceSalle(nomSalle)
 	chJSON = "["
-	for salle in split(listeDesSalles, ",")
-		reponse = checkExistanceSalle(salle)
-		chJSON *= """{'$(salle)': '$(reponse)'},"""
+	for ligne in eachrow(df)
+		ch = """{"OkOuPasOk": "$(ligne.OkOuPasOk)"},"""
+		chJSON *= ch
 	end
 	# Referme la chaîne JSON en remplaçant la ',' finale par un ']'
 	chJSON = chJSON[1:end-1] * ']'
-	println(chJSON)
 	# Retourne la conversion de la chaîne en véritable objet JSON
 	return Genie.Renderer.Json.json(chJSON)
 end

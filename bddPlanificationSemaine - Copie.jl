@@ -199,10 +199,11 @@ function afficheDonnees()
 end
 
 # Vérifie l'existence d'UNE SEULE salle à la fois
-function checkExistanceSalle(salle)
+function checkExistanceSalle(nomSalle)
     req = """ select nomSalle from salles """
     df = DataFrame(DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req))
-    return salle in df.nomSalle ? "true" : "false"
+    reponse = nomSalle in df.nomSalle ? true : false
+    return DataFrame(OkOuPasOk = reponse)
 end
 
 # Insere un prof depuis le moteur

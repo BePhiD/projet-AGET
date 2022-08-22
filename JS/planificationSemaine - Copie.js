@@ -7,7 +7,6 @@
 /* ------------------------
 -- Fonctions utilitaires --
 -------------------------*/
-var salleExiste = "";   // GLOBALE
 
 // Fonction qui fabrique (et retourne) la chaine html d'un créneau
 function fabriqueCreneauHTML(uuid, type, matiere, prof, lieu, public, duree, onglet) {
@@ -167,39 +166,60 @@ function fabriqueCreneauFromFormulaire() {
         return;
     }
     
-    // Lance une fonction asynchrone... PAS FACILE !
-    verifieSiSallesExistent(lieu).then(function() {
-        alert("retour : " + salleExiste);
-        ok = "true";
-        if (ok == "true") {
-            creeCreneau(type.toUpperCase(), matiere, prof,
-                        lieu.toUpperCase(), public.toUpperCase(), duree);
-            return;
-        } else {
-            alert("Une ou plusieurs salles inscrites n'existe(nt) pas...");
-            return;
-        }
-    });
+    try {
+        verifieSiSalleExiste(lieu).then(
+        setTimeout(function () {
+            if (ok == "true") {
+                creeCreneau(type.toUpperCase(), matiere, prof,
+                            lieu.toUpperCase(), public.toUpperCase(), duree);
+                return;
+            } else {
+                alert("Une ou plusieurs salles inscrites n'existe(nt) pas...");
+            }
+        }, 1000)); 
+    } catch(e) {
+        alert(e);
+    }			     
 }
 
-/* Fonction (Swann/PB) qui vérifie si les salles listées existent. Elle est en
-   mode asynchrone, basée sur une 'Promise' ; pas très simple... */
-async function verifieSiSallesExistent(lieu) {
-    let myPromise = new Promise(function(resolve) {
-        // Récupère les noms de salles (sans espaces) séparés par des ','
-        const salles = lieu.toUpperCase().replace(/ /g,'').split(',');
-        var url = "http://localhost:8000/checkSalle?nomSalle=" + salles;
-        setTimeout(() => resolve($.getJSON(url, function(data) {
-            return JSON.parse(data);       // récupère l'objet JSON
-        })), 700);
-    });
-    salleExiste = await myPromise;
+/* Fonction (Swann) qui vérifie si les salles listées existent. */
+async function verifieSiSalleExiste(lieu) {
+    // Récupère les noms de salles (sans espaces) séparés par des ','
+    const salles = lieu.replace(/ /g,'').split(',');
+    // 'ok' sera une variable qui deviendra 'true' si toutes les salles dans
+    // 'lieu' existent. Elle est 'GLOBALE' apparemment.
+    ok = false;
+
+    // Balaye le tableau des salles
+    for (var i=0; i<salles.length; i++) {
+        var temp = salles[i].toUpperCase();
+        var url = "http://localhost:8000/checkSalle?nomSalle=" + temp;
+        $.getJSON(url, function(data) {
+        // Récupère l'objet JSON (en fait un tableau de JSON)
+        // Mais s'il est vide la chaîne retournée est ']' ; donc quitter !
+            if (data == "]") {
+                return;
+            }
+            obj = JSON.parse(data);
+        }); 
+
+        // Balaye tous les éléments du tableau JSON retourné via la requête AJAX
+        setTimeout(function () {
+            for (var i = 0; i<obj.length; i++) {
+                ok = obj[i]["OkOuPasOk"];
+                alert(ok);
+            }
+        }, 500);
+    }
+    setTimeout(function () {
+        return 1;
+    }, 700);
 }
 
 // Fonction qui remplit la liste déroulante des profs
 function afficherProf() {
     var url = "http://localhost:8000/selectProf";
-    $.getJSON( url, function(data) {
+    $.getJSON( url, function( data ) {
         // Récupère l'objet JSON (en fait un tableau de JSON)
         // Mais s'il est vide la chaîne retournée est ']' ; donc quitter !
         if (data == "]") {
@@ -227,7 +247,7 @@ function fabriqueListeProf(nomProf) {
 // Fonction qui remplit la liste déroulante des salles
 function afficherSalles() {
     var url = "http://localhost:8000/selectSalles";
-    $.getJSON( url, function(data) {
+    $.getJSON( url, function( data ) {
         // Récupère l'objet JSON (en fait un tableau de JSON)
         // Mais s'il est vide la chaîne retournée est ']' ; donc quitter !
         if (data == "]") {
@@ -255,7 +275,7 @@ function fabriqueListeSalle(nomSalle) {
 // Fonction qui remplit la liste déroulante des publics
 function afficherPublic() {
     var url = "http://localhost:8000/selectPublic";
-    $.getJSON( url, function(data) {
+    $.getJSON( url, function( data ) {
         // Récupère l'objet JSON (en fait un tableau de JSON)
         // Mais s'il est vide la chaîne retournée est ']' ; donc quitter !
         if (data == "]") {
@@ -330,6 +350,7 @@ function creeCreneau(type, matiere, prof, lieu, public, duree, zone="") {
 --------------------------------------------------------------*/
 $(document).ready(function() {
     // Désactive tous les éléments du formulaire par défaut et le bouton '+'
+	// ??? ok = false;    // utile ? (variable GLOBALE ou non ???)
     $("#formulaire").children().hide();
     afficherProf();
     afficherSalles();
@@ -384,7 +405,7 @@ $(document).ready(function() {
         var numeroSemaine = $("#laSemaine").val();
         // Requête AJAX pour charger les créneaux de la semaine choisie
         var url = "http://localhost:8000/selectCreneaux?semaine="+numeroSemaine;
-        $.getJSON( url, function(data) {
+        $.getJSON( url, function( data ) {
             // Récupère l'objet JSON (en fait un tableau de JSON)
             // Mais s'il est vide la chaîne retournée est ']' ; donc quitter !
             if (data == "]") {
@@ -573,14 +594,13 @@ $(document).ready(function() {
         var uuid = $("#uuid").val();         // trim inutile car champ caché
         if (type == "" || matiere == "" || prof == "" ||
             lieu == "" || public == ""  || duree == "") {
-            alert("Il manque des informations importantes !");
+            alert("Il manque des informations importantes !")
             return;
         }
 
         try {
-            verifieSiSallesExistent(lieu).then(function () {
-                alert("RETOUR : " + salleExiste);
-                ok="true";
+            verifieSiSalleExiste(lieu).then(
+            setTimeout(function () {
                 if (ok == "true") {
                     // Colore le créneau selon son type de cours
                     colore_CM_TD_TP(uuid, type);
@@ -616,7 +636,7 @@ $(document).ready(function() {
                     alert("Une ou plusieurs salles inscrites n'existe(nt) pas...");
                     // TODO: lister laquelle...
                 }
-            }); 
+            }, 1000)); 
         }
         catch(e) {
             alert(e);
