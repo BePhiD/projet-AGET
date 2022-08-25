@@ -2,7 +2,7 @@
 API pour le système de création automatique d'emploi du temps (écrit en julia)
 Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 Dates de création : lundi 27 décembre 2021
-  de modification : vendredi 19 août 2022
+  de modification : jeudi 25 août 2022
 =#
 
 using Genie, Genie.Router, Genie.Renderer.Html, Genie.Requests, Genie.Renderer.Json
@@ -60,11 +60,10 @@ route("/checkSalle", method = "GET") do
 	chJSON = "["
 	for salle in split(listeDesSalles, ",")
 		reponse = checkExistanceSalle(salle)
-		chJSON *= """{'$(salle)': '$(reponse)'},"""
+		chJSON *= """{"$(salle)": "$(reponse)"},"""
 	end
 	# Referme la chaîne JSON en remplaçant la ',' finale par un ']'
 	chJSON = chJSON[1:end-1] * ']'
-	println(chJSON)
 	# Retourne la conversion de la chaîne en véritable objet JSON
 	return Genie.Renderer.Json.json(chJSON)
 end

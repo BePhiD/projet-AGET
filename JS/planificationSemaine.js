@@ -2,7 +2,7 @@
 // du projet EDTAutomatic (moteur de recuit simulé écrit en Julia)
 // Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 // Date de création : lundi 31 janvier 2022 (isolement Covid...)
-// Date de modification : lundi 22 août 2022
+// Date de modification : jeudi 25 août 2022
 
 /* ------------------------
 -- Fonctions utilitaires --
@@ -167,16 +167,35 @@ function fabriqueCreneauFromFormulaire() {
         return;
     }
     
-    // Lance une fonction asynchrone... PAS FACILE !
+    /* Lance une fonction asynchrone pour tester l'existence des salles...
+       PAS FACILE ! Construit la liste des salles qui n'existent pas et
+       l'affiche dans une alert. */
     verifieSiSallesExistent(lieu).then(function() {
-        alert("retour : " + salleExiste);
-        ok = "true";
-        if (ok == "true") {
+        // Transforme la chaîne de caractères retournée en objet JSON
+        obj_JSON = JSON.parse(salleExiste)
+        sallesAvecProbleme = ""
+        for (var i=0; i<obj_JSON.length; i++) {
+            // Extrait le nom de la salle
+            var salle = Object.keys(obj_JSON[i]);
+            // Extrait l'état possible ('true') ou non ('false') ; donc String
+            var estPossible = obj_JSON[i][Object.keys(obj_JSON[i])];
+            // Teste la chaîne de caractères (ce n'est pas un booléen !)
+            if (estPossible == 'false') {
+                if (sallesAvecProbleme.length == 0) {   // première salle
+                    sallesAvecProbleme += salle;
+                }
+                else {
+                    sallesAvecProbleme += ',' + salle;  // ajoute une ','
+                }
+            }
+        }
+        if (sallesAvecProbleme.length == 0) {
+            // On peut créer le créneau car les salles existent
             creeCreneau(type.toUpperCase(), matiere, prof,
                         lieu.toUpperCase(), public.toUpperCase(), duree);
             return;
         } else {
-            alert("Une ou plusieurs salles inscrites n'existe(nt) pas...");
+            alert("PROBLEME ! Salle(s) inconnue(s) : " + sallesAvecProbleme);
             return;
         }
     });
@@ -215,16 +234,16 @@ function afficherProf() {
     });
 }
 
-// Fonction qui insère chaque prof dans la liste déroulante
+// Fonction qui insère chaque prof dans une liste déroulante
 function fabriqueListeProf(nomProf) {
     var select = document.getElementById("prof");
-    var el = document.createElement("option");
-    el.textContent = nomProf;
-    el.value = nomProf;
-    select.appendChild(el);
+    var opt = document.createElement("option");
+    opt.textContent = nomProf;
+    opt.value = nomProf;
+    select.appendChild(opt);
 }
 
-// Fonction qui remplit la liste déroulante des salles
+/* Fonction qui remplit la liste déroulante des salles
 function afficherSalles() {
     var url = "http://localhost:8000/selectSalles";
     $.getJSON( url, function(data) {
@@ -241,16 +260,16 @@ function afficherSalles() {
             ch = fabriqueListeSalle(nomSalle);
         }
     }); 
-}
+}*/
 
-// Fonction qui insère chaque salle dans la liste déroulante
+/* Fonction qui insère chaque salle dans la liste déroulante
 function fabriqueListeSalle(nomSalle) {
     var select = document.getElementById("lieu");
     var el = document.createElement("option");
     el.textContent = nomSalle;
     el.value = nomSalle;
     select.appendChild(el);
-}
+}*/
 
 // Fonction qui remplit la liste déroulante des publics
 function afficherPublic() {
@@ -332,7 +351,7 @@ $(document).ready(function() {
     // Désactive tous les éléments du formulaire par défaut et le bouton '+'
     $("#formulaire").children().hide();
     afficherProf();
-    afficherSalles();
+    //afficherSalles();
     afficherPublic();
     
     // Permet de mettre en oeuvre le système d'onglets de jquery-ui
@@ -579,9 +598,25 @@ $(document).ready(function() {
 
         try {
             verifieSiSallesExistent(lieu).then(function () {
-                alert("RETOUR : " + salleExiste);
-                ok="true";
-                if (ok == "true") {
+                // Transforme la chaîne de caractères retournée en objet JSON
+                obj_JSON = JSON.parse(salleExiste)
+                sallesAvecProbleme = ""
+                for (var i=0; i<obj_JSON.length; i++) {
+                    // Extrait le nom de la salle
+                    var salle = Object.keys(obj_JSON[i]);
+                    // Extrait l'état possible ('true') ou non ('false') ; donc String
+                    var estPossible = obj_JSON[i][Object.keys(obj_JSON[i])];
+                    // Teste la chaîne de caractères (ce n'est pas un booléen !)
+                    if (estPossible == 'false') {
+                        if (sallesAvecProbleme.length == 0) {   // première salle
+                            sallesAvecProbleme += salle;
+                        }
+                        else {
+                            sallesAvecProbleme += ',' + salle;  // ajoute une ','
+                        }
+                    }
+                }
+                if (sallesAvecProbleme.length == 0) {
                     // Colore le créneau selon son type de cours
                     colore_CM_TD_TP(uuid, type);
                     // Fabrique le texte "html" du créneau puis l'affiche (donc sans <div>)
@@ -613,8 +648,7 @@ $(document).ready(function() {
                     $.ajax({url: url});
                 }
                 else {
-                    alert("Une ou plusieurs salles inscrites n'existe(nt) pas...");
-                    // TODO: lister laquelle...
+                    alert("PROBLEME ! Salle(s) inconnue(s) : " + sallesAvecProbleme);
                 }
             }); 
         }
