@@ -104,6 +104,7 @@ function colore_CM_TD_TP(uuid, typeDeCours) {
 function dropCreneau(event, ui, idZoneDuDrop) {
     /* Si la zone d'arrivée est le prévisionnel, positionne la zone sur
        l'onglet actif et retrouve son nom pour la sauvegarde en BDD */
+    var idZoneDuDropOrigine = idZoneDuDrop;    // pour garder une trace
     if (idZoneDuDrop == "#previsionnel") {
         // Recherche le numéro de l'onglet actif (commence à 0)
         var numeroOnglet = $("#previsionnel").tabs("option", "active");
@@ -119,7 +120,12 @@ function dropCreneau(event, ui, idZoneDuDrop) {
         var uuid = ui;                   // vient d'un déplacement en masse
     }
     else {
-        var uuid = ui.draggable[0].id;   // vient d'un 'drop'
+        var uuid = ui.draggable[0].id;   // vient d'un 'drop' à la souris
+    }
+
+    var dropEnBloc = false;
+    if ($("#"+uuid).hasClass("selectionMultiple")) {
+        var dropEnBloc = true;
     }
     // Le déplace dans la bonne zone (mais il est mal positionné, en vrac...)
     $("#"+uuid).appendTo(idZoneDuDrop);
@@ -155,6 +161,24 @@ function dropCreneau(event, ui, idZoneDuDrop) {
     var url = "http://localhost:8000/moveCreneau?creneau=" + uuid;
     url += "&zone=" + nomOnglet + "&numSemaine=" + numeroSemaine;
     $.ajax({url: url});
+
+    /* Voir si le 'drop' provenait d'un créneau "multi-sélectionné" et dans ce
+       cas l'appliquer aussi à tous ses collègues. */
+    if (dropEnBloc) {
+        /* ...retirer la classe 'selectionMultiple' à ce créneau (pour ne pas
+           le reprendre en compte)  */
+        //$("#"+uuid).removeClass('selectionMultiple');
+        /* ...balayer tous les créneaux qui ont la classe 'selectionMultiple'
+           dans la même zone d'origine  */
+        $(idZoneDuDropOrigine + " .creneau,.selectionMultiple").each(function () {
+            // ...retirer la classe 'selectionMultiple' à ce créneau et...
+            var nodeMap = $(this)[0].attributes;
+            var uuid = nodeMap.getNamedItem("id").value;
+            $("#"+uuid).removeClass('selectionMultiple');
+            // ...appeler de manière récursive cette fonction dans la même zone
+            dropCreneau("", uuid, idZoneDuDropOrigine);
+        });
+    }
 }
 
 // Fonction qui fabrique un nouveau créneau à partir des infos du formulaire
@@ -243,34 +267,6 @@ function fabriqueListeProf(nomProf) {
     select.appendChild(opt);
 }
 
-/* Fonction qui remplit la liste déroulante des salles
-function afficherSalles() {
-    var url = "http://localhost:8000/selectSalles";
-    $.getJSON( url, function(data) {
-        // Récupère l'objet JSON (en fait un tableau de JSON)
-        // Mais s'il est vide la chaîne retournée est ']' ; donc quitter !
-        if (data == "]") {
-            return;
-        }
-        obj = JSON.parse(data);
-        // Balaye tous les éléments du tableau
-        for (var i = 0; i<obj.length; i++) {
-            var nomSalle = obj[i]["nomSalle"];
-            // Construit le code du <div> qui sera injecté dans la zone du prévisionnel
-            ch = fabriqueListeSalle(nomSalle);
-        }
-    }); 
-}*/
-
-/* Fonction qui insère chaque salle dans la liste déroulante
-function fabriqueListeSalle(nomSalle) {
-    var select = document.getElementById("lieu");
-    var el = document.createElement("option");
-    el.textContent = nomSalle;
-    el.value = nomSalle;
-    select.appendChild(el);
-}*/
-
 // Fonction qui remplit la liste déroulante des publics
 function afficherPublic() {
     var url = "http://localhost:8000/selectPublic";
@@ -293,10 +289,10 @@ function afficherPublic() {
 // Fonction qui insère chaque public dans la liste
 function fabriqueListePublic(groupes){
     var select = document.getElementById("public");
-    var el = document.createElement("option");
-    el.textContent = groupes;
-    el.value = groupes;
-    select.appendChild(el);
+    var opt = document.createElement("option");
+    opt.textContent = groupes;
+    opt.value = groupes;
+    select.appendChild(opt);
 }
 
 /* Fonction qui crée un objet <div> associé au nouveau créneau. Le paramètre
@@ -351,7 +347,6 @@ $(document).ready(function() {
     // Désactive tous les éléments du formulaire par défaut et le bouton '+'
     $("#formulaire").children().hide();
     afficherProf();
-    //afficherSalles();
     afficherPublic();
     
     // Permet de mettre en oeuvre le système d'onglets de jquery-ui
@@ -515,17 +510,17 @@ $(document).ready(function() {
        la première lettre en majuscule, les autres en minuscules et chaque
        espace sera remplacé par un tiret. */
     $("#addProf").on("click", function() {
-        var result = prompt("Nom de famille du nouveau professeur ?");
+        var result = prompt("Nom de famille du nouvel enseignant ?");
         if(result.trim() != "") {
             var nom = result.charAt(0).toUpperCase() + result.slice(1).toLowerCase();  
             nom = nom.replace(" ", '-');
             var url = "http://localhost:8000/ajouterProf?nomProf=" + nom;
             $.ajax({url: url});
-            alert("Le professeur a bien été ajouté.");
+            alert("L'enseignant a bien été ajouté.");
             location.reload();  // recharge la page web pour mettre à jour la liste
         }
         else {
-            alert("Vous n'avez saisi aucun nom de prof !!!");
+            alert("Vous n'avez saisi aucun nom d'enseignant !!!");
             return;
         }
     });
@@ -537,7 +532,7 @@ $(document).ready(function() {
     });
 
     /* Permet d'ajouter une salle quand on appuie sur le bon bouton. Le nom sera
-       entièrement en majuscule et chaque espace sera remplacé par un tiret. */
+       entièrement en majuscule et chaque espace sera remplacée par un tiret. */
     $("#addSalle").on("click", function() {
         var result = prompt("Nom de la nouvelle salle ?");
         if(result.trim() != "") {
@@ -675,7 +670,7 @@ $(document).ready(function() {
             }
         }
         else {  // on a juste cliqué dans le prévisionnel (dans ou hors créneau)
-            // Enleve la classe 'sélection multiple' des créneaux concernés
+            // Enlève la classe 'sélection multiple' des créneaux concernés
             $("#previsionnel,#corbeille .creneau,.selectionMultiple").each(function () {
                 var nodeMap = $(this)[0].attributes;
                 var uuid = nodeMap.getNamedItem("id").value;
