@@ -26,21 +26,8 @@ hierarchieGroupes = Dict()
 #= Fonction appelée à l'import du module pour vérifier si tous les créneaux
    prévus possèdent bien un fichier .dat pour chaque ressource mise en oeuvre =#
 function analyseListeDesGroupes()
-    # Lecture du fichier de config des groupes (de la forme 'fils<pere')
-    lstRelations  = readlines(open(REPERTOIRE_CFG * '/' * LISTE_GROUPES, "r"))
     fichiersPresents = readdir(REPERTOIRE_DATA)
-    lstGroupes = []                # groupes déduits des relations 'fils<père'
-    # Création des groupes pas encore sérialisés
-    for e in lstRelations
-        if startswith(strip(e),'#') continue end    # on saute les commentaires
-        if length(strip(e)) == 0 continue end       # on saute les lignes vides
-        # Extrait les noms qui apparaîssent autour du '<' (élimine les ' ')
-        ids = split(strip(e),'<')
-        # Stocke ces noms dans la liste des groupes s'ils n'y sont pas encore
-        if !(strip(ids[1]) in lstGroupes) push!(lstGroupes, strip(ids[1])) end
-        if !(strip(ids[2]) in lstGroupes) push!(lstGroupes, strip(ids[2])) end
-    end
-    for id in lstGroupes
+    for id in retourneListeGroupes()
         if !(id * ".dat" in fichiersPresents)
             # Crée un nouvel élément et génère son fichier ".dat" pour l'année
             P = []                   # tableau vide (contiendra 52 plannings)
@@ -61,7 +48,6 @@ end
 function retourneListeGroupes()
     # Lecture du fichier de config des groupes (de la forme 'fils<pere')
     lstRelations  = readlines(open(REPERTOIRE_CFG * '/' * LISTE_GROUPES, "r"))
-    fichiersPresents = readdir(REPERTOIRE_DATA)
     lstGroupes = []                # groupes déduits des relations 'fils<père'
     # Création des groupes pas encore sérialisés
     for e in lstRelations
@@ -107,7 +93,7 @@ function construitHierarchieDesGroupes()
     end
 end
 
-#= Recherche toute la famille d'un groupe (ascendants + descendants) 'nom'. =#
+#= Recherche toute la famille d'un groupe 'nom' (ascendants + descendants). =#
 function rechercheFamilleDuGroupe(nom)
     ascendants = []
     # On place d'abord la génération juste au-dessus, si elle existe

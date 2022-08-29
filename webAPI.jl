@@ -2,7 +2,7 @@
 API pour le système de création automatique d'emploi du temps (écrit en julia)
 Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 Dates de création : lundi 27 décembre 2021
-  de modification : jeudi 25 août 2022
+  de modification : samedi 27 août 2022
 =#
 
 using Genie, Genie.Router, Genie.Renderer.Html, Genie.Requests, Genie.Renderer.Json
@@ -283,7 +283,9 @@ route("/createCSV", method = "GET") do
 	prof = params(:professeur, false)
 	salle = params(:salleDeCours, false)
 	public = params(:public, false)
-	createCSVcreneau(numSemaine, matiere, typeCr, duree, prof, salle, public)
+	tab = params(:tab, false)
+	uuid = params(:uuid, false)
+	createCSVcreneau(numSemaine, matiere, typeCr, duree, prof, salle, public, tab, uuid)
 end
 
 # Swann : 
@@ -302,11 +304,10 @@ route("/deleteCreneau", method = "GET") do
 		return    # pour précompilation...
 	end
 	supprimeCreneauBDD(uuid)
-	#afficheDonnees()
 end
 
-#= Route permettant de changer l'onglet d'un créneau spécifié par son uuid
-   L'URL d'appel sera du type :
+#= Route permettant de déplacer un créneau spécifié par son uuid dans un autre
+   onglet. L'URL d'appel sera du type :
    http://serveur:8000/moveCreneau?creneau=uuid&zone=GIM-1A-FI&numSemaine=37
 =#
 route("/moveCreneau", method = "GET") do
@@ -317,7 +318,6 @@ route("/moveCreneau", method = "GET") do
 		return    # pour précompilation...
 	end
 	moveCreneauBDD(uuid, zone, Base.parse(Int, numSemaine))
-	#afficheDonnees()
 end
 
 Genie.config.run_as_server = true

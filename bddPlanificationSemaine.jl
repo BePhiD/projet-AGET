@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 # Date Création : mercredi 09 février 2022
-# Date Modification : lundi 22 août 2022
+# Date Modification : samedi 27 août 2022
 # Langage : Julia
 
 # Module : bddPlanificationSemaine
@@ -117,12 +117,12 @@ function creeFichierEtTableSalles()
 end
 
 # Remplit le CSV previsionnel
-function createCSVcreneau(numSemaine, matiere, typeCr, duree, prof, salle, public)
+function createCSVcreneau(numSemaine, matiere, typeCr, duree, prof, salle, public, tab, uuid)
     nom = "s" * string(numSemaine) * ".csv"
     df = DataFrame(semaine = [numSemaine], JourduCours = "",  matiere = [matiere],
-                    typeCr = [typeCr], numApogee = "numApogee", heure = "",
-                    duree = [duree], professeur = [prof], salleDeCours = [salle],
-                    public = [public])
+                   typeCr = [typeCr], numApogee = "numApogee", heure = "",
+                   duree = [duree], professeur = [prof], salleDeCours = [salle],
+                   public = [public], tab = [tab], uuid = [uuid])
     CSV.write(REPERTOIRE_SEM * '\\' * nom, df, header = false, append = true, delim=';')
 end
 

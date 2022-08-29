@@ -1,12 +1,13 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme
-# Date Création : Mercredi 23 janvier 2019
-# Date Modification : mardi 05 juillet 2022
+# Date Création : mercredi 23 janvier 2019
+# Date Modification : samedi 22 août 2022 (ajout des champs onglet et uuid)
 # Langage : Julia
 
 # Module : Creneaux
 # Gestion des créneaux de cours d'un emploi du temps hebdomadaire.
-# Les créneaux sont inscrits au départ dans un fichier texte (issu de ADE...).
+# Les créneaux sont inscrits au départ dans un fichier CSV (issu de ADE ou
+# bien d'une interface graphique (HTML5 + CSS3 + JQuery).
 
 include("CONSTANTES.jl")        # pour importer les constantes du système
 include("PlanningSemaine.jl")
@@ -24,8 +25,10 @@ mutable struct Creneau
     horaire::String             # de la forme : "9h30" ou "11h15"
     salleRetenue::String        # salle choisie parmi la liste 'salles'
     numeroDuJour::Int           # numéro du jour 1=Lundi, 5=vendredi
-    debutDuCreneau::Int         # numéro du 1/4 d'heure de début
+    debutDuCreneau::Int         # numéro du 1/4 d'heure de début (commence à 1)
     nombreDeQuartDHeure::Int    # nombre de quart d'heure occupés
+    onglet::String              # onglet (ou tab) auquel appartient le créneau
+    uuid::String                # identifiant unique du créneau (36 caractères)
 end
 
 # Variables globales du module (disponibles dans ceux qui l'importeront)
@@ -50,14 +53,13 @@ function analyseListeDesCreneaux(numSemaine)
         nomModule = tabCr[3]
         typeCr    = tabCr[4]
         duree     = Base.parse(Int64, string(tabCr[7]))
+        onglet    = tabCr[11]
+        uuid      = tabCr[12]
         # Crée une instance d'objet de la structure Creneau (par défaut valide)
         c = Creneau(groupe, prof, salles, nomModule, typeCr, duree,
-                    "", "", "",0, 0, 0)
+                    "", "", "",0, 0, 0, onglet, uuid)
         #= Stocke ces créneaux dans une liste qui deviendra la 'corbeille' du
-           futur calcul automatique de l'emploi du temps.
-           !!!Problème!!! Si on enchaîne plusieurs calculs d'EDT à la suite le
-           nombre de créneaux à traiter augmente si la 'corbeille' n'était pas
-           vide au tour précédent. Il faut donc pouvoir la vider. =#
+           futur calcul automatique de l'emploi du temps. =#
         push!(lstCreneaux,c)
     end
     # Démarrage de la vérification des créneaux contenus dans 'lstCreneaux'

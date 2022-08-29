@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 # Date Création : jeudi 21 février 2019
-# Date Modification : samedi 20 août 2022 (correction stratégie calcul !)
+# Date Modification : samedi 27 août 2022
 # Langage : Julia
 
 # Module : MoteurRecuitSimule
@@ -214,18 +214,21 @@ function afficheEnregistreEDT(M, numSemaine, tour)
     nom = REPERTOIRE_PLAN * SEP * string(numSemaine) * SEP
     nom *= "s" * string(numSemaine) * "_" * string(tour) * ".csv"
     touch(nom)
-    println("[++++]Créneaux placés...")
+    #println("[++++]Créneaux placés...")
     for e in M.collCreneauxP
-        println(e)
+        #println(e)
         # Remplit le CSV avec les créneaux placés (donc avec la salle retenue)
         df = DataFrame(semaine = [numSemaine], JourduCours = [e.jour],
                        matiere = [e.nomModule], typeCr = [e.typeDeCours],
                        numApogee = "numApogee", heure = [e.horaire],
                        duree = [e.dureeEnMin], professeur = [e.prof],
-                       salleDeCours = [e.salleRetenue], public = [e.groupe])
+                       salleDeCours = [e.salleRetenue], public = [e.groupe],
+                       onglet = [e.onglet], uuid = [e.uuid])
         CSV.write(nom, df, header = false, append = true, delim=';')
     end
-    println("[----]Créneaux NON placés...")
+    if length(M.collCreneauxNP) > 0
+        println("[----]Créneaux NON placés...")
+    end
     for e in M.collCreneauxNP  
         println(e)  
         # Remplit le CSV avec les créneaux non-placés (donc avec les salles)
@@ -238,8 +241,8 @@ function afficheEnregistreEDT(M, numSemaine, tour)
     end
     strStat = " (" * string(length(M.collCreneauxP)) * "/" 
     strStat *= string(M.nbCreneaux) * ")"
-    println("Rendement : ", M.rendement, " %  ", strStat)
-    println("Tout ça en ", M.nbreTours, " tours de recuit simulé !") 
+    print("Rendement : ", M.rendement, " %  ", strStat)
+    println("   ... en ", M.nbreTours, " tours de recuit simulé.") 
 end
 
 #######################

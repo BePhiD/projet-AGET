@@ -50,10 +50,8 @@
            title="Lancer le moteur de calcul de l'EDT">
           <img src="images/moteur.png" width="60"></a>
       </p>
-      
-      
-     
 
+<!--
 <div class="modal fade" id="basicModal" tabindex="-1" role="dialog" aria-labelledby="basicModal" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -72,22 +70,25 @@
       </div>
     </div>
   </div>
-</div>
-      
+</div>-->
     </td>
     <td>
       <div id='entetePrevisionnel'>
-        <span class='titre'>Semaine n° </span>
-        <input type="number" id="laSemaine" onchange="stockagesemaine()">
+        <span class="titre">Semaine n° </span>
+        <input type="number" id="laSemaine" style="width: 4em" onchange="stockagesemaine()">
+        <span class="titre">&nbsp;&nbsp;&nbsp;Nombres de créneaux du planning : </span>
+        <span class="titre" id="infoNombreDeCreneaux"></span>
         <script type="text/javascript">
-                function stockagesemaine(){
-                  var num =parseInt($("#laSemaine").val());
-                  localStorage.setItem("num", num);
-                }
-              </script>
-              <script type="text/javascript">
-                document.getElementById("laSemaine").value = localStorage.getItem("num");
-              </script>
+          function stockagesemaine(){
+            var num = parseInt($("#laSemaine").val());
+            localStorage.setItem("num", num);
+          }
+        </script>
+        <!-- localStorage doit permettre de stocker en local une info du navigateur,
+             ici le dernier numéro de semaine utilisé, puis de le relire à l'ouverture -->
+        <script type="text/javascript">
+          document.getElementById("laSemaine").value = localStorage.getItem("num");
+        </script>
       </div>
     </td>
     <td>
@@ -101,8 +102,8 @@
     <td rowspan="2" class='celluleZone'>
      <div id="previsionnel">
         <ul id ="dep">
-          <li onclick=""><a href="#previsionnel-0">GIM-1A-FI</a></li>
-          <li ><a href="#previsionnel-1">GIM-2A-FI</a></li>
+          <li><a href="#previsionnel-0">GIM-1A-FI</a></li>
+          <li><a href="#previsionnel-1">GIM-2A-FI</a></li>
         </ul>
         <div id="previsionnel-0"></div>
         <div id="previsionnel-1"></div>
