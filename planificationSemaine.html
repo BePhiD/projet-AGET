@@ -46,31 +46,10 @@
           <img src="images/make_csv.jpg" width="60"></a>
       </p>
       <p>
-        <a href="#" id="lancerMot"
+        <a href="#" id="lancerMoteurCalcul"
            title="Lancer le moteur de calcul de l'EDT">
           <img src="images/moteur.png" width="60"></a>
       </p>
-
-<!--
-<div class="modal fade" id="basicModal" tabindex="-1" role="dialog" aria-labelledby="basicModal" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h4 class="modal-title" id="myModalLabel">Basic Modal</h4>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <h3>Modal Body</h3>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary">Save changes</button>
-      </div>
-    </div>
-  </div>
-</div>-->
     </td>
     <td>
       <div id='entetePrevisionnel'>
@@ -102,6 +81,7 @@
     <td rowspan="2" class='celluleZone'>
      <div id="previsionnel">
         <ul id ="dep">
+          <!-- TODO: rendre la création des onglets automatique -->
           <li><a href="#previsionnel-0">GIM-1A-FI</a></li>
           <li><a href="#previsionnel-1">GIM-2A-FI</a></li>
         </ul>
@@ -160,23 +140,23 @@
   <tr>
     <td class='celluleZone'>
       <div id='corbeille'>
-        <!-- Context-menu de créneau : caché aussitôt via jQuery -->
-        <div class='context-menu'>
-          <ul>
-            <li><span id="actionModifier">Modifier</span></li>
-            <li><span id="actionDupliquer">Dupliquer</span></li>
-            <li><span id="actionSupprimer">Supprimer</span></li>
-          </ul>
-        </div>
-        <!-- Context-menu de zone (previsionnel ou corbeille) : caché aussitôt via jQuery -->
-        <div class='context-menuZ'>
-          <ul>
-            <li><span id="actionDeplacerToutVersCorbeille">TOUT D&Eacute;PLACER vers corbeille</span></li>
-            <li><span id="actionCopierToutVersCorbeille">TOUT COPIER vers corbeille</span></li>
-            <li><span id="actionDeplacerDeCorbeilleVersOngletCourant">TOUT D&Eacute;PLACER vers planning</span></li>
-            <li><span id="actionViderCorbeille">VIDER la corbeille</span></li>
-          </ul>
-        </div>
+      </div>
+      <!-- Context-menu de créneau : caché aussitôt via jQuery -->
+      <div class='context-menu'>
+        <ul>
+          <li><span id="actionModifier">Modifier</span></li>
+          <li><span id="actionDupliquer">Dupliquer</span></li>
+          <li><span id="actionSupprimer">Supprimer</span></li>
+        </ul>
+      </div>
+      <!-- Context-menu de zone (previsionnel ou corbeille) : caché aussitôt via jQuery -->
+      <div class='context-menuZ'>
+        <ul>
+          <li><span id="actionDeplacerToutVersCorbeille">TOUT D&Eacute;PLACER vers corbeille</span></li>
+          <li><span id="actionCopierToutVersCorbeille">TOUT COPIER vers corbeille</span></li>
+          <li><span id="actionDeplacerDeCorbeilleVersOngletCourant">TOUT D&Eacute;PLACER vers planning</span></li>
+          <li><span id="actionViderCorbeille">VIDER la corbeille</span></li>
+        </ul>
       </div>
     </td>
   </tr>

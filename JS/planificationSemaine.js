@@ -372,9 +372,12 @@ function compteNombreDeCreneauxParType() {
         }
     });
 
-    var txt = String(nb_CM + nb_TD + nb_TP + nb_Autres);
-    txt += '  [CM : ' + nb_CM + '  /  TD : ' + nb_TD + '  /  TP : ';
-    txt += nb_TP + '  /  Autre : ' + nb_Autres + ']';
+    var total = nb_CM + nb_TD + nb_TP + nb_Autres;
+    var txt = String(total);
+    if (total > 0) {
+        txt += '  [CM : ' + nb_CM + '  /  TD : ' + nb_TD + '  /  TP : ';
+        txt += nb_TP + '  /  Autre : ' + nb_Autres + ']';
+    }
 
     $("#infoNombreDeCreneaux").text(txt);
 }
@@ -383,6 +386,13 @@ function compteNombreDeCreneauxParType() {
 -- Fonction appelée quand la page web est entièrement chargée --
 --------------------------------------------------------------*/
 $(document).ready(function() {
+    //TODO: test pour ajouter un onglet "dynamiquement"
+    /*optionText = "GIM-3A-FI";
+    optionHREF = "#previsionnel-2";
+    optionDIV  = "previsionnel-2";
+    $('#dep').append(`<li><a href="${optionHREF}">${optionText}</a></li>`);
+    $('#previsionnel').append(`<div id="${optionDIV}"></div>`);*/
+
     // Désactive tous les éléments du formulaire par défaut et le bouton '+'
     $("#formulaire").children().hide();
     afficherProf();
@@ -542,9 +552,9 @@ $(document).ready(function() {
     });
 
     // Lance le moteur de recuit simulé quand on appuie sur le bon bouton
-    $("#lancerMot").on("click", function() {
+    $("#lancerMoteurCalcul").on("click", function() {
         numSemaine = $("#laSemaine").val();
-        var result = prompt("Nombre de tour(s) souhaité(s) (max: 10):");
+        var result = prompt("Nombre de versions d'EDT (max: 10)");
         try {
             if (parseInt(result) <= 10 && parseInt(result) > 0) {
                 var url ="http://localhost:8000/lancerMoteur?numSemaine="+numSemaine+"&nbEDTCalcules="+result;
