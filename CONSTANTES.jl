@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme
 # Date Création : Jeudi 13 décembre 2018
-# Date Modification : dimanche 3 juillet 2022
+# Date Modification : lundi 29 août 2022
 # Langage : Julia
 
 # Module : CONSTANTES
@@ -26,12 +26,22 @@ SEP = '/'                       # séparateur de fichiers du système
 #= Fonction de conversion d'une position numJour,numDeb en jour,horaire
    Exemple : convPosEnJH(2,9) renvoie ("Mardi", "10h00") =#
 function convPosEnJH(jour, deb)
-    # erreur !    h = Base.div(deb,4) + HEUREDEB
     h = Base.div(deb-1, 4) + HEUREDEB
     m = MINUTES[mod(deb-1,4)+1]
     strHeure = string(h) * "h" * string(m)  # * pour ajouter des strings
     return JOURS[jour], strHeure
 end
+
+#= Fonction de conversion d'une position jour,horaire en numJour,numDeb
+   Exemple : convJHEnPos("Mardi", "10h00") renvoie (2,9) =#
+   function convJHEnPos(jourEnLettres, horaire)
+      h = Base.parse(Int64, split(horaire, 'h')[1])
+      m = split(horaire, 'h')[2]
+      m = findall(x -> x == m, MINUTES)[1]
+      deb = (h-8)*4 + m
+      jourEnChiffre = findall(x -> x == jourEnLettres, JOURS)[1]
+      return jourEnChiffre, deb
+  end
 
 #= Fonction de conversion d'une position de créneau dans la page web (un nombre
    entre 1 et 210) vers un tuple (jour, deb). Le créneau n°1 est lundi à 8h, le
