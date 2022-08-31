@@ -123,7 +123,7 @@ function createCSVcreneau(numSemaine, matiere, typeCr, duree, prof, salle, publi
                    typeCr = [typeCr], numApogee = "numApogee", heure = "",
                    duree = [duree], professeur = [prof], salleDeCours = [salle],
                    public = [public], tab = [tab], uuid = [uuid])
-    CSV.write(REPERTOIRE_SEM * '\\' * nom, df, header = false, append = true, delim=';')
+    CSV.write(REPERTOIRE_SEM * SEP * nom, df, header = false, append = true, delim=';')
 end
 
 #= Supprime le CSV previsionnel et le répertoire des csv calculés, s'il existe,
