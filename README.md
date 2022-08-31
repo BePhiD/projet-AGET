@@ -10,3 +10,10 @@ Packages nécessaires sous Julia (V 1.7) :
   - CSV
   - DataFrames
   - Gtk
+
+Méthode :
+julia
+]            (passe en mode Pkg)
+add XXX
+'Backspace'  (pour sortir du mode Pkg)
+CTRL D       (pour quitter Julia)
