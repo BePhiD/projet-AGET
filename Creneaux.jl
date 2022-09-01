@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme
 # Date Création : mercredi 23 janvier 2019
-# Date Modification : samedi 22 août 2022 (ajout des champs onglet et uuid)
+# Date Modification : jeudi 1er septembre
 # Langage : Julia
 
 # Module : Creneaux
@@ -29,6 +29,7 @@ mutable struct Creneau
     nombreDeQuartDHeure::Int    # nombre de quart d'heure occupés
     onglet::String              # onglet (ou tab) auquel appartient le créneau
     uuid::String                # identifiant unique du créneau (36 caractères)
+    forcé::Bool                 # indique si créneau forcé à la main
 end
 
 # Variables globales du module (disponibles dans ceux qui l'importeront)
@@ -55,14 +56,16 @@ function analyseListeDesCreneaux(numSemaine)
         duree     = Base.parse(Int64, string(tabCr[7]))
         onglet    = tabCr[11]
         uuid      = tabCr[12]
-        # Crée une instance d'objet de la structure Creneau (par défaut valide)
+        #= Crée une instance d'objet de la structure Creneau (par défaut valide
+           et non forcé à la main) =#
         c = Creneau(groupe, prof, salles, nomModule, typeCr, duree,
-                    "", "", "",0, 0, 0, onglet, uuid)
+                    "", "", "",0, 0, 0, onglet, uuid, false)
         #= Stocke ces créneaux dans une liste qui deviendra la 'corbeille' du
            futur calcul automatique de l'emploi du temps. =#
+        #TODO: il ne faudrait pas inclure les créneaux "forcés à la main"
         push!(lstCreneaux,c)
     end
-    # Démarrage de la vérification des créneaux contenus dans 'lstCreneaux'
+    # Vérification de la validité des créneaux à traiter
     verifieValiditeDesCreneaux(lstCreneaux)
     return lstCreneaux
 end

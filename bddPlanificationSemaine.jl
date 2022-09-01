@@ -40,7 +40,8 @@ function creeFichierEtTableBDD()
        dureeEnMin INTEGER,
        nomDuJour VARCHAR(20) DEFAULT "",
        horaire VARCHAR(20) DEFAULT "",
-       salleRetenue VARCHAR(20) DEFAULT ""
+       salleRetenue VARCHAR(20) DEFAULT "",
+       force VARCHAR(10) DEFAULT ""
    )"""
    # Ouvre la base de données (mais si le fichier n'existe pas il est créé)
    db = SQLite.DB(NOM_DATABASE_EDT)
