@@ -2,7 +2,7 @@
 API pour le système de création automatique d'emploi du temps (écrit en julia)
 Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 Dates de création : lundi 27 décembre 2021
-  de modification : jeudi 1er septembre 2022
+  de modification : samedi 27 août 2022
 =#
 
 using Genie, Genie.Router, Genie.Renderer.Html, Genie.Requests, Genie.Renderer.Json
@@ -114,12 +114,6 @@ route("/selectCreneaux", method = "GET") do
 	# Place chaque ligne de la BDD dans une chaîne simulant un tableau de JSON
 	chJSON = "["
 	for ligne in eachrow(df)
-		_force = ""
-		try
-			_force = "$(ligne.force)"
-		catch
-			_force = "false"
-		end
 		ch = """{"uuid": "$(ligne.uuid)",
 		         "tab": "$(ligne.tab)",
 				 "typeDeCours": "$(ligne.typeDeCours)",
@@ -127,8 +121,7 @@ route("/selectCreneaux", method = "GET") do
 				 "prof": "$(ligne.prof)",
 				 "salles": "$(ligne.salles)",
 				 "groupe": "$(ligne.groupe)",
-				 "dureeEnMin": $(ligne.dureeEnMin),
-				 "force": "$(_force)"},"""
+				 "dureeEnMin": $(ligne.dureeEnMin)},"""
 		chJSON *= ch
 	end
 	# Referme la chaîne de JSON en remplaçant la ',' finale par un ']'
@@ -278,6 +271,7 @@ route("/updateCreneau", method = "GET") do
 	# Modifie le créneau connu par son uuid
 	updateCreneauBDD(uuid, week, tab, type, matiere, prof, lieu, public, duree,
 	                 "", "", "")
+	#afficheDonnees() 
 end
 
 # Swann : 
@@ -291,8 +285,7 @@ route("/createCSV", method = "GET") do
 	public = params(:public, false)
 	tab = params(:tab, false)
 	uuid = params(:uuid, false)
-	force = params(:force, false)
-	createCSVcreneau(numSemaine, matiere, typeCr, duree, prof, salle, public, tab, uuid, force)
+	createCSVcreneau(numSemaine, matiere, typeCr, duree, prof, salle, public, tab, uuid)
 end
 
 # Swann : 

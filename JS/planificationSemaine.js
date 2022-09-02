@@ -2,7 +2,7 @@
 // du projet EDTAutomatic (moteur de recuit simulé écrit en Julia)
 // Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 // Date de création : lundi 31 janvier 2022 (isolement Covid...)
-// Date de modification : jeudi 1er septembre 2022
+// Date de modification : samedi 27 août 2022
 
 /* ------------------------
 -- Fonctions utilitaires --
@@ -10,12 +10,12 @@
 var salleExiste = "";   // GLOBALE
 
 // Fonction qui fabrique (et retourne) la chaine html d'un créneau
-function fabriqueCreneauHTML(uuid, type, matiere, prof, lieu, public, duree, onglet, force) {
+function fabriqueCreneauHTML(uuid, type, matiere, prof, lieu, public, duree, onglet) {
     ch = "<div id='" + uuid + "' class='creneau' ";
     ch += "data-type='" + type + "' data-matiere='" + matiere + "' ";
     ch += "data-prof='" + prof + "' data-lieu='" + lieu + "' ";
     ch += "data-public='" + public + "' data-duree='" + duree + "' ";
-    ch += "data-onglet='" + onglet + "' data-force='" + force + "'>";
+    ch += "data-onglet='" + onglet + "'>";
     ch += "<b>" + type + "&nbsp;" + matiere + "</b><br>";
     ch += prof + "<br>" + lieu + "<br>";
     ch += public + "<br>" + duree + "</div>";
@@ -52,8 +52,7 @@ function attributsFromUUID(uuid) {
         "lieu": $("#"+uuid).attr("data-lieu"),
         "public": $("#"+uuid).attr("data-public"),
         "duree": $("#"+uuid).attr("data-duree"),
-        "onglet": $("#"+uuid).attr("data-onglet"),
-        "force": $("#"+uuid).attr("data-force")
+        "onglet": $("#"+uuid).attr("data-onglet")
     }
 }
 
@@ -131,13 +130,13 @@ function dropCreneau(event, ui, idZoneDuDrop) {
     // Le déplace dans la bonne zone (mais il est mal positionné, en vrac...)
     $("#"+uuid).appendTo(idZoneDuDrop);
     // Récupère les informations du créneau depuis son uuid
-    let {type, matiere, prof, lieu, public, duree, onglet, force} = attributsFromUUID(uuid);
+    let {type, matiere, prof, lieu, public, duree, onglet} = attributsFromUUID(uuid);
     // Mais 'onglet' est l'ancienne position du créneau ; doit être mis à jour
     onglet = nomOnglet
     // Enregistre le nom de l'onglet dans l'un des attributs du créneau
     $("#"+uuid).attr("data-onglet", onglet);
     // Construit le code du <div> qui sera injecté dans la zone d'arrivée
-    ch = fabriqueCreneauHTML(uuid, type, matiere, prof, lieu, public, duree, onglet, force);
+    ch = fabriqueCreneauHTML(uuid, type, matiere, prof, lieu, public, duree, onglet);
     // Supprime le créneau mal positionné de sa zone dans le DOM...
     $("#"+uuid).remove();
     // ...puis le réinjecte, mais cette fois il a une position correcte
@@ -218,7 +217,7 @@ function fabriqueCreneauFromFormulaire() {
         if (sallesAvecProbleme.length == 0) {
             // On peut créer le créneau car les salles existent
             creeCreneau(type.toUpperCase(), matiere, prof,
-                        lieu.toUpperCase(), public.toUpperCase(), duree, "", "false");
+                        lieu.toUpperCase(), public.toUpperCase(), duree);
         } else {
             alert("PROBLEME ! Salle(s) inconnue(s) : " + sallesAvecProbleme);
         }
@@ -297,7 +296,7 @@ function fabriqueListePublic(groupes){
 
 /* Fonction qui crée un objet <div> associé au nouveau créneau. Le paramètre
    zone sert à savoir si la duplication s'est faite dans la corbeille ou pas */
-function creeCreneau(type, matiere, prof, lieu, public, duree, zone="", force) {
+function creeCreneau(type, matiere, prof, lieu, public, duree, zone="") {
     // Génère un UUID de 36 caractères pour identifier ce nouveau créneau
     var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
         var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
@@ -313,7 +312,7 @@ function creeCreneau(type, matiere, prof, lieu, public, duree, zone="", force) {
         var nomOnglet = $("#previsionnel a")[numeroOnglet].text;
     }
     // Construit le code du <div> qui sera injecté dans la zone du prévisionnel
-    ch = fabriqueCreneauHTML(uuid, type, matiere, prof, lieu, public, duree, nomOnglet, force);
+    ch = fabriqueCreneauHTML(uuid, type, matiere, prof, lieu, public, duree, nomOnglet);
     // Ajoute le créneau au bon endroit (onglet ou corbeille)
     $(zone).append(ch);
     if (zone == "#corbeille") {        // il a été dupliqué depuis la corbeille
@@ -356,7 +355,7 @@ function compteNombreDeCreneauxParType() {
     $(idZoneCourante + " .creneau").each(function () {
         var nodeMap = $(this)[0].attributes;
         var uuid = nodeMap.getNamedItem("id").value;
-        let {type, matiere, prof, lieu, public, duree, force} = attributsFromUUID(uuid);
+        let {type, matiere, prof, lieu, public, duree} = attributsFromUUID(uuid);
 
         // Compte le nombre de créneaux du planning en cours, par type
         if (type.toUpperCase() == "CM") {
@@ -454,7 +453,6 @@ $(document).ready(function() {
             if (data == "]") {
                 return;
             }
-            console.log(data);
             obj = JSON.parse(data);
             /* Balaye tous les éléments du tableau */
             for (var i = 0; i<obj.length; i++) {
@@ -466,10 +464,9 @@ $(document).ready(function() {
                 var groupe = obj[i]["groupe"];
                 var dureeEnMin = obj[i]["dureeEnMin"];
                 var tab = obj[i]["tab"];
-                var force = obj[i]["force"];
                 // Code du <div> qui sera injecté dans la zone du prévisionnel
                 ch = fabriqueCreneauHTML(uuid, typeDeCours, nomModule, prof,
-                                        salles, groupe, dureeEnMin, tab, force);
+                                        salles, groupe, dureeEnMin, tab);
                 // Détermine dans quelle zone il va falloir insérer le créneau
                 if (tab == "corbeille") {
                     var zone = "#corbeille";
@@ -539,7 +536,6 @@ $(document).ready(function() {
                 var groupe = obj[i]["groupe"];
                 var dureeEnMin = obj[i]["dureeEnMin"];
                 var tab = obj[i]["tab"];
-                var force = obj[i]["force"];
                 // Les créneaux hors 'corbeille' seront inscrits dans le CSV
                 if (tab != "corbeille") {
                     var url3 = "http://localhost:8000/createCSV?numSemaine=";
@@ -547,7 +543,7 @@ $(document).ready(function() {
                     url3 += typeDeCours+"&duree="+dureeEnMin.toString();
                     url3 += "&professeur="+prof+"&salleDeCours="+salles;
                     url3 += "&public="+groupe.toUpperCase()+"&tab="+tab;
-                    url3 += "&uuid="+uuid+"&force="+force;
+                    url3 += "&uuid="+uuid;
                     $.ajax({url: url3});
                 }
             }
@@ -838,23 +834,23 @@ $(document).ready(function() {
                 $("#previsionnel #corbeille .creneau,.selectionMultiple").each(function () {
                     var nodeMap = $(this)[0].attributes;
                     var uuid = nodeMap.getNamedItem("id").value;
-                    let {type, matiere, prof, lieu, public, duree, force} = attributsFromUUID(uuid);
+                    let {type, matiere, prof, lieu, public, duree} = attributsFromUUID(uuid);
                     // Regarde si le 'parent' de l'objet est la corbeille
                     var zone = "";              // valeur par défaut, donc onglet actif
                     if ($("#"+uuid).parent().attr("id") == "corbeille") {
                         zone = "#corbeille";
                     }
-                    creeCreneau(type, matiere, prof, lieu, public, duree, zone, force);
+                    creeCreneau(type, matiere, prof, lieu, public, duree, zone);
                 });
             }
             else {
-                let {type, matiere, prof, lieu, public, duree, force} = attributsFromUUID($("#uuid").val());
+                let {type, matiere, prof, lieu, public, duree} = attributsFromUUID($("#uuid").val());
                 // Regarde si le 'parent' de l'objet est la corbeille
                 var zone = "";              // valeur par défaut, donc onglet actif
                 if ($("#"+uuid).parent().attr("id") == "corbeille") {
                     zone = "#corbeille";
                 }
-                creeCreneau(type, matiere, prof, lieu, public, duree, zone, force);
+                creeCreneau(type, matiere, prof, lieu, public, duree, zone);
             }
         }
 
@@ -865,7 +861,7 @@ $(document).ready(function() {
             }
             else {
                 // Récupère les données du créneau cliqué            
-                let {type, matiere, prof, lieu, public, duree, force} = attributsFromUUID(uuid);
+                let {type, matiere, prof, lieu, public, duree} = attributsFromUUID(uuid);
                 // (Ré)affiche tous les éléments du formulaire
                 $("#formulaire").children().show();
                 // Remplit le formulaire avec les données du créneau cliqué
@@ -945,8 +941,8 @@ $(document).ready(function() {
             $(idZoneDuClic + " .creneau").each(function () {
                 var nodeMap = $(this)[0].attributes;
                 var uuid = nodeMap.getNamedItem("id").value;
-                let {type, matiere, prof, lieu, public, duree, force} = attributsFromUUID(uuid);
-                creeCreneau(type, matiere, prof, lieu, public, duree, "#corbeille", force);
+                let {type, matiere, prof, lieu, public, duree} = attributsFromUUID(uuid);
+                creeCreneau(type, matiere, prof, lieu, public, duree, "#corbeille");
             });
             /* Charge dans l'espace de travail les créneaux de cette semaine là
                donc permet de réinitialiser l'affichage de la page. */
