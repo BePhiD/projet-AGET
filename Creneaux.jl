@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme
 # Date Création : mercredi 23 janvier 2019
-# Date Modification : samedi 22 août 2022 (ajout des champs onglet et uuid)
+# Date Modification : jeudi 07 septembre 2022
 # Langage : Julia
 
 # Module : Creneaux
@@ -82,23 +82,27 @@ end
    sont bien associés à un fichier .dat =#
 function verifieValiditeDesCreneaux(lstCreneaux)
     fichiersPresents = readdir(REPERTOIRE_DATA)
+    # Passe tous les noms de fichiers en minuscule pour être tranquille
+    for i in eachindex(fichiersPresents)
+        fichiersPresents[i] = lowercase(fichiersPresents[i])
+    end
     include("Groupes.jl")           # construit la hiérarchie des groupes
     numC = 1                        # numéro du créneau en cours d'examen
     for c in lstCreneaux
         erreur = ""                 # vide par défaut
         # Vérifie le prof
-        if !(uppercasefirst(c.prof) * ".dat" in fichiersPresents)
+        if !(lowercase(c.prof) * ".dat" in fichiersPresents)
             # Crée le .dat du prof puisqu'il n'est pas connu
             creeFichierDatPourProfOuSalle(c.prof, "Création du prof : ")
-            push!(fichiersPresents, c.prof * ".dat")
-            insereProfdepuisMoteur(c.prof)   # ne devrait pas arriver...
+            push!(fichiersPresents, lowercase(c.prof) * ".dat")
+            insereProfdepuisMoteur(c.prof)   # ne devrait plus arriver...
         end
         # Vérifie la ou les salles
         for salle in c.salles
-            if !(salle * ".dat" in fichiersPresents)
+            if !(lowercase(salle) * ".dat" in fichiersPresents)
                 # Crée le .dat de la salle puisqu'elle n'est pas connue
-                creeFichierDatPourProfOuSalle(salle, "Création de la salle : ")
-                push!(fichiersPresents, salle * ".dat")
+                creeFichierDatPourProfOuSalle(uppercase(salle), "Création de la salle : ")
+                push!(fichiersPresents, lowercase(salle) * ".dat")
             end
         end
         # Vérifie la durée

@@ -11,9 +11,13 @@ Packages nécessaires sous Julia (V 1.7) :
   - DataFrames
   - Gtk
 
-Méthode :
+Méthode d'installation des packages :
 julia
 ]            (passe en mode Pkg)
 add XXX
 'Backspace'  (pour sortir du mode Pkg)
 CTRL D       (pour quitter Julia)
+
+# Sites utiles :
+[pour visualiser graphiquement un JSON]
+https://jsoncrack.com/editor
