@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme
 # Date Création : Jeudi 13 décembre 2018
-# Date Modification : lundi 29 août 2022
+# Date Modification : mardi 13 septembre 2022
 # Langage : Julia
 
 # Module : CONSTANTES
@@ -93,12 +93,18 @@ ERR_CR_DUREE       = "Durée prévue du créneau non multiple de 15mn... "
 #
 # Zone de constantes pour l'algorithme de Recuit Simulé
 #
-# Nombre maximal de tours pour la recherche automatique de l'emploi du temps
-NBTOURSMAX = 80
-# Nombre de tours pour atteindre "l'équilibre thermique"
-DUREE_EQUILIBRE_THERMIQUE = 5
-# Probabilité initiale de la méthode de recuit simulé (ici 1/2)
-PROBA_INITIALE = 0.5
+# Nombre maximal de tours pour atteindre "l'équilibre thermique"
+DUREE_EQUILIBRE_THERMIQUE = 100
+# Nombre de tentatives réussies pour quitter l'équilibre thermique
+NB_TENTATIVES_REUSSIES = 12
+# Maximum de tours sans changement d'EDT autorisé
+NB_MAX_DE_TOURS_SC = 3
+# A chaque tour la température du système baisse (ici de 10%)
+COEFF_DECROISSANCE_DE_T = 0.9
+# Température initiale de la méthode de recuit simulé
+τ0 = 0.5      # 50% si on pense qu'au départ la disposition n'est pas terrible
+ΔEmoyen = 8   # 8 quarts d'heure soit une "amélioration" moyenne de 2 heures
+T0 = -ΔEmoyen / (log(τ0))
 # Pas retiré de la probabilité à chaque tour d'analyse
 PAS_PROBA = 0.01
 # Minimum de la probabilité possible lors de la phase d'évolution

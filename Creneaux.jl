@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme
 # Date Création : mercredi 23 janvier 2019
-# Date Modification : jeudi 07 septembre 2022
+# Date Modification : mardi 13 septembre 2022
 # Langage : Julia
 
 # Module : Creneaux
@@ -24,7 +24,7 @@ mutable struct Creneau
     jour::String                # de la forme : "Lundi, Mardi..."
     horaire::String             # de la forme : "9h30" ou "11h15"
     salleRetenue::String        # salle choisie parmi la liste 'salles'
-    numeroDuJour::Int           # numéro du jour 1=Lundi, 5=vendredi
+    numeroDuJour::Int           # numéro du jour 1=Lundi, 5=Vendredi, 6=Samedi
     debutDuCreneau::Int         # numéro du 1/4 d'heure de début (commence à 1)
     nombreDeQuartDHeure::Int    # nombre de quart d'heure occupés
     onglet::String              # onglet (ou tab) auquel appartient le créneau
@@ -52,12 +52,15 @@ function analyseListeDesCreneaux(numSemaine)
         salles    = [strip(s) for s in salles]  # retire les espaces en trop
         nomModule = tabCr[3]
         typeCr    = tabCr[4]
+        jour      = tabCr[2]
+        horaire   = tabCr[6]
         duree     = Base.parse(Int64, string(tabCr[7]))
+        salleRetenue = tabCr[9]
         onglet    = tabCr[11]
         uuid      = tabCr[12]
         # Crée une instance d'objet de la structure Creneau (par défaut valide)
         c = Creneau(groupe, prof, salles, nomModule, typeCr, duree,
-                    "", "", "",0, 0, 0, onglet, uuid)
+                    jour, horaire, salleRetenue, 0, 0, 0, onglet, uuid)
         #= Stocke ces créneaux dans une liste qui deviendra la 'corbeille' du
            futur calcul automatique de l'emploi du temps. =#
         push!(lstCreneaux,c)
