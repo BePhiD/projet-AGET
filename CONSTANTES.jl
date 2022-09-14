@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme
 # Date Création : Jeudi 13 décembre 2018
-# Date Modification : mardi 13 septembre 2022
+# Date Modification : mercredi 14 septembre 2022
 # Langage : Julia
 
 # Module : CONSTANTES
@@ -105,7 +105,5 @@ COEFF_DECROISSANCE_DE_T = 0.9
 τ0 = 0.5      # 50% si on pense qu'au départ la disposition n'est pas terrible
 ΔEmoyen = 8   # 8 quarts d'heure soit une "amélioration" moyenne de 2 heures
 T0 = -ΔEmoyen / (log(τ0))
-# Pas retiré de la probabilité à chaque tour d'analyse
-PAS_PROBA = 0.01
-# Minimum de la probabilité possible lors de la phase d'évolution
+# Minimum de la probabilité possible lors de la phase de "secouage"
 MIN_PROBA = 0.05

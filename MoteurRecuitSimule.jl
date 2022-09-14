@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 # Date Création : jeudi 21 février 2019
-# Date Modification : mardi 13 septembre 2022 (vrai recuit !)
+# Date Modification : mercredi 14 septembre 2022 (vrai recuit !)
 # Langage : Julia
 
 # Module : MoteurRecuitSimule
@@ -140,9 +140,10 @@ function faitEvoluerLeSysteme(M)
             bas = Intersection(plProfGroupe, plSalle)
             jourFinal, debutFinal = ouEstCePossible(nbQH, bas)
             if jourFinal != 0                # on a trouvé !
-                # On calcule la différence d'énergie du possible changement
-                ΔE = (cr.numeroDuJour - jourFinal) * NBCRENEAUX
-                ΔE += cr.debutDuCreneau - debutFinal
+                #= On calcule la différence d'énergie du possible changement,
+                   la valeur sera négative on trouve une meilleure place. =#
+                ΔE = (jourFinal - cr.numeroDuJour) * NBCRENEAUX
+                ΔE += debutFinal - cr.debutDuCreneau
                 # Retourne la variation d'énergie plus un tuple des infos
                 return ΔE, (jourFinal, debutFinal, salle)
                 break                        # quitte le 'for salle' car ok
@@ -209,21 +210,26 @@ function positionneLesCreneauxAuDepart(M)
     end
 end
 
-# Retire de l'EDT des créneaux déjà placés (recuit : utilise la proba du moteur)
+# Retire de l'EDT des créneaux déjà placés (utilise la proba du moteur)
 function retireDesCreneauxSelonUneProbabilite(M)
-    shuffle!(M.collCreneauxP)             # mélange sur place la collection
-    for tour in 1:length(M.collCreneauxP)
-        if rand() < M.probabilite
-            cr = popfirst!(M.collCreneauxP)
+    probaDeCeTour = exp(-4/M.temperature)
+    println("Proba du tour pour secouage : ", probaDeCeTour)
+    if probaDeCeTour < MIN_PROBA
+        return     # pour ne pas "secouer" continuellement le système
+    end
+    for _ in 1:length(M.collCreneauxAT)
+        if rand() < probaDeCeTour                # proba de gagner une heure
+            cr = M.collCreneauxAT[M.numCr]       # isole un créneau de la pile
             j,d,n = cr.numeroDuJour, cr.debutDuCreneau, cr.nombreDeQuartDHeure
-            LibereCreneau(M.dctP[cr.prof],j,d,n)            # libère le prof
-            LibereCreneau(M.dctS[cr.salleRetenue],j,d,n)    # libère la salle
-            LibereCreneau(M.dctG[cr.groupe],j,d,n)          # libère le groupe
-            # Nettoie l'horaire du créneau ainsi que la salle retenue
-            cr.numeroDuJour = cr.debutDuCreneau = 0
-            cr.jour = cr.horaire = cr.salleRetenue = ""
-            # et enfin le remet dans la liste des Non-Placés
-            push!(M.collCreneauxNP, cr)
+            if j != 6   # on ne touche pas à un créneau "non-placé" (6=samedi)
+                LibereCreneau(M.dctP[cr.prof],j,d,n)          # libère le prof
+                LibereCreneau(M.dctS[cr.salleRetenue],j,d,n)  # libère la salle
+                LibereCreneau(M.dctG[cr.groupe],j,d,n)        # libère le groupe
+                # Nettoie l'horaire du créneau ainsi que la salle retenue
+                cr.numeroDuJour = 6     # remis le samedi
+                cr.debutDuCreneau = 1   # à 8h
+                cr.jour = cr.horaire = cr.salleRetenue = ""
+            end
         end
     end
 end
@@ -239,10 +245,15 @@ function changerPositionCreneau(M, infos)
     j2, d2, n2 = infos[1], infos[2], n1
     # Récupère le nom de la salle retenue (pas forcément la même qu'avant)
     salle = infos[3]
-    # Enlève le créneau des plannings
-    LibereCreneau(M.dctP[cr.prof], j1, d1, n1)            # libère le prof
-    LibereCreneau(M.dctS[cr.salleRetenue], j1, d1, n1)    # libère la salle
-    LibereCreneau(M.dctG[cr.groupe], j1, d1, n1)          # libère le groupe
+    #= Enlève le créneau des plannings si ce n'est pas un créneau "non-placé"
+       qu'on reconnaît au fait que son jour est 6 (samedi) =#
+    if j1 != 6 
+        LibereCreneau(M.dctP[cr.prof], j1, d1, n1)            # libère le prof
+        LibereCreneau(M.dctS[cr.salleRetenue], j1, d1, n1)    # libère la salle
+        LibereCreneau(M.dctG[cr.groupe], j1, d1, n1)          # libère le groupe
+    else
+        println("On vient de placer un créneau auparavant le samedi !")
+    end
     # Puis le replace à sa nouvelle position
     AffecteCreneau(M.dctP[cr.prof], j2, d2, n2)
     AffecteCreneau(M.dctS[salle], j2, d2, n2)
@@ -278,7 +289,7 @@ function runMoteur(M)
     nbreToursSansChangement = 0
     while true                            # boucle d'évolution de la température
         M.nbreTours += 1                  # MAJ du numéro de tour
-        println("Début du tour n°", M.nbreTours)
+        #println("--Tour n°", M.nbreTours)
         nbTentatives = 0                  # initialisation des comptes
         nbTentativesReussies = 0
         for nb_essai in 1:DUREE_EQUILIBRE_THERMIQUE
@@ -287,29 +298,32 @@ function runMoteur(M)
             onChange = false              # drapeau pour l'évolution
             if ΔE < 0                     # on va accepter ce changement
                 onChange = true
-                println("Meilleure place !")
+                #println("Meilleure place !")
             elseif ΔE > 0   # si ΔE == 0 c'est que le créneau a repris sa place ou n'en a pas
                 proba = exp(-ΔE/M.temperature)   # probabilité de l'échange
                 if rand() < proba
                     onChange = true
-                    println("Accepte moins efficace^^^^")
+                    #println("Accepte moins efficace^^^^")
                 end
             end
             if onChange
-                println("Energie avant retrait : ", M.energie)
                 changerPositionCreneau(M, infos)
                 calculeEnergieDuSysteme(M)
-                println("....... après retrait : ", M.energie)
+                #println("énergie du système : ", M.energie)
                 nbTentativesReussies += 1
                 nbreToursSansChangement = 0
             end
             if nbTentativesReussies >= NB_TENTATIVES_REUSSIES
-                println("Limite d'équilibre atteinte sans réussite...")
+                println("On a réussi à faire plus de ", NB_TENTATIVES_REUSSIES, " tentatives en une passe.")
                 break  # sort du for "équilibre thermique"
             end
         end
         # Sortie de l'équilibre thermique (réussie ou pas...)
-        if nbTentativesReussies == 0 nbreToursSansChangement +=1 end
+        if nbTentativesReussies == 0
+            nbreToursSansChangement +=1
+            println("### Un tour sans changement, on secoue le système.")
+            retireDesCreneauxSelonUneProbabilite(M)
+        end
         if nbreToursSansChangement == NB_MAX_DE_TOURS_SC
             # fin du calcul de l'EDT car plus aucune évolution du système
             println("Le système n'évolue plus... j'arrête !")
@@ -318,6 +332,7 @@ function runMoteur(M)
         #= On baisse doucement la température du système donc cela baissera la
            probabilité d'accepter des changements "moins efficaces" =#
         M.temperature *= COEFF_DECROISSANCE_DE_T
+        #println("Température : ", M.temperature)
     end
     calculeEnergieDuSysteme(M)
     println("Energie finale : ", M.energie)
@@ -360,10 +375,10 @@ function programmePrincipal(semaine, nbEDTCalcules)
     rm(REPERTOIRE_PLAN * SEP * string(semaine), force=true, recursive=true)
     # Recrée le dossier (il est donc vide)
     mkdir(REPERTOIRE_PLAN * SEP * string(semaine))
-	for tour in 1:nbEDTCalcules
-	    println("*** Tour n°", tour, "/", nbEDTCalcules, " ***")
+	for numEDT in 1:nbEDTCalcules
+	    println("*** Emploi du temps n°", numEDT, "/", nbEDTCalcules, " ***")
 	    moteur = prepareMoteur(semaine)
 	    runMoteur(moteur)
-	    afficheEnregistreEDT(moteur, semaine, tour)
+	    afficheEnregistreEDT(moteur, semaine, numEDT)
 	end
 end

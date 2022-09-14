@@ -181,11 +181,6 @@ function retireDesCreneauxSelonUneProbabilite(M)
     end
 end
 
-### La probabilité baisse à chaque tour en conservant une limite inférieure
-function faitEvoluerLaProbabilite(moteur)
-    moteur.probabilite = max(moteur.probabilite - PAS_PROBA, MIN_PROBA)
-end
-
 ### Fonction qui va réellement calculer l'EDT d'une semaine ; reçoit un 'moteur'
 function runMoteur(M)
     M.nbreTours = 1                       # numéro du tour actuel
