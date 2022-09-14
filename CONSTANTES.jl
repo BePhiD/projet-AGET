@@ -102,8 +102,12 @@ NB_MAX_DE_TOURS_SC = 3
 # A chaque tour la température du système baisse (ici de 10%)
 COEFF_DECROISSANCE_DE_T = 0.9
 # Température initiale de la méthode de recuit simulé
-τ0 = 0.5      # 50% si on pense qu'au départ la disposition n'est pas terrible
-ΔEmoyen = 8   # 8 quarts d'heure soit une "amélioration" moyenne de 2 heures
+τ0 = 0.5       # 50% si on pense qu'au départ la disposition n'est pas terrible
+ΔEmoyen = 20   # 20 quarts d'heure soit une "amélioration" moyenne de 5 heures
 T0 = -ΔEmoyen / (log(τ0))
+# Valeur de la probabilité de "secouage" au départ
+MAX_PROBA = 0.50
 # Minimum de la probabilité possible lors de la phase de "secouage"
 MIN_PROBA = 0.05
+# Pas de décroissance de la probabilité de "secouage"
+PAS_PROBA = 0.01

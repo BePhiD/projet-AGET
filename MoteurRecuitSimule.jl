@@ -18,26 +18,27 @@ using CSV
 
 ### Structure du moteur contenant tous les éléments pour calculer l'EDT
 mutable struct Moteur
-    info::String                    # description du moteur
-    numSemaine::Int                 # numéro de la semaine à construire  
-    dctP                            # dictionnaire des Profs
-    dctG                            # dictionnaire des Groupes
-    dctS                            # dictionnaire des Salles
-    collCreneauxAT                  # collection des créneaux à traiter
-    collCreneauxF                   # collection des créneaux déjà "forcés"
-    temperature::Float32            # "température" du moteur de recuit simulé
-    numCr::Int                      # numéro du créneau en cours de traitement
-    nbreTours::Int                  # nombre de tours de recuit simulé
-    rendement::Float32              # rendement de placement de ce moteur
-    energie::Int                    # fonction "énergie" à minimiser
+    info::String                   # description du moteur
+    numSemaine::Int                # numéro de la semaine à construire  
+    dctP                           # dictionnaire des Profs
+    dctG                           # dictionnaire des Groupes
+    dctS                           # dictionnaire des Salles
+    collCreneauxAT                 # collection des créneaux à traiter
+    collCreneauxF                  # collection des créneaux déjà "forcés"
+    temperature::Float32           # "température" du moteur de recuit simulé
+    numCr::Int                     # numéro du créneau en cours de traitement
+    nbreTours::Int                 # nombre de tours de recuit simulé
+    rendement::Float32             # rendement de placement de ce moteur
+    energie::Int                   # fonction "énergie" à minimiser
+    probaSecouage::Float32         # probabilité du "secouage" en cas de blocage
 end
 
 #= Prépare tous les éléments nécessaires au traitement d'une semaine.
 Par défaut la collection de créneaux à placer est vide. Le moteur ne pourra
 tourner que si le moteur est 'alimenté' en créneaux à traiter. =#
-function prepareMoteur(numSemaine)
-    M = Moteur("", numSemaine, Dict(),Dict(),Dict(),[],[], 0.0, 0,0, 0.0, 0)
-    M.info = "Je suis le moteur qui bosse sur la semaine $numSemaine..."
+function prepareMoteur(numSemaine, numEDT)
+    M = Moteur("",numSemaine,Dict(),Dict(),Dict(),[],[],0.0,0,0,0.0,0,MAX_PROBA)
+    M.info = "*** Moteur n°$numEDT de la semaine $numSemaine\n"
     lstCreneaux = analyseListeDesCreneaux(numSemaine)
     if ERR_Globales != ""           # vient du module 'Creneaux.jl'
         M.info = "Erreur !!!" * ERR_Globales
@@ -112,15 +113,15 @@ end
    déplacement sera accepté, sinon, il le sera quand même mais avec une
    probabilité de plus en plus faible =#
 function faitEvoluerLeSysteme(M)
-    M.numCr = rand(1:length(M.collCreneauxAT)) # numéro aléatoire
-    cr = M.collCreneauxAT[M.numCr]           # isole un créneau de la pile
-    nbQH = Int(cr.dureeEnMin / 15)           # nombre de quarts d'heure
+    M.numCr = rand(1:length(M.collCreneauxAT))   # numéro aléatoire
+    cr = M.collCreneauxAT[M.numCr]               # isole un créneau de la pile
+    nbQH = Int(cr.dureeEnMin / 15)               # nombre de quarts d'heure
     # Obtenir le planning du prof concerné par le créneau
-    plProf = M.dctP[cr.prof]                 # planning du prof (alias)
+    plProf = M.dctP[cr.prof]                     # planning du prof (alias)
     #= Construire l'intersection du planning du groupe et de tous ses
        PERES/FILS, donc le planning de sa 'FAMILLE' complète. =#
-    plGroupe = M.dctG[cr.groupe]             # planning du groupe (alias)
-    plFamille = PlanningSemaine(true)        # planning ENTIEREMENT vide
+    plGroupe = M.dctG[cr.groupe]                 # planning du groupe (alias)
+    plFamille = PlanningSemaine(true)            # planning ENTIEREMENT vide
     plFamille = Intersection(plFamille, plGroupe)
     for e in rechercheFamilleDuGroupe(cr.groupe)
         plFamille = Intersection(plFamille, M.dctG[e])
@@ -155,9 +156,12 @@ function faitEvoluerLeSysteme(M)
 end
 
 
-### Positionne dans l'EDT les créneaux : c'est la situation de départ de l'algo
+#= Positionne dans l'EDT les créneaux à traiter (ne s'occupe pas des créneaux
+forcés). Ce sera la situation de départ de l'algorithme de recuit simulé sur
+laquelle on calculera l'énergie du système au démarrage. =#
 function positionneLesCreneauxAuDepart(M)
     shuffle!(M.collCreneauxAT)                   # mélange la collection
+    nbCrPlacés = 0   # pour comptabiliser ceux qui auront une place au départ
     for tour in 1:length(M.collCreneauxAT)       # tour sera un entier
         cr = M.collCreneauxAT[tour]              # isole un créneau de la pile
         nbQH = Int(cr.dureeEnMin / 15)           # nombre de quarts d'heure
@@ -191,6 +195,7 @@ function positionneLesCreneauxAuDepart(M)
                 bas = Intersection(plProfGroupe, plSalle)
                 jourFinal, debutFinal = ouEstCePossible(nbQH, bas)
                 if jourFinal != 0                # on a trouvé !
+                    nbCrPlacés += 1              # MAJ du comptage
                     cr.salleRetenue = salle      # retient la salle utilisée
                     # On stocke les informations de position/taille du créneau
                     cr.numeroDuJour = jourFinal
@@ -208,17 +213,20 @@ function positionneLesCreneauxAuDepart(M)
             end
         end
     end
+    # Inscrit les 'performances' du moteur dans sa propre structure au départ
+    nbCrPlacés += length(M.collCreneauxF)   # pour tenir compte des "forcés"
+    nbTotalDeCr = length(M.collCreneauxAT) + length(M.collCreneauxF)
+    M.rendement = round(10000 * nbCrPlacés / nbTotalDeCr) / 100
+    M.info *= "Rendement initial : $(M.rendement) %  ($nbCrPlacés/$nbTotalDeCr)\n"
 end
 
 # Retire de l'EDT des créneaux déjà placés (utilise la proba du moteur)
 function retireDesCreneauxSelonUneProbabilite(M)
-    probaDeCeTour = exp(-4/M.temperature)
-    println("Proba du tour pour secouage : ", probaDeCeTour)
-    if probaDeCeTour < MIN_PROBA
+    if M.probaSecouage < MIN_PROBA
         return     # pour ne pas "secouer" continuellement le système
     end
     for _ in 1:length(M.collCreneauxAT)
-        if rand() < probaDeCeTour                # proba de gagner une heure
+        if rand() < M.probaSecouage              # proba de gagner une heure
             cr = M.collCreneauxAT[M.numCr]       # isole un créneau de la pile
             j,d,n = cr.numeroDuJour, cr.debutDuCreneau, cr.nombreDeQuartDHeure
             if j != 6   # on ne touche pas à un créneau "non-placé" (6=samedi)
@@ -232,6 +240,7 @@ function retireDesCreneauxSelonUneProbabilite(M)
             end
         end
     end
+    M.probaSecouage -= PAS_PROBA    # fait évoluer la probabilité de "secouage"
 end
 
 ### Fonction qui change de place un créneau suite à l'évolution du système
@@ -251,8 +260,6 @@ function changerPositionCreneau(M, infos)
         LibereCreneau(M.dctP[cr.prof], j1, d1, n1)            # libère le prof
         LibereCreneau(M.dctS[cr.salleRetenue], j1, d1, n1)    # libère la salle
         LibereCreneau(M.dctG[cr.groupe], j1, d1, n1)          # libère le groupe
-    else
-        println("On vient de placer un créneau auparavant le samedi !")
     end
     # Puis le replace à sa nouvelle position
     AffecteCreneau(M.dctP[cr.prof], j2, d2, n2)
@@ -284,12 +291,11 @@ end
 function runMoteur(M)
     positionneLesCreneauxAuDepart(M)      # point de départ du système
     calculeEnergieDuSysteme(M)            # donne la fonction à minimiser
-    println("Energie au départ : ", M.energie)
+    M.info *= "Energie départ/finale : $(M.energie)/"
     M.temperature = T0                    # température initiale du système
     nbreToursSansChangement = 0
     while true                            # boucle d'évolution de la température
         M.nbreTours += 1                  # MAJ du numéro de tour
-        #println("--Tour n°", M.nbreTours)
         nbTentatives = 0                  # initialisation des comptes
         nbTentativesReussies = 0
         for nb_essai in 1:DUREE_EQUILIBRE_THERMIQUE
@@ -298,44 +304,37 @@ function runMoteur(M)
             onChange = false              # drapeau pour l'évolution
             if ΔE < 0                     # on va accepter ce changement
                 onChange = true
-                #println("Meilleure place !")
             elseif ΔE > 0   # si ΔE == 0 c'est que le créneau a repris sa place ou n'en a pas
                 proba = exp(-ΔE/M.temperature)   # probabilité de l'échange
                 if rand() < proba
                     onChange = true
-                    #println("Accepte moins efficace^^^^")
                 end
             end
             if onChange
                 changerPositionCreneau(M, infos)
                 calculeEnergieDuSysteme(M)
-                #println("énergie du système : ", M.energie)
                 nbTentativesReussies += 1
                 nbreToursSansChangement = 0
             end
             if nbTentativesReussies >= NB_TENTATIVES_REUSSIES
-                println("On a réussi à faire plus de ", NB_TENTATIVES_REUSSIES, " tentatives en une passe.")
                 break  # sort du for "équilibre thermique"
             end
         end
         # Sortie de l'équilibre thermique (réussie ou pas...)
         if nbTentativesReussies == 0
             nbreToursSansChangement +=1
-            println("### Un tour sans changement, on secoue le système.")
             retireDesCreneauxSelonUneProbabilite(M)
         end
         if nbreToursSansChangement == NB_MAX_DE_TOURS_SC
             # fin du calcul de l'EDT car plus aucune évolution du système
-            println("Le système n'évolue plus... j'arrête !")
             break   # du while "température"
         end
         #= On baisse doucement la température du système donc cela baissera la
            probabilité d'accepter des changements "moins efficaces" =#
         M.temperature *= COEFF_DECROISSANCE_DE_T
-        #println("Température : ", M.temperature)
     end
     calculeEnergieDuSysteme(M)
-    println("Energie finale : ", M.energie)
+    M.info *= "$(M.energie)\n"
 end
 
 ### Fonction qui affiche l'emploi du temps calculé et l'enregistre dans un CSV
@@ -357,12 +356,13 @@ function afficheEnregistreEDT(M, numSemaine, tour)
                        onglet = [e.onglet], uuid = [e.uuid])
         CSV.write(nom, df, header = false, append = true, delim=';')
     end
-    strStat = " (" * string(nbCrPlacés) * "/" 
-    strStat *= string(length(M.collCreneauxAT)) * ")"
+    strStat = " (" * string(nbCrPlacés + length(M.collCreneauxF)) * "/" 
+    strStat *= string(length(M.collCreneauxAT)+length(M.collCreneauxF)) * ")"
     # Inscrit les 'performances' du moteur dans sa propre structure
     M.rendement = round(10000 * nbCrPlacés / length(M.collCreneauxAT)) / 100
-    print("Rendement : ", M.rendement, " %  ", strStat)
-    println("   ... en ", M.nbreTours, " tours de recuit simulé.") 
+    M.info *= "Rendement final : $(M.rendement) % $strStat\n"
+    M.info *= "Nombre d'itérations : $(M.nbreTours)\n" 
+    println(M.info)
 end
 
 #######################
@@ -376,8 +376,7 @@ function programmePrincipal(semaine, nbEDTCalcules)
     # Recrée le dossier (il est donc vide)
     mkdir(REPERTOIRE_PLAN * SEP * string(semaine))
 	for numEDT in 1:nbEDTCalcules
-	    println("*** Emploi du temps n°", numEDT, "/", nbEDTCalcules, " ***")
-	    moteur = prepareMoteur(semaine)
+	    moteur = prepareMoteur(semaine, numEDT)
 	    runMoteur(moteur)
 	    afficheEnregistreEDT(moteur, semaine, numEDT)
 	end

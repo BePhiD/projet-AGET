@@ -2,7 +2,7 @@
 Visu pour le système de création automatique d'emploi du temps (écrit en julia)
 Auteur : Philippe Belhomme
 Dates de création : vendredi 26 août 2022
-  de modification : mardi 30 août 2022
+  de modification : mercredi 14 septembre 2022
 
 Ce programme est appelé avec la commande suivante :
 julia webVisu.jl numSemaine numPlanning promo
@@ -25,7 +25,6 @@ using JSON
 include("CONSTANTES.jl")        # pour importer les constantes du système
 
 JSON_G = JSON.parse(GROUPES)
-println(JSON_G[ARGS[3]]["taille"])
 
 function afficheLesHeuresDansLaGrille()
   pos = 2
@@ -59,6 +58,8 @@ function litUnPlanningSemainePourUnePromo(semaine, numPlanning, onglet)
     # Passe au suivant si le créneau n'appartient pas à l'onglet voulu
     if promo != onglet continue end
     jourEnLettres = tabCr[2]
+    # Passe au suivant si le créneau n'a pas été affecté quelque part
+    if jourEnLettres == "" continue end
     matiere = tabCr[3]
     type = tabCr[4]
     heure = tabCr[6]
@@ -66,12 +67,10 @@ function litUnPlanningSemainePourUnePromo(semaine, numPlanning, onglet)
     prof = tabCr[8]
     salle = tabCr[9]
     groupe = tabCr[10]
-    println(tabCr)
     # Convertit l'information "jour/horaire" en numJour/num Creneau de début
     numJour, deb = convJHEnPos(jourEnLettres, heure)
     # Obtient le nombre de quarts d'heure couverts par le créneau
     dureeEnQH = Int(Base.parse(Int64, dureeEnMin)/15)
-    #println(numJour, '/', deb, '/', dureeEnQH)
     # Crée un widget "button" pour afficher le créneau
     b = GtkButton(type * " " * matiere * "\n" * prof * "\n" * salle)
     # Positionne le créneau à la bonne place dans la grille selon le groupe
