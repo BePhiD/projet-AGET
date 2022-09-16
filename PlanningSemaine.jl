@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 # Date Création : vendredi 28 décembre 2018
-# Date Modification : mardi 05 juillet 2022
+# Date Modification : vendredi 16 septembre 2022
 # Langage : Julia
 
 # Module : PlanningSemaine
@@ -83,6 +83,11 @@ end
 function BloqueSemaine(P)
     # Bloque tous les créneaux du planning P (remplit avec 'false').
     return P .& false
+end
+
+function Surface(P)
+    # Renvoit la "surface" d'un planning, cad le nombre de créneaux libres
+    return sum(P)
 end
 
 function ouEstCePossible(nbQH,P)

@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 # Date Création : jeudi 21 février 2019
-# Date Modification : mercredi 14 septembre 2022 (vrai recuit !)
+# Date Modification : vendredi 16 septembre 2022 (vrai recuit !)
 # Langage : Julia
 
 # Module : MoteurRecuitSimule
@@ -161,6 +161,18 @@ forcés). Ce sera la situation de départ de l'algorithme de recuit simulé sur
 laquelle on calculera l'énergie du système au démarrage. =#
 function positionneLesCreneauxAuDepart(M)
     shuffle!(M.collCreneauxAT)                   # mélange la collection
+    #= Calcule la "surface" possible de chaque créneau et replace en
+    tête de collection ceux qui ont le moins de possibilités côté prof =#
+    listePourTri = []
+    for cr in M.collCreneauxAT
+        push!(listePourTri, (Surface(M.dctP[cr.prof]), cr))   # tuple (surf,cr)
+    end
+    sort!(listePourTri, by = x -> x[1])   # trie le tuple selon la surface
+    M.collCreneauxAT = []                 # vide la collection
+    for e in listePourTri
+        push!(M.collCreneauxAT, e[2])     # reconstruit la collection mais triée
+    end
+
     nbCrPlacés = 0   # pour comptabiliser ceux qui auront une place au départ
     for tour in 1:length(M.collCreneauxAT)       # tour sera un entier
         cr = M.collCreneauxAT[tour]              # isole un créneau de la pile

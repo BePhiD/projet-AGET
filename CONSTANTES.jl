@@ -106,7 +106,7 @@ COEFF_DECROISSANCE_DE_T = 0.9
 ΔEmoyen = 20   # 20 quarts d'heure soit une "amélioration" moyenne de 5 heures
 T0 = -ΔEmoyen / (log(τ0))
 # Valeur de la probabilité de "secouage" au départ
-MAX_PROBA = 0.50
+MAX_PROBA = 0.25
 # Minimum de la probabilité possible lors de la phase de "secouage"
 MIN_PROBA = 0.05
 # Pas de décroissance de la probabilité de "secouage"
