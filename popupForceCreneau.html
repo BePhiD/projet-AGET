@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <title>Planification Semaine</title>
+    <link href="./CSS/bootstrap.min.css" rel="stylesheet">
+    <link href="./CSS/jquery-ui.css" rel="stylesheet">
+    <script src="./JS/jquery-3.6.0.min.js"></script>
+    <script src="./JS/jquery-ui.js"></script>
+    <script type="text/javascript">
+        function validerChoixJourHoraireCreneau() {
+            // Récupère l'uuid du créneau forcé via une variable de session
+            var uuid = localStorage.getItem("uuidCreneauForce");
+            // Lit les données choisies dans les listes déroulantes
+            var jour = parseInt(document.getElementById("numeroDuJour").value);
+            var heure = parseInt(document.getElementById("heureDuCreneau").value);
+            var minutes = parseInt(document.getElementById("minutesDuCreneau").value);
+            // Calcule le numéro du créneau en fonction des données
+            var debCreneau = (heure-1)*4 + minutes
+            // Fabrique l'URL de la route qui sera appelée
+            var url = "http://localhost:8000/forceCreneau?uuid=" + uuid;
+            url += "&jour=" + jour + "&debCreneau=" + debCreneau;
+            $.ajax({url: url}).done(function() {
+                // Ferme la fenêtre pop-up
+                self.close();
+            });
+        }
+    </script>
+<body>
+	<h3>Choisir : jour, heure et minutes</h3>
+    <select id="numeroDuJour">
+        <option value="1">Lundi</option>
+        <option value="2">Mardi</option>
+        <option value="3">Mercredi</option>
+        <option value="4">Jeudi</option>
+        <option value="5">Vendredi</option>
+    </select>
+    <select id="heureDuCreneau">
+        <option value="1">8h</option>
+        <option value="2">9h</option>
+        <option value="3">10h</option>
+        <option value="4">11h</option>
+        <option value="5">12h</option>
+        <option value="6">13h</option>
+        <option value="7">14h</option>
+        <option value="8">15h</option>
+        <option value="9">16h</option>
+        <option value="10">17h</option>
+        <option value="11">18h</option>
+    </select>
+    <select id="minutesDuCreneau">
+        <option value="1">00</option>
+        <option value="2">15</option>
+        <option value="3">30</option>
+        <option value="4">45</option>
+    </select>
+    <br><br><br><br><br><br>
+    <button onclick="validerChoixJourHoraireCreneau()">Valider</button>
+</body>
+</html>

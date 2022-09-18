@@ -10,7 +10,7 @@
     <script src="./JS/jquery-ui.js"></script>
     <script src="./JS/ajoutProf.js"></script>
 <body>
-	<h1>Supprimer un professeur :</h1>
+	<h1>Supprimer un enseignant :</h1>
 	<div class="grossediv">
 		<div class="divtxt">
 			<select id="lesProfs">
@@ -36,24 +36,22 @@
 			            }
 			        }); 
 			    }
-    //insère chaque prof dans la liste
-    function fabriqueListeProf(nomProf){
-        var select = document.getElementById("lesProfs");
-        var optn = nomProf;
-        var el = document.createElement("option");
-        el.textContent = optn;
-        el.value = optn;
-        select.appendChild(el);
-        
-    }
+				//insère chaque prof dans la liste
+				function fabriqueListeProf(nomProf){
+					var select = document.getElementById("lesProfs");
+					var optn = nomProf;
+					var el = document.createElement("option");
+					el.textContent = optn;
+					el.value = optn;
+					select.appendChild(el);
+				}
 			</script>
 		</div>
 		<br>
 			<div class="divbtn">
 				<script type="text/javascript">
 					function ValiderSupprimerprof(){
-						
-							var nom = document.getElementById("lesProfs").value.charAt(0).toUpperCase() + document.getElementById("lesProfs").value.slice(1).toLowerCase();
+						var nom = document.getElementById("lesProfs").value.charAt(0).toUpperCase() + document.getElementById("lesProfs").value.slice(1).toLowerCase();
 						var url = "http://localhost:8000/supprimerProf?nomProf="+ nom;
 						$.ajax({url: url});
 						alert("La personne a été supprimée");

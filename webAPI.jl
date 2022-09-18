@@ -320,6 +320,16 @@ route("/moveCreneau", method = "GET") do
 	moveCreneauBDD(uuid, zone, Base.parse(Int, numSemaine))
 end
 
+#= Route permettant de forcer un créneau pour le placer à l'avance dans
+l'emploi du temps, sans qu'il fasse partie du processus de calcul automatique.
+=#
+route("/forceCreneau", method = "GET") do
+	uuid = params(:uuid, false)
+	jour = params(:jour, false)
+	debCreneau = params(:debCreneau, false)
+	println(uuid, "/", jour, "/", debCreneau)
+end
+
 Genie.config.run_as_server = true
 # La ligne suivante est nécessaire pour une requête AJAX depuis jquery.
 # Info trouvée sur le site :

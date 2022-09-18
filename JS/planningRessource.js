@@ -1,7 +1,7 @@
 // Fichier Javascript/Jquery pour gérer l'aspect dynamique des plannings
 // du projet EDTAutomatic (moteur de recuit simulé écrit en Julia)
 // Auteur : Philippe Belhomme
-// Date de modification : dimanche 3 juillet 2022
+// Date de modification : dimanche 18 septembre 2022
 
 // Variables globales
 var NBJOURS = 0;
@@ -141,15 +141,17 @@ $(document).ready(function() {
     }
 
     $("#addProf").on("click", function() {
-        var result = prompt("Nom de famille du nouveau Professeur:");
-        if(result.trim() != ""){
+        var result = prompt("Nom de famille du nouvel enseignant ?");
+        if(result.trim() != "") {
             var nom = result.charAt(0).toUpperCase() + result.slice(1).toLowerCase();  
             nom = nom.replace(" ", '-');
-            var url = "http://localhost:8000/ajouterProf?nomProf="+ nom;
-        $.ajax({url: url});
-        alert("La personne a été ajouté");
-        }else{
-            alert("La zone ne doit pas être vide.");
+            var url = "http://localhost:8000/ajouterProf?nomProf=" + nom;
+            $.ajax({url: url});
+            alert("L'enseignant a bien été ajouté.");
+            location.reload();  // recharge la page web pour mettre à jour la liste
+        }
+        else {
+            alert("Vous n'avez saisi aucun nom d'enseignant !!!");
             return;
         }
     });
@@ -205,12 +207,6 @@ $(document).ready(function() {
         url += '?ressource=' + laRessource + '&semaine=' + laSemaine;
         url += '&liste=' + jsonObj.toString();
         $.ajax({url: url});
-    });
-
-    //supprime un professeur quand on appuis sur le bouton correspondant
-    $("#supProf").on("click", function(){
-    var myWindow = window.open("popup.html", "", "width=600,height=500,top=200,left=360");
-    
     });
 
     // Gère les clics sur les noms de jour (CTRL -> occupé SHIFT+CTRL -> libéré)

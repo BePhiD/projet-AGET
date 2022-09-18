@@ -2,7 +2,7 @@
 // du projet EDTAutomatic (moteur de recuit simulé écrit en Julia)
 // Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 // Date de création : lundi 31 janvier 2022 (isolement Covid...)
-// Date de modification : samedi 27 août 2022
+// Date de modification : dimanche 18 septembre 2022
 
 /* ------------------------
 -- Fonctions utilitaires --
@@ -827,8 +827,8 @@ $(document).ready(function() {
             }
         }
         
-        /* Demande de copie d'un ou plusieurs créneau(x) (apparaissant en fin
-           de liste). Ils auront forcément un nouvel uuid.  */
+        /* Demande de copie d'un ou plusieurs créneau(x) (ils apparaîtront
+        en fin de liste). Ils auront forcément un nouvel uuid.  */
         if (action == "actionDupliquer") {
             if ($("#"+uuid).hasClass("selectionMultiple")) {
                 $("#previsionnel #corbeille .creneau,.selectionMultiple").each(function () {
@@ -866,6 +866,36 @@ $(document).ready(function() {
                 $("#formulaire").children().show();
                 // Remplit le formulaire avec les données du créneau cliqué
                 remplitFormulaire(type, matiere, prof, lieu, public, duree, uuid);
+            }
+        }
+
+        /* Demande de forçage d'un créneau, c'est à dire lui attribuer dès le
+        départ un jour et une salle (si c'est possible bien sûr). */
+        if (action == "actionForcer") {
+            if ($("#"+uuid).hasClass("selectionMultiple")) {
+                alert("Désolé, pas possible sur une sélection multiple...");
+            }
+            else {
+                /* Enregistre l'uuid du créneau dans une variable de session
+                afin que la pop-up window puisse le récupérer ensuite. */
+                localStorage.setItem("uuidCreneauForce", uuid);
+                // Ouvre une fenêtre pop-up pour choisir jour+horaire
+                var myWin = window.open("popupForceCreneau.html", "",
+                                "width=500, height=300, top=200, left=360");
+                // Récupérer les 2 infos (ou possibilité Annuler)
+                // Vérifier que prof + groupe + une des salles sont libres
+                // Positionner le créneau sur cette position
+                // Créer 2 nouveaux attributs data-jour et data-heure
+            }
+        }
+
+        /* Demande de Déforçage d'un créneau, c'est à dire lui retirer ses
+        informations de jour et de salle. */
+        if (action == "actionDeforcer") {
+            if ($("#"+uuid).hasClass("selectionMultiple")) {
+                alert("Désolé, pas possible sur une sélection multiple...");
+            }
+            else {
             }
         }
 
