@@ -9,20 +9,40 @@
     <script src="./JS/jquery-ui.js"></script>
     <script type="text/javascript">
         function validerChoixJourHoraireCreneau() {
-            // Récupère l'uuid du créneau forcé via une variable de session
-            var uuid = localStorage.getItem("uuidCreneauForce");
             // Lit les données choisies dans les listes déroulantes
             var jour = parseInt(document.getElementById("numeroDuJour").value);
             var heure = parseInt(document.getElementById("heureDuCreneau").value);
             var minutes = parseInt(document.getElementById("minutesDuCreneau").value);
             // Calcule le numéro du créneau en fonction des données
             var debCreneau = (heure-1)*4 + minutes
+            // Récupère les données du créneau depuis des variables de session
+            var numSemaine = localStorage.getItem("num");
+            var uuid = sessionStorage.getItem("uuid");
+            var prof = sessionStorage.getItem("prof");
+            var lieu = sessionStorage.getItem("lieu");
+            var public = sessionStorage.getItem("public");
+            var duree = sessionStorage.getItem("duree");
             // Fabrique l'URL de la route qui sera appelée
             var url = "http://localhost:8000/forceCreneau?uuid=" + uuid;
             url += "&jour=" + jour + "&debCreneau=" + debCreneau;
+            url += "&numSemaine=" + numSemaine + "&prof=" + prof;
+            url += "&lieu=" + lieu + "&public=" + public;
+            url += "&duree=" + duree;
             $.ajax({url: url}).done(function() {
                 // Ferme la fenêtre pop-up
                 self.close();
+                // Modifier les attributs data-jour et data-heure
+                // Ici jour est un entier entre 1 (lundi) et 5 (vendredi)
+                //     heure est un entier entre 1 (8h) et 11 (18h)
+                //     minutes est un entier entre 1 ("00") et 4 ("45")
+                // Il faut les transformer en un nom de jour et xxhyy
+                let lesJours = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
+                var nomDuJour = lesJours[jour - 1];
+                var horaire = (heure + 7).toString() + "h";
+                let lesMinutes = ['00', '15', '30', '45'];
+                var horaire = horaire + lesMinutes[minutes - 1];
+                $("#"+uuid).attr("data-jour", nomDuJour);
+                $("#"+uuid).attr("data-heure", horaire);
             });
         }
     </script>

@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 # Date Création : mercredi 09 février 2022
-# Date Modification : samedi 27 août 2022
+# Date Modification : mardi 20 septembre 2022
 # Langage : Julia
 
 # Module : bddPlanificationSemaine
@@ -117,13 +117,15 @@ function creeFichierEtTableSalles()
 end
 
 # Remplit le CSV previsionnel
-function createCSVcreneau(numSemaine, matiere, typeCr, duree, prof, salle, public, tab, uuid)
+function createCSVcreneau(numSemaine, matiere, typeCr, duree, prof, salle,
+                          public, tab, uuid, jour, heure)
     nom = "s" * string(numSemaine) * ".csv"
-    df = DataFrame(semaine = [numSemaine], JourduCours = "",  matiere = [matiere],
-                   typeCr = [typeCr], numApogee = "numApogee", heure = "",
+    df = DataFrame(semaine = [numSemaine], jour = [jour],  matiere = [matiere],
+                   typeCr = [typeCr], numApogee = "numApogee", heure = [heure],
                    duree = [duree], professeur = [prof], salleDeCours = [salle],
                    public = [public], tab = [tab], uuid = [uuid])
-    CSV.write(REPERTOIRE_SEM * SEP * nom, df, header = false, append = true, delim=';')
+    CSV.write(REPERTOIRE_SEM * SEP * nom, df,
+              header = false, append = true, delim=';')
 end
 
 #= Supprime le CSV previsionnel et le répertoire des csv calculés, s'il existe,
@@ -152,7 +154,10 @@ function deleteAndCreateCSVcreneau(numSemaine)
     end
 end
 
-#= Fonction qui insère un créneau dans la base de données =#
+#= Fonction qui insère un créneau dans la base de données avec :
+son identifiant, numéro de semaine, onglet, type de cours, nom de matière, prof,
+liste de salles possibles, groupe d'étudiants, duree en quart d'heure, nom du
+jour, horaire, salle finalement retenue =#
 function insereCreneauBDD(id, ns, tab, type, nm, pr, s, gr, duree, ndj="", h="", sR="")
     req = """ INSERT INTO previsionnelEDT VALUES("$id", $ns, "$tab", "$type",
           "$nm", "$pr", "$s", "$gr", $duree, "$ndj", "$h", "$sR") """
@@ -165,13 +170,25 @@ function supprimeCreneauBDD(id)
     DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req)
 end
 
-#= Fonction qui met à jour un créneau dans la base de données =#
+#= Fonction qui met à jour un créneau dans la base de données avec :
+son identifiant, numéro de semaine, onglet, type de cours, nom de matière, prof,
+liste de salles possibles, groupe d'étudiants, duree en quart d'heure, nom du
+jour, horaire, salle finalement retenue =#
 function updateCreneauBDD(id, ns, tab, type, nm, pr, s, gr, duree, ndj="", h="", sR="")
     req = """ UPDATE previsionnelEDT SET numSemaine=$ns, tab="$tab",
                      typeDeCours="$type", nomModule="$nm", prof="$pr",
                      salles="$s", groupe="$gr", dureeEnMin=$duree,
                      nomDuJour="$ndj", horaire="$h", salleRetenue="$sR"
               WHERE uuid="$id" """
+    DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req)
+end
+
+#= Fonction qui met à jour un créneau FORCE dans la base de données =#
+function updateCreneauForceBDD(id, ndj, h, sR)
+    req = """ UPDATE previsionnelEDT
+              SET nomDuJour="$ndj", horaire="$h", salleRetenue="$sR"
+              WHERE uuid="$id" """
+    println(req)
     DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req)
 end
 

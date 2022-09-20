@@ -2,7 +2,7 @@
 API pour le système de création automatique d'emploi du temps (écrit en julia)
 Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 Dates de création : lundi 27 décembre 2021
-  de modification : samedi 27 août 2022
+  de modification : mardi 20 septembre 2022
 =#
 
 using Genie, Genie.Router, Genie.Renderer.Html, Genie.Requests, Genie.Renderer.Json
@@ -111,6 +111,7 @@ route("/selectCreneaux", method = "GET") do
 	Base.parse(Int, semaine)    # String vers Int
 	# Appelle la fonction spécifique du module bddPlanificationSemaine.jl
 	df = selectCreneauxBDD(semaine)
+	println(df)
 	# Place chaque ligne de la BDD dans une chaîne simulant un tableau de JSON
 	chJSON = "["
 	for ligne in eachrow(df)
@@ -121,7 +122,9 @@ route("/selectCreneaux", method = "GET") do
 				 "prof": "$(ligne.prof)",
 				 "salles": "$(ligne.salles)",
 				 "groupe": "$(ligne.groupe)",
-				 "dureeEnMin": $(ligne.dureeEnMin)},"""
+				 "dureeEnMin": $(ligne.dureeEnMin),
+				 "jour": "$(ligne.nomDuJour)",
+				 "heure": "$(ligne.horaire)"},"""
 		chJSON *= ch
 	end
 	# Referme la chaîne de JSON en remplaçant la ',' finale par un ']'
@@ -242,7 +245,8 @@ route("/insertCreneau", method = "GET") do
 	lieu = jsonObj["data"]["lieu"]
 	public = jsonObj["data"]["public"]
 	duree = Base.parse(Int, jsonObj["data"]["duree"])
-	# Insère le créneau dans la base de données
+	#= Insère le créneau dans la base de données (le nom du jour, l'horaire et
+	la salle retenue sont forcément vides à ce stade) =#
 	insereCreneauBDD(uuid, week, tab, type, matiere, prof, lieu, public, duree,
 	                 "", "", "")
 	#afficheDonnees()
@@ -285,7 +289,10 @@ route("/createCSV", method = "GET") do
 	public = params(:public, false)
 	tab = params(:tab, false)
 	uuid = params(:uuid, false)
-	createCSVcreneau(numSemaine, matiere, typeCr, duree, prof, salle, public, tab, uuid)
+	jour = params(:jour, false)
+	heure = params(:heure, false)
+	createCSVcreneau(numSemaine, matiere, typeCr, duree, prof, salle, public,
+	                 tab, uuid, jour, heure)
 end
 
 # Swann : 
@@ -324,10 +331,72 @@ end
 l'emploi du temps, sans qu'il fasse partie du processus de calcul automatique.
 =#
 route("/forceCreneau", method = "GET") do
+	# Récupère l'id du créneau ainsi que les infos de jour et de début
+	numSemaine = Base.parse(Int, params(:numSemaine, 0)) # de String à Int64
 	uuid = params(:uuid, false)
-	jour = params(:jour, false)
-	debCreneau = params(:debCreneau, false)
-	println(uuid, "/", jour, "/", debCreneau)
+	jour = Base.parse(Int, params(:jour, false))
+	debCreneau = Base.parse(Int, params(:debCreneau, false))
+	prof = params(:prof, false)
+	lieu = params(:lieu, false)
+	public = params(:public, false)
+	duree = Base.parse(Int, params(:duree, false))
+	nbQH = Int(duree/15)
+	# Convertit les coordonnées numériques en chaînes de caractères
+	nomDuJour, heure = convPosEnJH(jour, debCreneau)
+    # TODO: Vérifier que prof + groupe + une des salles sont libres
+    # Positionne le créneau sur cette position dans la BDD
+	updateCreneauForceBDD(uuid, nomDuJour, heure, lieu)
+	# Bloque le créneau dans les 3 plannings prof, groupe et salle
+	tab_plProf = deserialiseFichierDat(prof)
+	tab_plGroupe = deserialiseFichierDat(public)
+	tab_plSalle = deserialiseFichierDat(lieu)
+	AffecteCreneau(tab_plProf[numSemaine], jour, debCreneau, nbQH)
+    AffecteCreneau(tab_plGroupe[numSemaine], jour, debCreneau, nbQH)
+    AffecteCreneau(tab_plSalle[numSemaine], jour, debCreneau, nbQH)
+	# Ré-enregistre les 3 tableaux de plannings sur le disque dur
+	io = open(REPERTOIRE_DATA * SEP * prof * ".dat", "w")
+    serialize(io, tab_plProf)
+    close(io)
+	io = open(REPERTOIRE_DATA * SEP * public * ".dat", "w")
+    serialize(io, tab_plGroupe)
+    close(io)
+	io = open(REPERTOIRE_DATA * SEP * lieu * ".dat", "w")
+    serialize(io, tab_plSalle)
+    close(io)
+end
+
+route("/deForceCreneau", method = "GET") do
+	# Récupère l'id du créneau et les infos prof, lieu, public
+	uuid = params(:uuid, false)
+	prof = params(:prof, false)
+	lieu = params(:lieu, false)
+	public = params(:public, false)
+	duree = Base.parse(Int, params(:duree, false))
+	nomDuJour = params(:jour, false)
+	heure = params(:heure, false)
+	numSemaine = Base.parse(Int, params(:numSemaine, 0)) # de String à Int64
+	# Transforme le jour et l'heure en un couple de nombres
+	jour, debCreneau = convJHEnPos(nomDuJour, heure)
+	nbQH = Int(duree/15)
+	# Dépositionne le créneau dans la BDD
+	updateCreneauForceBDD(uuid, "", "", "")
+	# Débloque le créneau dans les 3 plannings prof, groupe et salle
+	tab_plProf = deserialiseFichierDat(prof)
+	tab_plGroupe = deserialiseFichierDat(public)
+	tab_plSalle = deserialiseFichierDat(lieu)
+	LibereCreneau(tab_plProf[numSemaine], jour, debCreneau, nbQH)
+    LibereCreneau(tab_plGroupe[numSemaine], jour, debCreneau, nbQH)
+    LibereCreneau(tab_plSalle[numSemaine], jour, debCreneau, nbQH)
+	# Ré-enregistre les 3 tableaux de plannings sur le disque dur
+	io = open(REPERTOIRE_DATA * SEP * prof * ".dat", "w")
+    serialize(io, tab_plProf)
+    close(io)
+	io = open(REPERTOIRE_DATA * SEP * public * ".dat", "w")
+    serialize(io, tab_plGroupe)
+    close(io)
+	io = open(REPERTOIRE_DATA * SEP * lieu * ".dat", "w")
+    serialize(io, tab_plSalle)
+    close(io)
 end
 
 Genie.config.run_as_server = true

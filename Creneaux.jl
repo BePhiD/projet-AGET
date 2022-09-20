@@ -72,10 +72,10 @@ end
 
 # Génère un fichier ".dat" (pour l'année) d'un prof ou d'une salle
 function creeFichierDatPourProfOuSalle(identifiant, message)
-    P = []                          # tableau vide (contiendra 52 plannings)
-    for x in 1:NBSEMAINES  push!(P, PlanningSemaine())  end
+    tabP = []                       # tableau vide (contiendra 52 plannings)
+    for x in 1:NBSEMAINES  push!(tabP, PlanningSemaine())  end
     io = open(REPERTOIRE_DATA * SEP * identifiant * ".dat", "w")
-    serialize(io, P)
+    serialize(io, tabP)
     close(io)
     println(message, identifiant, "... OK")
 end

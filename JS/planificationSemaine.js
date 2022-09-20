@@ -2,7 +2,7 @@
 // du projet EDTAutomatic (moteur de recuit simulé écrit en Julia)
 // Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 // Date de création : lundi 31 janvier 2022 (isolement Covid...)
-// Date de modification : dimanche 18 septembre 2022
+// Date de modification : mardi 20 septembre 2022
 
 /* ------------------------
 -- Fonctions utilitaires --
@@ -10,12 +10,14 @@
 var salleExiste = "";   // GLOBALE
 
 // Fonction qui fabrique (et retourne) la chaine html d'un créneau
-function fabriqueCreneauHTML(uuid, type, matiere, prof, lieu, public, duree, onglet) {
+function fabriqueCreneauHTML(uuid, type, matiere, prof, lieu, public, duree, onglet, jour, heure) {
     ch = "<div id='" + uuid + "' class='creneau' ";
     ch += "data-type='" + type + "' data-matiere='" + matiere + "' ";
     ch += "data-prof='" + prof + "' data-lieu='" + lieu + "' ";
     ch += "data-public='" + public + "' data-duree='" + duree + "' ";
-    ch += "data-onglet='" + onglet + "'>";
+    ch += "data-onglet='" + onglet + "' ";
+    ch += "data-jour='" + jour + "' ";
+    ch += "data-heure='" + heure + "'>";
     ch += "<b>" + type + "&nbsp;" + matiere + "</b><br>";
     ch += prof + "<br>" + lieu + "<br>";
     ch += public + "<br>" + duree + "</div>";
@@ -44,7 +46,7 @@ function remplitFormulaire(type, matiere, prof, lieu, public, duree, uuid) {
 
 /* Fonction qui lit les attributs d'un créneau à partir de son uuid puis
    retourne un JSON.  */
-function attributsFromUUID(uuid) {
+function attributsFromUUID(uuid) {    
     return {
         "type": $("#"+uuid).attr("data-type"),
         "matiere": $("#"+uuid).attr("data-matiere"),
@@ -52,7 +54,9 @@ function attributsFromUUID(uuid) {
         "lieu": $("#"+uuid).attr("data-lieu"),
         "public": $("#"+uuid).attr("data-public"),
         "duree": $("#"+uuid).attr("data-duree"),
-        "onglet": $("#"+uuid).attr("data-onglet")
+        "onglet": $("#"+uuid).attr("data-onglet"),
+        "jour": $("#"+uuid).attr("data-jour"),
+        "heure": $("#"+uuid).attr("data-heure")
     }
 }
 
@@ -130,13 +134,13 @@ function dropCreneau(event, ui, idZoneDuDrop) {
     // Le déplace dans la bonne zone (mais il est mal positionné, en vrac...)
     $("#"+uuid).appendTo(idZoneDuDrop);
     // Récupère les informations du créneau depuis son uuid
-    let {type, matiere, prof, lieu, public, duree, onglet} = attributsFromUUID(uuid);
+    let {type, matiere, prof, lieu, public, duree, onglet, jour, heure} = attributsFromUUID(uuid);
     // Mais 'onglet' est l'ancienne position du créneau ; doit être mis à jour
     onglet = nomOnglet
     // Enregistre le nom de l'onglet dans l'un des attributs du créneau
     $("#"+uuid).attr("data-onglet", onglet);
     // Construit le code du <div> qui sera injecté dans la zone d'arrivée
-    ch = fabriqueCreneauHTML(uuid, type, matiere, prof, lieu, public, duree, onglet);
+    ch = fabriqueCreneauHTML(uuid, type, matiere, prof, lieu, public, duree, onglet, jour, heure);
     // Supprime le créneau mal positionné de sa zone dans le DOM...
     $("#"+uuid).remove();
     // ...puis le réinjecte, mais cette fois il a une position correcte
@@ -312,7 +316,8 @@ function creeCreneau(type, matiere, prof, lieu, public, duree, zone="") {
         var nomOnglet = $("#previsionnel a")[numeroOnglet].text;
     }
     // Construit le code du <div> qui sera injecté dans la zone du prévisionnel
-    ch = fabriqueCreneauHTML(uuid, type, matiere, prof, lieu, public, duree, nomOnglet);
+    // Le jour et l'heure ne sont pas connus (car pas forcés) donc vides
+    ch = fabriqueCreneauHTML(uuid, type, matiere, prof, lieu, public, duree, nomOnglet, "", "");
     // Ajoute le créneau au bon endroit (onglet ou corbeille)
     $(zone).append(ch);
     if (zone == "#corbeille") {        // il a été dupliqué depuis la corbeille
@@ -464,9 +469,11 @@ $(document).ready(function() {
                 var groupe = obj[i]["groupe"];
                 var dureeEnMin = obj[i]["dureeEnMin"];
                 var tab = obj[i]["tab"];
+                var jour = obj[i]["jour"];
+                var heure = obj[i]["heure"];
                 // Code du <div> qui sera injecté dans la zone du prévisionnel
                 ch = fabriqueCreneauHTML(uuid, typeDeCours, nomModule, prof,
-                                        salles, groupe, dureeEnMin, tab);
+                                        salles, groupe, dureeEnMin, tab, jour, heure);
                 // Détermine dans quelle zone il va falloir insérer le créneau
                 if (tab == "corbeille") {
                     var zone = "#corbeille";
@@ -536,6 +543,8 @@ $(document).ready(function() {
                 var groupe = obj[i]["groupe"];
                 var dureeEnMin = obj[i]["dureeEnMin"];
                 var tab = obj[i]["tab"];
+                var jour = obj[i]["jour"];
+                var heure = obj[i]["heure"];
                 // Les créneaux hors 'corbeille' seront inscrits dans le CSV
                 if (tab != "corbeille") {
                     var url3 = "http://localhost:8000/createCSV?numSemaine=";
@@ -544,6 +553,7 @@ $(document).ready(function() {
                     url3 += "&professeur="+prof+"&salleDeCours="+salles;
                     url3 += "&public="+groupe.toUpperCase()+"&tab="+tab;
                     url3 += "&uuid="+uuid;
+                    url3 += "&jour="+jour+"&heure="+heure;
                     $.ajax({url: url3});
                 }
             }
@@ -860,7 +870,7 @@ $(document).ready(function() {
                 alert("Désolé, pas possible sur une sélection multiple...");
             }
             else {
-                // Récupère les données du créneau cliqué            
+                // Récupère les données du créneau cliqué  
                 let {type, matiere, prof, lieu, public, duree} = attributsFromUUID(uuid);
                 // (Ré)affiche tous les éléments du formulaire
                 $("#formulaire").children().show();
@@ -876,16 +886,22 @@ $(document).ready(function() {
                 alert("Désolé, pas possible sur une sélection multiple...");
             }
             else {
-                /* Enregistre l'uuid du créneau dans une variable de session
-                afin que la pop-up window puisse le récupérer ensuite. */
-                localStorage.setItem("uuidCreneauForce", uuid);
-                // Ouvre une fenêtre pop-up pour choisir jour+horaire
-                var myWin = window.open("popupForceCreneau.html", "",
-                                "width=500, height=300, top=200, left=360");
-                // Récupérer les 2 infos (ou possibilité Annuler)
-                // Vérifier que prof + groupe + une des salles sont libres
-                // Positionner le créneau sur cette position
-                // Créer 2 nouveaux attributs data-jour et data-heure
+                /* Enregistre les infos du créneau dans des variables de session
+                afin que la pop-up window puisse les récupérer ensuite. */
+                let {type, matiere, prof, lieu, public, duree} = attributsFromUUID(uuid);
+                if (lieu.includes(",")) {
+                    alert("Désolé, le créneau ne doit comporter QU'UNE salle...");
+                }
+                else {
+                    sessionStorage.setItem("uuid", uuid);
+                    sessionStorage.setItem("prof", prof);
+                    sessionStorage.setItem("lieu", lieu);
+                    sessionStorage.setItem("public", public);
+                    sessionStorage.setItem("duree", duree);
+                    // Ouvre une fenêtre pop-up pour choisir jour+horaire
+                    var myWin = window.open("popupForceCreneau.html", "",
+                                    "width=500, height=300, top=200, left=360");
+                }
             }
         }
 
@@ -896,9 +912,25 @@ $(document).ready(function() {
                 alert("Désolé, pas possible sur une sélection multiple...");
             }
             else {
+                let {prof, lieu, public, duree, jour, heure} = attributsFromUUID(uuid);
+                var numSemaine = localStorage.getItem("num");
+                // Fabrique l'URL de la route qui sera appelée
+                var url = "http://localhost:8000/deForceCreneau?uuid=" + uuid;
+                url += "&prof=" + prof;
+                url += "&lieu=" + lieu;
+                url += "&public=" + public;
+                url += "&duree=" + duree;
+                url += "&jour=" + jour;
+                url += "&heure=" + heure;
+                url += "&numSemaine=" + numSemaine;
+                alert(url);
+                $.ajax({url: url}).done(function() {
+                    // Efface les attributs data-xxx de l'objet du DOM
+                    $("#"+uuid).attr("data-jour", "");
+                    $("#"+uuid).attr("data-heure", "");
+                });
             }
         }
-
         compteNombreDeCreneauxParType();   // Réaffiche les infos actualisées
     });
 

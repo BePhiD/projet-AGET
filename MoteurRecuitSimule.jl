@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 # Date Création : jeudi 21 février 2019
-# Date Modification : vendredi 16 septembre 2022 (vrai recuit !)
+# Date Modification : mardi 20 septembre 2022
 # Langage : Julia
 
 # Module : MoteurRecuitSimule
@@ -360,7 +360,7 @@ function afficheEnregistreEDT(M, numSemaine, tour)
     for e in M.collCreneauxAT
         if e.jour in JOURS nbCrPlacés += 1 end
         # Remplit le CSV avec les créneaux placés ou non
-        df = DataFrame(semaine = [numSemaine], JourduCours = [e.jour],
+        df = DataFrame(semaine = [numSemaine], jour = [e.jour],
                        matiere = [e.nomModule], typeCr = [e.typeDeCours],
                        numApogee = "numApogee", heure = [e.horaire],
                        duree = [e.dureeEnMin], professeur = [e.prof],
