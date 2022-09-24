@@ -2,7 +2,7 @@
 // du projet EDTAutomatic (moteur de recuit simulé écrit en Julia)
 // Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 // Date de création : lundi 31 janvier 2022 (isolement Covid...)
-// Date de modification : mardi 20 septembre 2022
+// Date de modification : samedi 24 septembre 2022
 
 /* ------------------------
 -- Fonctions utilitaires --
@@ -20,7 +20,15 @@ function fabriqueCreneauHTML(uuid, type, matiere, prof, lieu, public, duree, ong
     ch += "data-heure='" + heure + "'>";
     ch += "<b>" + type + "&nbsp;" + matiere + "</b><br>";
     ch += prof + "<br>" + lieu + "<br>";
-    ch += public + "<br>" + duree + "</div>";
+    ch += public + "<br>" + duree;
+    // Ajoute le jour et l'heure pour les créneaux forcés
+    if (jour != "" && heure != "") {
+        ch += "<br>" + jour + "/" + heure;
+    }
+    /*else {
+        ch += "<br>" + "&nbsp;";
+    }*/
+    ch += "</div>";
     return ch;
 }
 
@@ -502,6 +510,10 @@ $(document).ready(function() {
                 });
                 // Colore les créneaux selon leur type de cours
                 colore_CM_TD_TP(uuid, typeDeCours);
+                // Attribue la classe "Forcé" si le créneau est déjà positionné
+                if (jour != "" && heure != "") {
+                    $("#"+uuid).addClass("FORCE");   // acquiert la classe Forcé
+                }
             }
             /* En plaçant cette ligne ici le bouton '+' ne sera montré que
                lorsque la requête AJAX (qui est asynchrone) sera terminée. */
@@ -589,7 +601,7 @@ $(document).ready(function() {
             var url = "http://localhost:8000/ajouterProf?nomProf=" + nom;
             $.ajax({url: url});
             alert("L'enseignant a bien été ajouté.");
-            location.reload();  // recharge la page web pour mettre à jour la liste
+            location.reload();  // recharge la page web pour MAJ la liste
         }
         else {
             alert("Vous n'avez saisi aucun nom d'enseignant !!!");
@@ -613,7 +625,7 @@ $(document).ready(function() {
             var url = "http://localhost:8000/ajouterSalle?nomSalle=" + nom;
             $.ajax({url: url});
             alert("La salle a bien été ajoutée.");
-            location.reload();  // recharge la page web pour mettre à jour la liste
+            location.reload();  // recharge la page web pour MAJ la liste
         }
         else {
             alert("Vous n'avez saisi aucun nom de salle !!!");
@@ -885,24 +897,41 @@ $(document).ready(function() {
             if ($("#"+uuid).hasClass("selectionMultiple")) {
                 alert("Désolé, pas possible sur une sélection multiple...");
             }
-            else {
-                /* Enregistre les infos du créneau dans des variables de session
-                afin que la pop-up window puisse les récupérer ensuite. */
-                let {type, matiere, prof, lieu, public, duree} = attributsFromUUID(uuid);
-                if (lieu.includes(",")) {
-                    alert("Désolé, le créneau ne doit comporter QU'UNE salle...");
+            else
+                if ($("#"+uuid).hasClass("FORCE")) {
+                    alert("Désolé, pas possible car déjà forcé...");
                 }
                 else {
-                    sessionStorage.setItem("uuid", uuid);
-                    sessionStorage.setItem("prof", prof);
-                    sessionStorage.setItem("lieu", lieu);
-                    sessionStorage.setItem("public", public);
-                    sessionStorage.setItem("duree", duree);
-                    // Ouvre une fenêtre pop-up pour choisir jour+horaire
-                    var myWin = window.open("popupForceCreneau.html", "",
-                                    "width=500, height=300, top=200, left=360");
+                    let {type, matiere, prof, lieu, public, duree} = attributsFromUUID(uuid);
+                    if (lieu.includes(",")) {
+                        alert("Désolé, le créneau ne doit comporter QU'UNE salle...");
+                    }
+                    else {
+                        /* Enregistre les infos du créneau dans des variables de
+                        session afin que la pop-up puisse les récupérer ensuite. */
+                        sessionStorage.setItem("uuid", uuid);
+                        sessionStorage.setItem("prof", prof);
+                        sessionStorage.setItem("lieu", lieu);
+                        sessionStorage.setItem("public", public);
+                        sessionStorage.setItem("duree", duree);
+                        // Ouvre une fenêtre pop-up pour choisir jour + horaire
+                        /* ATTENTION : elle n'est pas vraiment modale...
+                        Si on recharge la page juste après, cela se produit
+                        malgré le fait que la pop-up est encore ouverte ! */
+                        var myWin = window.open("popupForceCreneau.html", "",
+                                        "width=500, height=300, top=200, left=360");
+                        // location.reload();   // INUTILE, dommage...
+                        // Sauf si on joue avec un timer !!!
+                        // Trouvé sur :
+                        // https://atashbahar.com/post/2010-04-27-detect-when-a-javascript-popup-window-gets-closed
+                        var timer = setInterval(function() { 
+                            if(myWin.closed) {
+                                clearInterval(timer);
+                                location.reload();   // ça marche !
+                            }
+                        }, 500);
+                    }
                 }
-            }
         }
 
         /* Demande de Déforçage d'un créneau, c'est à dire lui retirer ses
@@ -911,7 +940,7 @@ $(document).ready(function() {
             if ($("#"+uuid).hasClass("selectionMultiple")) {
                 alert("Désolé, pas possible sur une sélection multiple...");
             }
-            else {
+            else if ($("#"+uuid).hasClass("FORCE")) {
                 let {prof, lieu, public, duree, jour, heure} = attributsFromUUID(uuid);
                 var numSemaine = localStorage.getItem("num");
                 // Fabrique l'URL de la route qui sera appelée
@@ -923,12 +952,16 @@ $(document).ready(function() {
                 url += "&jour=" + jour;
                 url += "&heure=" + heure;
                 url += "&numSemaine=" + numSemaine;
-                alert(url);
+                $("#"+uuid).removeClass("FORCE");   // perd la classe Forcé
                 $.ajax({url: url}).done(function() {
                     // Efface les attributs data-xxx de l'objet du DOM
                     $("#"+uuid).attr("data-jour", "");
                     $("#"+uuid).attr("data-heure", "");
+                    remplirCreneaux();   // permet de MAJ l'affichage
                 });
+            }
+            else {
+                alert("Désolé, ce créneau n'est pas forcé...");
             }
         }
         compteNombreDeCreneauxParType();   // Réaffiche les infos actualisées

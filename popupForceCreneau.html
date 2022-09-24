@@ -29,20 +29,8 @@
             url += "&lieu=" + lieu + "&public=" + public;
             url += "&duree=" + duree;
             $.ajax({url: url}).done(function() {
-                // Ferme la fenêtre pop-up
+                // On ferme maintenant la fenêtre pop-up
                 self.close();
-                // Modifier les attributs data-jour et data-heure
-                // Ici jour est un entier entre 1 (lundi) et 5 (vendredi)
-                //     heure est un entier entre 1 (8h) et 11 (18h)
-                //     minutes est un entier entre 1 ("00") et 4 ("45")
-                // Il faut les transformer en un nom de jour et xxhyy
-                let lesJours = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
-                var nomDuJour = lesJours[jour - 1];
-                var horaire = (heure + 7).toString() + "h";
-                let lesMinutes = ['00', '15', '30', '45'];
-                var horaire = horaire + lesMinutes[minutes - 1];
-                $("#"+uuid).attr("data-jour", nomDuJour);
-                $("#"+uuid).attr("data-heure", horaire);
             });
         }
     </script>

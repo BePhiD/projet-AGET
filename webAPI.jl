@@ -2,7 +2,7 @@
 API pour le système de création automatique d'emploi du temps (écrit en julia)
 Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 Dates de création : lundi 27 décembre 2021
-  de modification : mardi 20 septembre 2022
+  de modification : samedi 24 septembre 2022
 =#
 
 using Genie, Genie.Router, Genie.Renderer.Html, Genie.Requests, Genie.Renderer.Json
@@ -108,10 +108,11 @@ route("/selectCreneaux", method = "GET") do
 	if semaine == "?"
 		return    # pour précompilation...
 	end
+	println("Semaine demandée : $semaine")
 	Base.parse(Int, semaine)    # String vers Int
 	# Appelle la fonction spécifique du module bddPlanificationSemaine.jl
 	df = selectCreneauxBDD(semaine)
-	println(df)
+	println(df)  # TODO: enlever prochainement
 	# Place chaque ligne de la BDD dans une chaîne simulant un tableau de JSON
 	chJSON = "["
 	for ligne in eachrow(df)

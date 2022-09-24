@@ -148,7 +148,7 @@ $(document).ready(function() {
             var url = "http://localhost:8000/ajouterProf?nomProf=" + nom;
             $.ajax({url: url});
             alert("L'enseignant a bien été ajouté.");
-            location.reload();  // recharge la page web pour mettre à jour la liste
+            location.reload();  // recharge la page web pour MAJ la liste
         }
         else {
             alert("Vous n'avez saisi aucun nom d'enseignant !!!");
