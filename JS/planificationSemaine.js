@@ -53,7 +53,7 @@ function remplitFormulaire(type, matiere, prof, lieu, public, duree, uuid) {
 }
 
 /* Fonction qui lit les attributs d'un créneau à partir de son uuid puis
-   retourne un JSON.  */
+   retourne un JSON. */
 function attributsFromUUID(uuid) {    
     return {
         "type": $("#"+uuid).attr("data-type"),
@@ -139,51 +139,56 @@ function dropCreneau(event, ui, idZoneDuDrop) {
     if ($("#"+uuid).hasClass("selectionMultiple")) {
         var dropEnBloc = true;
     }
-    // Le déplace dans la bonne zone (mais il est mal positionné, en vrac...)
-    $("#"+uuid).appendTo(idZoneDuDrop);
-    // Récupère les informations du créneau depuis son uuid
-    let {type, matiere, prof, lieu, public, duree, onglet, jour, heure} = attributsFromUUID(uuid);
-    // Mais 'onglet' est l'ancienne position du créneau ; doit être mis à jour
-    onglet = nomOnglet
-    // Enregistre le nom de l'onglet dans l'un des attributs du créneau
-    $("#"+uuid).attr("data-onglet", onglet);
-    // Construit le code du <div> qui sera injecté dans la zone d'arrivée
-    ch = fabriqueCreneauHTML(uuid, type, matiere, prof, lieu, public, duree, onglet, jour, heure);
-    // Supprime le créneau mal positionné de sa zone dans le DOM...
-    $("#"+uuid).remove();
-    // ...puis le réinjecte, mais cette fois il a une position correcte
-    $(idZoneDuDrop).append(ch);
-    // Rend cet élément du DOM à nouveau "draggable"
-    $("#"+uuid).draggable({
-        opacity: 0.5,
-        revert: "invalid"        // retour à sa position si zone non dropable
-    });
-    // Lui donne la classe "corbeille" s'il se trouve dedans, sinon la retire
-    if (idZoneDuDrop == "#corbeille") {
-        $("#"+uuid).addClass('corbeille');
+
+    if ($("#"+uuid).hasClass("FORCE")) {
+        alert("Désolé, un créneau forcé ne peut pas être déplacé vers la corbeille...");
+        // Recharge la page web dans le navigateur
+        location.reload();
     }
     else {
-        $("#"+uuid).removeClass('corbeille');
+        // Le déplace dans la bonne zone (mais il est mal positionné, en vrac...)
+        $("#"+uuid).appendTo(idZoneDuDrop);
+        // Récupère les informations du créneau depuis son uuid
+        let {type, matiere, prof, lieu, public, duree, onglet, jour, heure} = attributsFromUUID(uuid);
+        // Mais 'onglet' est l'ancienne position du créneau ; doit être mis à jour
+        onglet = nomOnglet
+        // Enregistre le nom de l'onglet dans l'un des attributs du créneau
+        $("#"+uuid).attr("data-onglet", onglet);
+        // Construit le code du <div> qui sera injecté dans la zone d'arrivée
+        ch = fabriqueCreneauHTML(uuid, type, matiere, prof, lieu, public, duree, onglet, jour, heure);
+        // Supprime le créneau mal positionné de sa zone dans le DOM...
+        $("#"+uuid).remove();
+        // ...puis le réinjecte, mais cette fois il a une position correcte
+        $(idZoneDuDrop).append(ch);
+        // Rend cet élément du DOM à nouveau "draggable"
+        $("#"+uuid).draggable({
+            opacity: 0.5,
+            revert: "invalid"        // retour à sa position si zone non dropable
+        });
+        // Lui donne la classe "corbeille" s'il se trouve dedans, sinon la retire
+        if (idZoneDuDrop == "#corbeille") {
+            $("#"+uuid).addClass('corbeille');
+        }
+        else {
+            $("#"+uuid).removeClass('corbeille');
+        }
+        // Colore le créneau selon son type de cours
+        colore_CM_TD_TP(uuid, type);
+        // Réenregistre ce créneau dans la BDD via un appel à une API julia (UPDATE)
+        var numeroSemaine = $("#laSemaine").val();
+        // Requête AJAX pour déplacer le créneau (onglet <--> corbeille)
+        var url = "http://localhost:8000/moveCreneau?creneau=" + uuid;
+        url += "&zone=" + nomOnglet + "&numSemaine=" + numeroSemaine;
+        $.ajax({url: url});
     }
-    // Colore le créneau selon son type de cours
-    colore_CM_TD_TP(uuid, type);
-    // Réenregistre ce créneau dans la BDD via un appel à une API julia (UPDATE)
-    var numeroSemaine = $("#laSemaine").val();
-    // Requête AJAX pour déplacer le créneau (onglet <--> corbeille)
-    var url = "http://localhost:8000/moveCreneau?creneau=" + uuid;
-    url += "&zone=" + nomOnglet + "&numSemaine=" + numeroSemaine;
-    $.ajax({url: url});
 
     /* Voir si le 'drop' provenait d'un créneau "multi-sélectionné" et dans ce
        cas l'appliquer aussi à tous ses collègues. */
     if (dropEnBloc) {
-        /* ...retirer la classe 'selectionMultiple' à ce créneau (pour ne pas
-           le reprendre en compte)  */
-        //$("#"+uuid).removeClass('selectionMultiple');
-        /* ...balayer tous les créneaux qui ont la classe 'selectionMultiple'
+        /* Balayer tous les créneaux qui ont la classe 'selectionMultiple'
            dans la même zone d'origine  */
         $(idZoneDuDropOrigine + " .creneau,.selectionMultiple").each(function () {
-            // ...retirer la classe 'selectionMultiple' à ce créneau et...
+            // Retirer la classe 'selectionMultiple' à ce créneau et...
             var nodeMap = $(this)[0].attributes;
             var uuid = nodeMap.getNamedItem("id").value;
             $("#"+uuid).removeClass('selectionMultiple');
@@ -430,6 +435,16 @@ $(document).ready(function() {
     
     // Charge dans l'espace de travail les créneaux prévus cette semaine là
     remplirCreneaux();
+    // Teste si la variable de session de l'onglet actif existe ou non
+    if ("numOngletActif" in sessionStorage) {
+        // Active l'onglet précédemment utilisé via la variable de session
+        numeroOnglet = sessionStorage.getItem("numOngletActif");
+        $("#previsionnel").tabs({ active: numeroOnglet });
+    }
+    else {
+        // Enregistre dans une variable de session la valeur 0 (car premier onglet)
+        sessionStorage.setItem("numOngletActif", 0);
+    }
 
     // Gère le bouton '+' pour ajouter un créneau
 	if ($("#laSemaine").val() > 0 && $("#laSemaine").val() < 53) {
@@ -527,6 +542,10 @@ $(document).ready(function() {
     // Action quand on clique sur un onglet : compter le nombre de créneaux
     $("#dep").on("click", function() {
         compteNombreDeCreneauxParType();
+        // Recherche le numéro de l'onglet actif (commence à 0)
+        var numeroOnglet = $("#previsionnel").tabs("option", "active");
+        // L'enregistre dans une variable de session
+        sessionStorage.setItem("numOngletActif", numeroOnglet);
     });
 
     // Permet de créer le CSV prévisionnel quand on appuie sur le bon bouton
@@ -837,15 +856,25 @@ $(document).ready(function() {
                 $("#previsionnel #corbeille .creneau,.selectionMultiple").each(function () {
                     var nodeMap = $(this)[0].attributes;
                     var uuid = nodeMap.getNamedItem("id").value;
-                    $("#"+uuid).remove();
-                    // Requête AJAX pour supprimer le créneau de la BDD
-                    $.ajax({url: "http://localhost:8000/deleteCreneau?creneau="+uuid});
+                    if ($("#"+uuid).hasClass("FORCE")) {
+                        alert("Désolé, un créneau forcé ne peut pas être supprimé...");
+                    }
+                    else {
+                        $("#"+uuid).remove();
+                        // Requête AJAX pour supprimer le créneau de la BDD
+                        $.ajax({url: "http://localhost:8000/deleteCreneau?creneau="+uuid});
+                    }
                 });
             }
             else {  // le clic droit était dans un créneau non multi-sélctionné
-                $("#"+uuid).remove();
-                // Requête AJAX pour supprimer le créneau de la BDD
-                $.ajax({url: "http://localhost:8000/deleteCreneau?creneau="+uuid});
+                if ($("#"+uuid).hasClass("FORCE")) {
+                    alert("Désolé, un créneau forcé ne peut pas être supprimé...");
+                }
+                else {
+                    $("#"+uuid).remove();
+                    // Requête AJAX pour supprimer le créneau de la BDD
+                    $.ajax({url: "http://localhost:8000/deleteCreneau?creneau="+uuid});
+                }
             }
         }
         
@@ -856,23 +885,33 @@ $(document).ready(function() {
                 $("#previsionnel #corbeille .creneau,.selectionMultiple").each(function () {
                     var nodeMap = $(this)[0].attributes;
                     var uuid = nodeMap.getNamedItem("id").value;
-                    let {type, matiere, prof, lieu, public, duree} = attributsFromUUID(uuid);
+                    if ($("#"+uuid).hasClass("FORCE")) {
+                        alert("Désolé, un créneau forcé ne peut pas être dupliqué...");
+                    }
+                    else {
+                        let {type, matiere, prof, lieu, public, duree} = attributsFromUUID(uuid);
+                        // Regarde si le 'parent' de l'objet est la corbeille
+                        var zone = "";              // valeur par défaut, donc onglet actif
+                        if ($("#"+uuid).parent().attr("id") == "corbeille") {
+                            zone = "#corbeille";
+                        }
+                        creeCreneau(type, matiere, prof, lieu, public, duree, zone);
+                    }
+                });
+            }
+            else {
+                if ($("#"+uuid).hasClass("FORCE")) {
+                    alert("Désolé, un créneau forcé ne peut pas être dupliqué...");
+                }
+                else {
+                    let {type, matiere, prof, lieu, public, duree} = attributsFromUUID($("#uuid").val());
                     // Regarde si le 'parent' de l'objet est la corbeille
                     var zone = "";              // valeur par défaut, donc onglet actif
                     if ($("#"+uuid).parent().attr("id") == "corbeille") {
                         zone = "#corbeille";
                     }
                     creeCreneau(type, matiere, prof, lieu, public, duree, zone);
-                });
-            }
-            else {
-                let {type, matiere, prof, lieu, public, duree} = attributsFromUUID($("#uuid").val());
-                // Regarde si le 'parent' de l'objet est la corbeille
-                var zone = "";              // valeur par défaut, donc onglet actif
-                if ($("#"+uuid).parent().attr("id") == "corbeille") {
-                    zone = "#corbeille";
                 }
-                creeCreneau(type, matiere, prof, lieu, public, duree, zone);
             }
         }
 
@@ -880,6 +919,9 @@ $(document).ready(function() {
         if (action == "actionModifier") {
             if ($("#"+uuid).hasClass("selectionMultiple")) {
                 alert("Désolé, pas possible sur une sélection multiple...");
+            }
+            else if ($("#"+uuid).hasClass("FORCE")) {
+                alert("Désolé, pas possible sur un créneau déjà forcé...");
             }
             else {
                 // Récupère les données du créneau cliqué  
@@ -927,7 +969,11 @@ $(document).ready(function() {
                         var timer = setInterval(function() { 
                             if(myWin.closed) {
                                 clearInterval(timer);
-                                location.reload();   // ça marche !
+                                //location.reload();   // ça marche !
+                                remplirCreneaux();   // ça marche aussi !
+                                // Active l'onglet précédemment utilisé via la variable de session
+                                numeroOnglet = sessionStorage.getItem("numOngletActif");
+                                $("#previsionnel").tabs({ active: numeroOnglet });
                             }
                         }, 500);
                     }
@@ -1008,7 +1054,12 @@ $(document).ready(function() {
             $(idZoneDuClic + " .creneau").each(function () {
                 var nodeMap = $(this)[0].attributes;
                 var uuid = nodeMap.getNamedItem("id").value;
-                dropCreneau("", uuid, "#corbeille");
+                if ($("#"+uuid).hasClass("FORCE")) {
+                    alert("Désolé, un créneau forcé ne peut pas être déplacé vers la corbeille...");
+                }
+                else {
+                    dropCreneau("", uuid, "#corbeille");
+                }
             });
             /* Charge dans l'espace de travail les créneaux de cette semaine là
                donc permet de réinitialiser l'affichage de la page. */
@@ -1036,8 +1087,13 @@ $(document).ready(function() {
             $(idZoneDuClic + " .creneau").each(function () {
                 var nodeMap = $(this)[0].attributes;
                 var uuid = nodeMap.getNamedItem("id").value;
-                let {type, matiere, prof, lieu, public, duree} = attributsFromUUID(uuid);
-                creeCreneau(type, matiere, prof, lieu, public, duree, "#corbeille");
+                if ($("#"+uuid).hasClass("FORCE")) {
+                    alert("Désolé, un créneau forcé ne peut pas être copié vers la corbeille...");
+                }
+                else {
+                    let {type, matiere, prof, lieu, public, duree} = attributsFromUUID(uuid);
+                    creeCreneau(type, matiere, prof, lieu, public, duree, "#corbeille");
+                }
             });
             /* Charge dans l'espace de travail les créneaux de cette semaine là
                donc permet de réinitialiser l'affichage de la page. */

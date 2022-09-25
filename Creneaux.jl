@@ -74,6 +74,8 @@ end
 function creeFichierDatPourProfOuSalle(identifiant, message)
     tabP = []                       # tableau vide (contiendra 52 plannings)
     for x in 1:NBSEMAINES  push!(tabP, PlanningSemaine())  end
+    # Marque les jours fériés pour bloquer le prof ou la salle sur l'année
+    RetireCreneauxJoursFeries(tabP)
     io = open(REPERTOIRE_DATA * SEP * identifiant * ".dat", "w")
     serialize(io, tabP)
     close(io)

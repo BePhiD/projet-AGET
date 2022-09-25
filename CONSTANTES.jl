@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme
 # Date Création : Jeudi 13 décembre 2018
-# Date Modification : mercredi 14 septembre 2022
+# Date Modification : Dimanche 25 septembre 2022
 # Langage : Julia
 
 # Module : CONSTANTES
@@ -66,10 +66,20 @@ function lecturePlanningDeRessource(ressource, semaine)
 end
 
 #= Liste de créneaux interdits (heure de midi et jeudi après-midi)
-   définis comme des tuple (jour, deb, nb) avec deb=20-->12h45 et nb=5-->14h =#
+   définis comme des tuples (jour, deb, nb) avec deb=20-->12h45 et nb=5-->14h =#
 CRENEAUX_INTERDITS = [(1,20,5),(2,20,5),(3,20,5),(4,20,5),(5,20,5),   # le midi
                       (4,25,18)             # jeudi après-midi
                      ]
+#= Liste de jours fériés définis comme des tuples :
+   (numSemaine, numJour, commentaire).
+   numJour vaut 1 pour Lundi et 5 pour Vendredi =#*
+JOURS_FERIES = [(44,2,"Mardi 1er nov 2022 ; Toussaint"),
+                (45,5,"Vendredi 11 nov 2022 ; Armistice 1918"),
+                (15,1,"Lundi 10 avril 2023 ; Lundi de Pâques"),
+                (18,1,"Lundi 1er mai 2023 ; Fête du travail"),
+                (19,1,"Lundi 8 mai 2023 ; Armistice 1945"),
+                (20,4,"Jeudi 18 mai 2023 ; Jeudi de l'Ascension"),
+                (22,1,"Lundi 29 mai 2023 ; Lundi de Pentecôte")]
 
 # Répertoires où sont stockées les données du système (.cfg, .dat...)
 REPERTOIRE_CFG   = "CONFIG"

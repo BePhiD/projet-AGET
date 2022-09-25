@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
-# Date Création : vendredi 28 décembre 2018
-# Date Modification : vendredi 16 septembre 2022
+# Date Création : Vendredi 28 décembre 2018
+# Date Modification : Dimanche 25 septembre 2022
 # Langage : Julia
 
 # Module : PlanningSemaine
@@ -39,9 +39,19 @@ function LibereCreneau(P, jour, deb, nb)
     AffecteCreneau(P, jour, deb, nb, true)
 end
 
-#= Positionne à false les créneaux listés comme interdits. =#
+#= Positionne à false les créneaux listés comme interdits dans un planning
+   (c'est à dire dans une seule semaine). =#
 function RetireCreneauxInterdits(P)
     for ci in CRENEAUX_INTERDITS AffecteCreneau(P,ci[1],ci[2],ci[3]) end
+end 
+
+#= Positionne à false les créneaux listés comme jours fériés dans un tableau
+   de plannings (c'est à dire sur une année universitaire). =#
+function RetireCreneauxJoursFeries(tabP)
+    for jf in JOURS_FERIES
+        numSemaine, numJour = jf[1], jf[2]
+        AffecteCreneau(tabP[numSemaine], numJour, 1, NBCRENEAUX)
+    end
 end 
 
 function AffecteCreneauHoraireDuree(P, jour, heure, mn, duree, value=false)
