@@ -1,38 +1,28 @@
 // Fichier Javascript/Jquery pour gérer l'aspect dynamique des plannings
 // du projet EDTAutomatic (moteur de recuit simulé écrit en Julia)
 // Auteur : Philippe Belhomme
-// Date de modification : dimanche 18 septembre 2022
+// Date de modification : dimanche 25 septembre 2022
 
 // Variables globales
-var NBJOURS = 0;
-var NBCRENEAUX = 0;
+//var NBJOURS = 0;
+//var NBCRENEAUX = 0;
 
 // Fonction appelée quand la page web est entièrement chargée
 $(document).ready(function() {
     // Requête AJAX en jquery : récupère HEUREDEB et NBCRENEAUX
-
     $.getJSON( "http://localhost:8000/constantes", function( data ) {
-        /*$.each( data, function( key, val ) {
-            console.log( key + ":" + val );
-        });*/
-        
         // Cache par défaut le bouton "VALIDER"
         $("#btValider").hide();
-
         // Affecte des valeurs aux variables globales
-        
         NBJOURS = parseInt(data["NBJOURS"]);
         NBCRENEAUX = parseInt(data["NBCRENEAUX"]); 
-        
-
-        
         /* Construction dynamique de la suite du tableau de planning (après la
            ligne d'en-tête). Chaque créneau possèdera un numéro entre 1 et 210.
            numéro 1 pour le lundi 8h, 2 pour mardi 8h... 5 pour vendredi 8h,
            6 pour lundi 8h15... et 210 pour vendredi 18h15. */
         var codeSup = "";
         var numCreneau = 1;
-        for (var ligne=0; ligne<data["NBCRENEAUX"]; ligne++) {
+        for (var ligne=0; ligne<NBCRENEAUX; ligne++) {
             codeSup += "<tr>";
             for (var colonne=1; colonne<=6; colonne++) {
                 if (colonne == 1) {
@@ -99,10 +89,12 @@ $(document).ready(function() {
             }); 
         });
     }
-    //fonction qui remplit la liste des profs
-    async function afficherProf(){
+
+
+    // Fonction qui remplit la liste des profs
+    async function afficherProf() {
         var url = "http://localhost:8000/selectProf";
-        $.getJSON( url, function( data ) {
+        $.getJSON(url, function(data) {
             // Récupère l'objet JSON (en fait un tableau de JSON)
             // Mais s'il est vide la chaîne retournée est ']' ; donc quitter !
             if (data == "]") {
@@ -112,7 +104,6 @@ $(document).ready(function() {
             // Balaye tous les éléments du tableau
             for (var i = 0; i<obj.length; i++) {
                 var nomProf = obj[i]["nomProf"];
-                
                 // Construit le code du <div> qui sera injecté dans la zone du prévisionnel
                 ch = fabriqueListeProf(nomProf);
             }
@@ -120,16 +111,17 @@ $(document).ready(function() {
         }); 
     }
 
-    try{
+    try {
         afficherProf().then(
             setTimeout(function () {
-                remplirPlanning()
+                remplirPlanning();
             }, 200)
         );
-    }catch(e){
+    } catch(e) {
         alert(e);
     }
-    //insère chaque prof dans la liste
+
+    // Insère chaque prof dans la liste
     function fabriqueListeProf(nomProf){
         var select = document.getElementById("laRessource");
         var optn = nomProf;
@@ -137,7 +129,6 @@ $(document).ready(function() {
         el.textContent = optn;
         el.value = optn;
         select.appendChild(el);
-        
     }
 
     $("#addProf").on("click", function() {
@@ -156,7 +147,7 @@ $(document).ready(function() {
         }
     });
 
-    $('#btRemplissage').on('click', function(e){
+    $('#btRemplissage').on('click', function(e) {
         remplirPlanning();
         var num =parseInt($("#laSemaine").val());
         localStorage.setItem("num", num);

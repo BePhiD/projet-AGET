@@ -112,7 +112,6 @@ route("/selectCreneaux", method = "GET") do
 	Base.parse(Int, semaine)    # String vers Int
 	# Appelle la fonction spécifique du module bddPlanificationSemaine.jl
 	df = selectCreneauxBDD(semaine)
-	println(df)  # TODO: enlever prochainement
 	# Place chaque ligne de la BDD dans une chaîne simulant un tableau de JSON
 	chJSON = "["
 	for ligne in eachrow(df)

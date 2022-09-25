@@ -12,45 +12,48 @@
     <table id="decoupagePrincipal">
       <tr>
         <td class="barreMenuGeneral" rowspan="2">
-          
           <p>
             <a href="planificationSemaine.html"
                title="Définir les créneaux affectés à cette semaine">
-              <img src="images/group_post_it.png" width="60"></a>
+               <img src="images/group_post_it.png" width="60"></a>
           </p>
           <p>
-        <a href="#" id="addProf"
-           title="Créer un nouvel enseignant">
-          <img src="images/prof.png" width="60"></a>
-      </p>
-      <p>
-       <a href="#" id="supProf"
-           title="Supprimer un enseignant">
-          <img src="images/profenmoins.png" width="60"></a>
-      </p>
+            <a href="#" id="addProf"
+               title="Créer un nouvel enseignant">
+               <img src="images/prof.png" width="60"></a>
+          </p>
+          <p>
+            <a href="#" id="supProf"
+               title="Supprimer un enseignant">
+               <img src="images/profenmoins.png" width="60"></a>
+          </p>
         </td>
         <td>
           <div>
-          	
-            <FORM NAME="Choix">
+            <form name="Choix">
               <span>&nbsp;&nbsp;&nbsp;Semaine n° : </span> 
               <input type="number" id="laSemaine">
-            <span><b>Planning de : </b></span>
+              <span><b>Planning de : </b></span>
               <select id="laRessource">
                 
               </select>
-              <FORM NAME="Choix">
-           
-              </script>
+            </form>
               <script type="text/javascript">
-                document.getElementById("laSemaine").value = localStorage.getItem("num");
+                // Récupère le dernier numéro de semaine utilisé, sinon --> 35
+                if ("num" in localStorage) {
+                  document.getElementById("laSemaine").value = localStorage.getItem("num");
+                }
+                else {
+                  document.getElementById("laSemaine").value = 35;
+                  localStorage.setItem("num", 35);
+                }
               </script>
           </div>
       
           <p>Pour changer l'état d'un créneau : <b>ENTRER</b> dedans avec <b>SHIFT</b>.
           <br>Pour occuper un <b>jour</b> : <b>CTRL + clic</b> sur son nom
              (<b>CTRL + SHIFT + clic</b>) pour le libérer.
-          <br>Pour occupero une <b>tranche horaire</b> : <b>ENTRER avec CTRL</b>
+          <br>Pour occuper une <b>tranche horaire</b> : <b>ENTRER avec CTRL</b>
               dans l'horaire (<b>entrer avec CTRL + SHIFT</b> pour la libérer).</p>
         </td>
       </tr>
@@ -58,15 +61,14 @@
         <td>
           <div id="blocBoutons">
             <input type="button"  id='btRemplissage' class="btn btn-success"
-             value="Réinitialiser le planning">
+                   value="Réinitialiser le planning">
             <br>
-            <input type="button" id='btValider'
-                    class="btn btn-danger" value="Enregistrer le planning">
+            <input type="button" id='btValider' class="btn btn-danger"
+                   value="Enregistrer le planning">
           </div>
       
-          <!-- Début du tableau du planning d'une semaine, le reste sera calculé
-               automatiquement en jQuery (après appel des constantes du
-               programme "AutomaticEDT" écrit en julia) -->
+          <!-- Début du tableau du planning d'une semaine, le reste sera
+               calculé automatiquement en jQuery -->
           <div id="blocPlanning">
             <table border='1' id='planningRessource'>
               <tr id="entete">
