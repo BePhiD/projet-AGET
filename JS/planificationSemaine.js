@@ -2,7 +2,7 @@
 // du projet EDTAutomatic (moteur de recuit simulé écrit en Julia)
 // Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 // Date de création : lundi 31 janvier 2022 (isolement Covid...)
-// Date de modification : samedi 24 septembre 2022
+// Date de modification : Lundi 26 septembre 2022
 
 /* ------------------------
 -- Fonctions utilitaires --
@@ -285,30 +285,31 @@ function fabriqueListeProf(nomProf) {
 
 // Fonction qui remplit la liste déroulante des publics
 function afficherPublic() {
-    var url = "http://localhost:8000/selectPublic";
-    $.getJSON( url, function(data) {
+    // Recherche le numéro de l'onglet actif (commence à 0)
+    var numeroOnglet = $("#previsionnel").tabs("option", "active");
+    // En déduit le nom de l'onglet actif
+    var nomOnglet = $("#previsionnel a")[numeroOnglet].text;
+    var url = "http://localhost:8000/selectPublic?nomOnglet=" + nomOnglet;
+    $.getJSON(url, function(data) {
         // Récupère l'objet JSON (en fait un tableau de JSON)
         // Mais s'il est vide la chaîne retournée est ']' ; donc quitter !
         if (data == "]") {
             return;
         }
         obj = JSON.parse(data);
-        // Balaye tous les éléments du tableau
+        var select = document.getElementById("public");   // liste déroulante
+        // Il faut vider la liste à chaque fois qu'on change d'onglet
+        select.innerHTML = '';
+        // Balaye tous les éléments du tableau JSON
         for (var i = 0; i<obj.length; i++) {
             var groupes = obj[i]["groupes"];
             // Construit le code du <div> qui sera injecté dans la zone du prévisionnel
-            ch = fabriqueListePublic(groupes);
+            var opt = document.createElement("option");
+            opt.textContent = groupes;
+            opt.value = groupes;
+            select.appendChild(opt);
         }
     }); 
-}
-
-// Fonction qui insère chaque public dans la liste
-function fabriqueListePublic(groupes){
-    var select = document.getElementById("public");
-    var opt = document.createElement("option");
-    opt.textContent = groupes;
-    opt.value = groupes;
-    select.appendChild(opt);
 }
 
 /* Fonction qui crée un objet <div> associé au nouveau créneau. Le paramètre
@@ -413,8 +414,6 @@ $(document).ready(function() {
 
     // Désactive tous les éléments du formulaire par défaut et le bouton '+'
     $("#formulaire").children().hide();
-    afficherProf();
-    afficherPublic();
     
     // Permet de mettre en oeuvre le système d'onglets de jquery-ui
     $("#previsionnel").tabs();
@@ -435,6 +434,7 @@ $(document).ready(function() {
     
     // Charge dans l'espace de travail les créneaux prévus cette semaine là
     remplirCreneaux();
+
     // Teste si la variable de session de l'onglet actif existe ou non
     if ("numOngletActif" in sessionStorage) {
         // Active l'onglet précédemment utilisé via la variable de session
@@ -453,6 +453,7 @@ $(document).ready(function() {
     else {
     	$('#btAjoutCreneau').hide();
     }
+
     // Action après saisie/changement de numéro de semaine
     $("#laSemaine").on("change", function() {
     	remplirCreneaux();            // charge les créneaux prévus
@@ -539,6 +540,10 @@ $(document).ready(function() {
         });
     }
 
+    // Abonde les listes déroulantes des profs et du public
+    afficherProf();
+    afficherPublic();    
+
     // Action quand on clique sur un onglet : compter le nombre de créneaux
     $("#dep").on("click", function() {
         compteNombreDeCreneauxParType();
@@ -546,6 +551,8 @@ $(document).ready(function() {
         var numeroOnglet = $("#previsionnel").tabs("option", "active");
         // L'enregistre dans une variable de session
         sessionStorage.setItem("numOngletActif", numeroOnglet);
+        // Met à jour la liste du public en fonction de l'onglet actif
+        afficherPublic()
     });
 
     // Permet de créer le CSV prévisionnel quand on appuie sur le bon bouton

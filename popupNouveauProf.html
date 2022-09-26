@@ -27,24 +27,18 @@
 			                return;
 			            }
 			            obj = JSON.parse(data);
+						var select = document.getElementById("lesProfs");
 			            // Balaye tous les éléments du tableau
 			            for (var i = 0; i<obj.length; i++) {
 			                var nomProf = obj[i]["nomProf"];
-			                
 			                // Construit le code du <div> qui sera injecté dans la zone du prévisionnel
-			                ch = fabriqueListeProf(nomProf);
+							var el = document.createElement("option");
+							el.textContent = nomProf;
+							el.value = nomProf;
+							select.appendChild(el);
 			            }
 			        }); 
 			    }
-				//insère chaque prof dans la liste
-				function fabriqueListeProf(nomProf){
-					var select = document.getElementById("lesProfs");
-					var optn = nomProf;
-					var el = document.createElement("option");
-					el.textContent = optn;
-					el.value = optn;
-					select.appendChild(el);
-				}
 			</script>
 		</div>
 		<br>

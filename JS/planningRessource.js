@@ -1,11 +1,7 @@
 // Fichier Javascript/Jquery pour gérer l'aspect dynamique des plannings
 // du projet EDTAutomatic (moteur de recuit simulé écrit en Julia)
 // Auteur : Philippe Belhomme
-// Date de modification : dimanche 25 septembre 2022
-
-// Variables globales
-//var NBJOURS = 0;
-//var NBCRENEAUX = 0;
+// Date de modification : Lundi 26 septembre 2022
 
 // Fonction appelée quand la page web est entièrement chargée
 $(document).ready(function() {

@@ -38,15 +38,15 @@
 36;;Qualité;CM;numApogee;;90;Samyn;C1,C2,B1,B6,C5;GIM-2A-FI;GIM-2A-FI;3d518016-b533-4701-984e-1ef18bdd60d7
 36;;Math3;CM;numApogee;;90;Pignoux;C1,C2,B1,B6,C5;GIM-2A-FI;GIM-2A-FI;d1b366ac-7b39-48f6-bc48-81c637161885
 36;;Therm3;CM;numApogee;;120;Libine;AMPHI-C;GIM-2A-FI;GIM-2A-FI;b498d612-9ef0-4c30-bb94-f5fdbebf0d58
-36;;Aii3;CM;numApogee;;60;Cousin;C1,C2,B1,B6,C5;GIM-2A-FI;GIM-2A-FI;c2c1fcf2-e40a-4d31-bcc2-6a2ab52b715a
 36;;Aii3;TD;numApogee;;90;Cousin;C1,C2,B1,B6,C5;GIM-2A-FI;GIM-2A-FI;9f2d9004-fbea-4e76-8495-1947b0492f13
 36;;Genieelec3;CM;numApogee;;60;Lepesteur;C1,C2,B1,B6,C5;GIM-2A-FI;GIM-2A-FI;9eee65d1-4172-4464-94d0-e168675fcf15
+36;;Aii3;CM;numApogee;;60;Cousin;C1,C2,B1,B6,C5;GIM-2A-FI;GIM-2A-FI;c2c1fcf2-e40a-4d31-bcc2-6a2ab52b715a
 36;;Math3;TD;numApogee;;90;Pignoux;C1,C2,B1,B6,C5;GIM-2A-FI;GIM-2A-FI;e001f838-4219-446a-9bf9-d0adbd80e1b6
 36;;Lv3;TP;numApogee;;90;Aminot;C1,C2,B1,B6,C5;GIM-2A-FI;GIM-2A-FI;76a937a5-1dff-4b96-a467-32a783b5001a
 36;;Meca3;CM;numApogee;;60;Libine;C1,C2,B1,B6,C5;GIM-2A-FI;GIM-2A-FI;465f5d54-f81a-468b-83c2-ae025d484940
-36;Mercredi;Direction;ACCUEIL;numApogee;10h00;60;Equipegim2;C1;GIM-2A-FI;GIM-2A-FI;3cf943f7-3d76-48cb-ab75-071cc50b1f81
 36;;Lv3;TP;numApogee;;90;Aminot;C1,C2,B1,B6,C5;GIM-2A-FI;GIM-2A-FI;09a4ddd1-7470-4079-aede-6744af56c0d7
 36;;Genieelec3;CM;numApogee;;60;Lepesteur;C1,C2,B1,B6,C5;GIM-2A-FI;GIM-2A-FI;a8a0a45d-fd2b-4b49-bc5a-9298ba53583d
 36;;Meca3;CM;numApogee;;60;Libine;C1,C2,B1,B6,C5;GIM-2A-FI;GIM-2A-FI;9a86ed60-dcf5-4568-b94a-fb739815ad1a
 36;;Genieelec3;TD;numApogee;;90;Lepesteur;C1,C2,B1,B6,C5;GIM-2A-FI;GIM-2A-FI;ae800dac-ff15-4039-99d8-8f185d544f9e
+36;Mardi;Direction;ACCUEIL;numApogee;9h00;60;Equipegim2;C1;GIM-2A-FI;GIM-2A-FI;3cf943f7-3d76-48cb-ab75-071cc50b1f81
 36;;Tec3;TD;numApogee;;90;Pasquier;C1,C2,B1,B6,C5;GIM-2A-FI;GIM-2A-FI;ea1df910-c422-415c-80f8-a5c5d9e2e3f4

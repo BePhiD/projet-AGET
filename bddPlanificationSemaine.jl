@@ -188,7 +188,6 @@ function updateCreneauForceBDD(id, ndj, h, sR)
     req = """ UPDATE previsionnelEDT
               SET nomDuJour="$ndj", horaire="$h", salleRetenue="$sR"
               WHERE uuid="$id" """
-    println(req)
     DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req)
 end
 
