@@ -2,7 +2,7 @@
 API pour le système de création automatique d'emploi du temps (écrit en julia)
 Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 Dates de création : lundi 27 décembre 2021
-  de modification : Lundi 26 septembre 2022
+  de modification : Mercredi 08 février 2023
 =#
 
 using Genie, Genie.Router, Genie.Renderer.Html, Genie.Requests, Genie.Renderer.Json
@@ -395,7 +395,6 @@ route("/deForceCreneau", method = "GET") do
     close(io)
 end
 
-Genie.config.run_as_server = true
 # La ligne suivante est nécessaire pour une requête AJAX depuis jquery.
 # Info trouvée sur le site :
 # https://stackoverflow.com/questions/62166853/how-can-i-setup-cors-headers-in-julia-genie-app-to-allow-post-request-from-diffe
@@ -428,6 +427,7 @@ function force_compile()
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/supprimerProf?nomProf=?")
 	Genie.Requests.HTTP.request("GET", "http://serveur:8000/supprimerSalle?nomSalle=?")
 end
-  
+
+Genie.config.run_as_server = true
 @async force_compile()
-Genie.startup(async = false)     # démarre le serveur web sur le port :8000
+Genie.up()     # démarre le serveur web sur le port :8000

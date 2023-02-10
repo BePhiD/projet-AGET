@@ -2,23 +2,43 @@
 Visu pour le système de création automatique d'emploi du temps (écrit en julia)
 Auteur : Philippe Belhomme
 Dates de création : vendredi 26 août 2022
-  de modification : mercredi 14 septembre 2022
+  de modification : jeudi 09 février 2023
 
 Ce programme est appelé avec la commande suivante :
 julia webVisu.jl numSemaine numPlanning promo
 exemple : julia webVisu.jl 36 1 GIM-2A-FI
 =#
+
 GROUPES = """{
-  "GIM-2A-FI": {"pos": 1, "taille": 4},
-  "TD2A": {"pos": 1, "taille": 4},
-  "TP2A": {"pos": 1, "taille": 4},
-  "GIM-1A-FI": {"pos": 1, "taille": 4},
-  "TD11": {"pos": 1, "taille": 2},
-  "TD21": {"pos": 3, "taille": 2},
-  "TP11": {"pos": 1, "taille": 1},
-  "TP21": {"pos": 2, "taille": 1},
-  "TP31": {"pos": 3, "taille": 1},
-  "TP41": {"pos": 4, "taille": 1}
+  "GIM-2A-FI": {"pos": 1, "taille": 1},
+  "TD-GIM-2A-FI": {"pos": 1, "taille": 1},
+  "TP-GIM-2A-FI": {"pos": 1, "taille": 1},
+  "GIM-1A-FI": {"pos": 1, "taille": 2},
+  "TD-GIM-1A-FI": {"pos": 1, "taille": 2},
+  "TP1-GIM-1A-FI": {"pos": 1, "taille": 1},
+  "TP2-GIM-1A-FI": {"pos": 2, "taille": 1},
+  "GIM-1A-APP": {"pos": 1, "taille": 2},
+  "TD-GIM-1A-APP": {"pos": 1, "taille": 2},
+  "TP1-GIM-1A-APP": {"pos": 1, "taille": 1},
+  "TP2-GIM-1A-APP": {"pos": 2, "taille": 1},
+  "GEII-1A-FI": {"pos": 1, "taille": 6},
+  "TD1-GEII-1A-FI": {"pos": 1, "taille": 3},
+  "TD2-GEII-1A-FI": {"pos": 4, "taille": 3},
+  "TPG1A-GEII-1A-FI": {"pos": 1, "taille": 2},
+  "TPG1BG2A-GEII-1A-FI": {"pos": 3, "taille": 2},
+  "TPG2B-GEII-1A-FI": {"pos": 5, "taille": 2},
+  "GEII-2A-FI": {"pos": 1, "taille": 4},
+  "TD1-GEII-2A-FI": {"pos": 1, "taille": 2},
+  "TD2-GEII-2A-FI": {"pos": 3, "taille": 2},
+  "TPG1A-GEII-2A-FI": {"pos": 1, "taille": 1},
+  "TPG1B-GEII-2A-FI": {"pos": 2, "taille": 1},
+  "TPG2A-GEII-2A-FI": {"pos": 3, "taille": 1},
+  "TPG2B-GEII-2A-FI": {"pos": 4, "taille": 1},
+  "TPG1BG2A-GEII-2A-FI": {"pos": 2, "taille": 2},
+  "GEII-1A-APP": {"pos": 1, "taille": 2},
+  "TD-GEII-1A-APP": {"pos": 1, "taille": 2},
+  "TP1-GEII-1A-APP": {"pos": 1, "taille": 1},
+  "TP2-GEII-1A-APP": {"pos": 2, "taille": 1}
 }"""
 using Gtk
 using JSON

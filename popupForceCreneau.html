@@ -15,8 +15,15 @@
             var minutes = parseInt(document.getElementById("minutesDuCreneau").value);
             // Calcule le numéro du créneau en fonction des données
             var debCreneau = (heure-1)*4 + minutes
-            // Récupère les données du créneau depuis des variables de session
-            var numSemaine = localStorage.getItem("num");
+            /* Récupère les données du créneau depuis des variables de session.
+               La différence entre localStorage et sessionStorage c'est que
+               localStorage résiste à la fermeture du navigateur.
+               Problème : sur la machine Panoramix (Linux) le numéro de semaine
+               n'est pas récupéré avec localStorage donc numSemaine vaut null...
+               Résolu en remplaçant par sessionStorage mais il a fallu modifier
+               le fichier planificationSemaine.js (lignes 965-966) */
+            //var numSemaine = localStorage.getItem("num");
+            var numSemaine = sessionStorage.getItem("num");  // résolu !
             var uuid = sessionStorage.getItem("uuid");
             var prof = sessionStorage.getItem("prof");
             var lieu = sessionStorage.getItem("lieu");
@@ -28,6 +35,7 @@
             url += "&numSemaine=" + numSemaine + "&prof=" + prof;
             url += "&lieu=" + lieu + "&public=" + public;
             url += "&duree=" + duree;
+            alert(url);
             $.ajax({url: url}).done(function() {
                 // On ferme maintenant la fenêtre pop-up
                 self.close();
