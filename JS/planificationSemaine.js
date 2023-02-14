@@ -2,7 +2,7 @@
 // du projet EDTAutomatic (moteur de recuit simulé écrit en Julia)
 // Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 // Date de création : lundi 31 janvier 2022 (isolement Covid...)
-// Date de modification : Lundi 26 septembre 2022
+// Date de modification : Mardi 14 février 2023
 
 /* ------------------------
 -- Fonctions utilitaires --
@@ -10,7 +10,8 @@
 var salleExiste = "";   // GLOBALE
 
 // Fonction qui fabrique (et retourne) la chaine html d'un créneau
-function fabriqueCreneauHTML(uuid, type, matiere, prof, lieu, public, duree, onglet, jour, heure) {
+function fabriqueCreneauHTML(uuid, type, matiere, prof, lieu, public, duree,
+                             onglet, jour, heure) {
     ch = "<div id='" + uuid + "' class='creneau' ";
     ch += "data-type='" + type + "' data-matiere='" + matiere + "' ";
     ch += "data-prof='" + prof + "' data-lieu='" + lieu + "' ";
@@ -25,12 +26,10 @@ function fabriqueCreneauHTML(uuid, type, matiere, prof, lieu, public, duree, ong
     if (jour != "" && heure != "") {
         ch += "<br>" + jour + "/" + heure;
     }
-    /*else {
-        ch += "<br>" + "&nbsp;";
-    }*/
     ch += "</div>";
     return ch;
 }
+
 
 /* Fonction qui lit les données d'un créneau à partir du formulaire en
    supprimant les espaces inutiles (trim) ; retourne un JSON. */
@@ -45,12 +44,14 @@ function attributsFromFormulaire() {
     }
 }
 
+
 // Fonction qui permet de remplir le formulaire avec les données fournies
 function remplitFormulaire(type, matiere, prof, lieu, public, duree, uuid) {
     $("#type").val(type);  $("#matiere").val(matiere);  $("#prof").val(prof);
     $("#lieu").val(lieu);  $("#public").val(public);    $("#duree").val(duree);
     $("#uuid").val(uuid);
 }
+
 
 /* Fonction qui lit les attributs d'un créneau à partir de son uuid puis
    retourne un JSON. */
@@ -68,6 +69,7 @@ function attributsFromUUID(uuid) {
     }
 }
 
+
 // Fonction qui fabrique un JSON à partir des infos d'un créneau (son uuid)
 function fromAttrToJSON(numeroSemaine, nomOnglet, uuid) {
     return {
@@ -78,6 +80,7 @@ function fromAttrToJSON(numeroSemaine, nomOnglet, uuid) {
     };
 }
 
+
 // Fonction qui permet de colorer les créneaux selon leur type (CM/TD/TP)
 function colore_CM_TD_TP(uuid, typeDeCours) {
     switch (typeDeCours) {
@@ -85,27 +88,39 @@ function colore_CM_TD_TP(uuid, typeDeCours) {
             $("#"+uuid).addClass("CM");     // il acquiert la classe CM
             $("#"+uuid).removeClass("TD");  // et perd les autres
             $("#"+uuid).removeClass("TP");
+            $("#"+uuid).removeClass("CTRL");
             $("#"+uuid).removeClass("Autre");
             break;
         case 'TD':
             $("#"+uuid).addClass("TD");     // il acquiert la classe TD
             $("#"+uuid).removeClass("CM");  // et perd les autres
             $("#"+uuid).removeClass("TP");
+            $("#"+uuid).removeClass("CTRL");
             $("#"+uuid).removeClass("Autre");
             break;
         case 'TP':
             $("#"+uuid).addClass("TP");     // il acquiert la classe TP
             $("#"+uuid).removeClass("CM");  // et perd les autres
             $("#"+uuid).removeClass("TD");
+            $("#"+uuid).removeClass("CTRL");
             $("#"+uuid).removeClass("Autre");
             break;
+        case 'CTRL':
+            $("#"+uuid).addClass("CTRL");   // il acquiert la classe CTRL
+            $("#"+uuid).removeClass("CM");  // et perd les autres
+            $("#"+uuid).removeClass("TD");
+            $("#"+uuid).removeClass("TP");
+            $("#"+uuid).removeClass("Autre");
+            break;            
         default:
             $("#"+uuid).addClass("Autre");  // il acquiert la classe Autre
             $("#"+uuid).removeClass("CM");  // et perd les autres
             $("#"+uuid).removeClass("TD");
             $("#"+uuid).removeClass("TP");
+            $("#"+uuid).removeClass("CTRL");
     }
 }
+
 
 /* Fonction activée après le 'drop' d'un créneau, compatible corbeille/onglets.
    Mais cette fonction peut également être appelée quand on demande à DEPLACER
@@ -199,6 +214,7 @@ function dropCreneau(event, ui, idZoneDuDrop) {
     compteNombreDeCreneauxParType();   // Réaffiche les infos actualisées
 }
 
+
 // Fonction qui fabrique un nouveau créneau à partir des infos du formulaire
 function fabriqueCreneauFromFormulaire() {
     // Récupère les informations du créneau (vérifie si oubli...)
@@ -241,6 +257,7 @@ function fabriqueCreneauFromFormulaire() {
     });
 }
 
+
 /* Fonction (Swann/PB) qui vérifie si les salles listées existent. Elle est en
    mode asynchrone, basée sur une 'Promise' ; pas très simple... */
 async function verifieSiSallesExistent(lieu) {
@@ -254,6 +271,7 @@ async function verifieSiSallesExistent(lieu) {
     });
     salleExiste = await myPromise;
 }
+
 
 // Fonction qui remplit la liste déroulante des profs
 function afficherProf() {
@@ -274,6 +292,7 @@ function afficherProf() {
     });
 }
 
+
 // Fonction qui insère chaque prof dans une liste déroulante
 function fabriqueListeProf(nomProf) {
     var select = document.getElementById("prof");
@@ -282,6 +301,7 @@ function fabriqueListeProf(nomProf) {
     opt.value = nomProf;
     select.appendChild(opt);
 }
+
 
 // Fonction qui remplit la liste déroulante des publics
 function afficherPublic() {
@@ -311,6 +331,7 @@ function afficherPublic() {
         }
     }); 
 }
+
 
 /* Fonction qui crée un objet <div> associé au nouveau créneau. Le paramètre
    zone sert à savoir si la duplication s'est faite dans la corbeille ou pas */
@@ -359,11 +380,13 @@ function creeCreneau(type, matiere, prof, lieu, public, duree, zone="") {
     });
 }
 
+
 /* Fonction qui retourne le nombre de créneau de l'onglet courant par type */
 function compteNombreDeCreneauxParType() {
     var nb_CM = 0;
     var nb_TD = 0;
     var nb_TP = 0;
+    var nb_CTRL = 0;
     var nb_Autres = 0;
 
     // Recherche le numéro de l'onglet actif (commence à 0)
@@ -386,32 +409,44 @@ function compteNombreDeCreneauxParType() {
         else if (type.toUpperCase() == "TP") {
             nb_TP += 1;
         }
+        else if (type.toUpperCase() == "CTRL") {   // TODO: contient plutôt
+            nb_CTRL += 1;
+        }
         else {
             nb_Autres += 1;
         }
     });
 
-    var total = nb_CM + nb_TD + nb_TP + nb_Autres;
+    var total = nb_CM + nb_TD + nb_TP + nb_CTRL + nb_Autres;
     var txt = String(total);
     if (total > 0) {
-        txt += '  [CM : ' + nb_CM + '  /  TD : ' + nb_TD + '  /  TP : ';
-        txt += nb_TP + '  /  Autre : ' + nb_Autres + ']';
+        txt += '  [CM : ' + nb_CM + '  /  TD : ' + nb_TD + '  /  TP : ' + nb_TP;
+        txt += '  /  CTRL : ' + nb_CTRL + '  /  Autre : ' + nb_Autres + ']';
     }
 
     $("#infoNombreDeCreneaux").text(txt);
+}
+
+
+/* Fonction qui affiche dans la barre d'état (en bas) un bouton par planning
+   calculé. Les boutons seront triés dans l'ordre des meilleurs plannings */
+function afficheBoutonsPlannings(nbPlannings) {
+    for (var i = 1; i<=nbPlannings; i++) {
+        var txt = "<button id='number" + i + "' class='btn btn-danger'>";
+        txt += i + "</button>";
+        $("#barreEtat").append(txt);
+        $("#number"+i).click({param: i}, coolFunction);
+    }
+}
+
+function coolFunction(event) {
+    alert("Montrer le planning n°" + event.data.param);
 }
 
 /* -------------------------------------------------------------
 -- Fonction appelée quand la page web est entièrement chargée --
 --------------------------------------------------------------*/
 $(document).ready(function() {
-    //TODO: test pour ajouter un onglet "dynamiquement"
-    /*optionText = "GIM-3A-FI";
-    optionHREF = "#previsionnel-2";
-    optionDIV  = "previsionnel-2";
-    $('#dep').append(`<li><a href="${optionHREF}">${optionText}</a></li>`);
-    $('#previsionnel').append(`<div id="${optionDIV}"></div>`);*/
-
     // Désactive tous les éléments du formulaire par défaut et le bouton '+'
     $("#formulaire").children().hide();
     
@@ -454,6 +489,7 @@ $(document).ready(function() {
     	$('#btAjoutCreneau').hide();
     }
 
+
     // Action après saisie/changement de numéro de semaine
     $("#laSemaine").on("change", function() {
     	remplirCreneaux();            // charge les créneaux prévus
@@ -463,6 +499,7 @@ $(document).ready(function() {
     		$('#btAjoutCreneau').hide();
     	}
     });
+
 
     /* Fonction qui remplit les onglets avec les créneaux prévus pour la semaine
        en cours. Permet de 'ré-initialiser' l'affichage si nécessaire. */
@@ -544,6 +581,7 @@ $(document).ready(function() {
     afficherProf();
     afficherPublic();    
 
+
     // Action quand on clique sur un onglet : compter le nombre de créneaux
     $("#dep").on("click", function() {
         compteNombreDeCreneauxParType();
@@ -555,8 +593,11 @@ $(document).ready(function() {
         afficherPublic()
     });
 
+
     // Permet de créer le CSV prévisionnel quand on appuie sur le bon bouton
     $("#makeCSV").on("click", function() {
+        // Vide la barre d'état en bas car les plannings ne seront plus bons
+        $('#barreEtat').empty();
         // Gestion de l'existence du fichier CSV (suppression/recréation)
         numSemaine = $("#laSemaine").val().toString();
         var url2 = "http://localhost:8000/deleteAndCreateCSV?numSemaine=" + numSemaine; 
@@ -599,14 +640,23 @@ $(document).ready(function() {
         alert("Création du CSV prévisionnel... OK.");
     });
 
+
     // Lance le moteur de recuit simulé quand on appuie sur le bon bouton
     $("#lancerMoteurCalcul").on("click", function() {
+        // Vide la barre d'état en bas car les plannings ne seront plus bons
+        $('#barreEtat').empty();
         numSemaine = $("#laSemaine").val();
         var result = prompt("Nombre de versions d'EDT (max: 10)");
         try {
-            if (parseInt(result) <= 10 && parseInt(result) > 0) {
-                var url ="http://localhost:8000/lancerMoteur?numSemaine="+numSemaine+"&nbEDTCalcules="+result;
-                $.ajax({url: url});
+            if (parseInt(result) > 0 && parseInt(result) <= 10) {
+                var url ="http://localhost:8000/lancerMoteur?numSemaine="
+                        + numSemaine + "&nbEDTCalcules=" + result;
+                $.ajax({url: url}).done(function() {
+                    // Peuple la barre d'état avec un bouton par planning
+                    afficheBoutonsPlannings(parseInt(result));
+                    // Montre la barre d'état
+                    $('#barreEtat').show();
+                });
             }
             else {
                 alert("La valeur doit être comprise entre 1 et 10 !");
@@ -615,6 +665,7 @@ $(document).ready(function() {
             alert("Il me faut un nombre entre 1 et 10 ! Rien d'autre...");
         }
     });
+
 
 	/* Permet d'ajouter un prof quand on appuie sur le bon bouton. Le nom aura
        la première lettre en majuscule, les autres en minuscules et chaque
@@ -635,11 +686,13 @@ $(document).ready(function() {
         }
     });
 
+
     // Permet de supprimer un prof quand on appuie sur le bon bouton
     $("#supProf").on("click", function() {
         var myWin = window.open("popupNouveauProf.html", "",
                                 "width=600, height=400, top=200, left=360");
     });
+
 
     /* Permet d'ajouter une salle quand on appuie sur le bon bouton. Le nom sera
        entièrement en majuscule et chaque espace sera remplacée par un tiret. */
@@ -659,12 +712,14 @@ $(document).ready(function() {
         }
     });
 
+
     // Permet de supprimer une salle quand on appuie sur le bon bouton
     $("#supSalle").on("click", function() {
         var myWin = window.open("popupNouvelleSalle.html", "",
                                 "width=600, height=400, top=200, left=360");
     });
-	
+
+    
     // Action après clic sur bouton "+" dans la zone de création de créneau
     $('#btAjoutCreneau').on('click', function(e) {
         // Vérifie qu'il y a bien un numéro de semaine entre 1 et 52 sinon sort
@@ -678,17 +733,20 @@ $(document).ready(function() {
         $('#btModifier').hide();             // et cache le bouton 'Modifier'
     });
 
+
     // Action après clic sur bouton "Annuler"
     $('#btAnnuler').on('click', function(e) {
         $("#formulaire").children().hide();
         $('#btAjoutCreneau').show();         // montre le bouton '+'
     });
 
+
     // Action après clic sur bouton "Créer"
     $('#btCreer').on('click', function(e) {
         fabriqueCreneauFromFormulaire();
         $('#btModifier').hide();             // désactive le bouton Modifier
     });
+
 
     // Action après clic sur bouton "Modifier"
     $('#btModifier').on('click', function(e) {
@@ -763,6 +821,7 @@ $(document).ready(function() {
         }
     });
 
+
     // Action après clic gauche dans un créneau du previsionnel ou de la corbeille
     $('#previsionnel, #corbeille').on('click', function (e) {
         /* Retrouve l'uuid du créneau ayant reçu le clic gauche et le place
@@ -789,6 +848,7 @@ $(document).ready(function() {
             });
         }        
     });
+
 
     /*----------------------------------------
     -- Actions si clic droit sur un créneau --
@@ -832,11 +892,13 @@ $(document).ready(function() {
         return false;
     });
 
+
     // Cache les context menus après un clic en dehors (sinon restent à l'écran...)
     $(document).on('contextmenu click', function() {
         $(".context-menu").hide();
         $(".context-menuZ").hide();
     });
+
 
     // Disable context-menu from custom menu
     $('.context-menu').on('contextmenu', function() {
@@ -845,6 +907,7 @@ $(document).ready(function() {
     $('.context-menuZ').on('contextmenu', function() {
         return false;
     });
+
 
     /*-----------------------------------------------------------------
     -- Traite l'action du sous-menu après clic droit dans un créneau --
@@ -857,6 +920,7 @@ $(document).ready(function() {
         // Récupère le nom de l'action choisie dans le menu contextuel
         var action = $(this).find("span:nth-child(1)").attr("id");
         
+
         // Demande de suppression du créneau (du DOM en fait)
         if (action == "actionSupprimer") {
             if ($("#"+uuid).hasClass("selectionMultiple")) {
@@ -885,6 +949,7 @@ $(document).ready(function() {
             }
         }
         
+
         /* Demande de copie d'un ou plusieurs créneau(x) (ils apparaîtront
         en fin de liste). Ils auront forcément un nouvel uuid.  */
         if (action == "actionDupliquer") {
@@ -922,6 +987,7 @@ $(document).ready(function() {
             }
         }
 
+
         // Demande de modification du créneau (via le formulaire).
         if (action == "actionModifier") {
             if ($("#"+uuid).hasClass("selectionMultiple")) {
@@ -939,6 +1005,7 @@ $(document).ready(function() {
                 remplitFormulaire(type, matiere, prof, lieu, public, duree, uuid);
             }
         }
+
 
         /* Demande de forçage d'un créneau, c'est à dire lui attribuer dès le
         départ un jour et une salle (si c'est possible bien sûr). */
@@ -963,6 +1030,8 @@ $(document).ready(function() {
                         sessionStorage.setItem("lieu", lieu);
                         sessionStorage.setItem("public", public);
                         sessionStorage.setItem("duree", duree);
+                        numSemaine = $("#laSemaine").val().toString();
+                        sessionStorage.setItem("num", numSemaine);
                         // Ouvre une fenêtre pop-up pour choisir jour + horaire
                         /* ATTENTION : elle n'est pas vraiment modale...
                         Si on recharge la page juste après, cela se produit
@@ -987,6 +1056,7 @@ $(document).ready(function() {
                 }
         }
 
+
         /* Demande de Déforçage d'un créneau, c'est à dire lui retirer ses
         informations de jour et de salle. */
         if (action == "actionDeforcer") {
@@ -996,6 +1066,9 @@ $(document).ready(function() {
             else if ($("#"+uuid).hasClass("FORCE")) {
                 let {prof, lieu, public, duree, jour, heure} = attributsFromUUID(uuid);
                 var numSemaine = localStorage.getItem("num");
+                if (!numSemaine) {
+                    alert("Valeur nulle pour numSemaine lors du déforçage !");
+                }
                 // Fabrique l'URL de la route qui sera appelée
                 var url = "http://localhost:8000/deForceCreneau?uuid=" + uuid;
                 url += "&prof=" + prof;
@@ -1019,6 +1092,7 @@ $(document).ready(function() {
         }
         compteNombreDeCreneauxParType();   // Réaffiche les infos actualisées
     });
+
 
     /*---------------------------------------------------------------
     -- Traite l'action du sous-menu après clic droit dans une zone --
@@ -1050,6 +1124,7 @@ $(document).ready(function() {
             alert("Action pas possible dans ce contexte !");
             return;
         }
+
 
         // Codes des actions autorisées
         if (action == "actionDeplacerToutVersCorbeille" && zone == "previsionnel") {

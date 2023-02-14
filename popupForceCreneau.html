@@ -35,7 +35,6 @@
             url += "&numSemaine=" + numSemaine + "&prof=" + prof;
             url += "&lieu=" + lieu + "&public=" + public;
             url += "&duree=" + duree;
-            alert(url);
             $.ajax({url: url}).done(function() {
                 // On ferme maintenant la fenêtre pop-up
                 self.close();

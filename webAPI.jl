@@ -2,7 +2,7 @@
 API pour le système de création automatique d'emploi du temps (écrit en julia)
 Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 Dates de création : lundi 27 décembre 2021
-  de modification : Mercredi 08 février 2023
+  de modification : Mardi 14 février 2023
 =#
 
 using Genie, Genie.Router, Genie.Renderer.Html, Genie.Requests, Genie.Renderer.Json
@@ -154,7 +154,7 @@ end
 #= Swann : action effectuée lorsque l'on clique sur le bouton "lancerMoteur".
    On récupère le numéro de la semaine, le nombre d'emplois du temps que l'on
    souhaite calculer, puis on appelle la fonction "programmePrincipal" qui se
-   trouve dans le fichier 'MoteurRecuitSimuke.jl' =#
+   trouve dans le fichier 'MoteurRecuitSimule.jl' =#
 route("/lancerMoteur", method = "GET") do
 	numSemaine = params(:numSemaine, false)
 	nbEDTCalcules = params(:nbEDTCalcules, false)

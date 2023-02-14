@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 # Date Création : jeudi 21 février 2019
-# Date Modification : samedi 24 septembre 2022
+# Date Modification : Mardi 14 février 2023
 # Langage : Julia
 
 # Module : MoteurRecuitSimule
@@ -351,9 +351,9 @@ end
 
 ### Fonction qui affiche l'emploi du temps calculé et l'enregistre dans un CSV
 function afficheEnregistreEDT(M, numSemaine, tour)
-    # Crée un fichier par tour, sur le modèle : s39_1.csv, s39_2.csv, etc.
+    # Crée un fichier par tour, sur le modèle : s39_1, s39_2, etc.
     nom = REPERTOIRE_PLAN * SEP * string(numSemaine) * SEP
-    nom *= "s" * string(numSemaine) * "_" * string(tour) * ".csv"
+    nom *= "s" * string(numSemaine) * "_" * string(tour)
     touch(nom)
     # Variable pour compter le nombre de créneaux réellement bien placés
     nbCrPlacés = 0
@@ -382,24 +382,49 @@ function afficheEnregistreEDT(M, numSemaine, tour)
     strStat *= string(length(M.collCreneauxAT)+length(M.collCreneauxF)) * ")"
     # Inscrit les 'performances' du moteur dans sa propre structure
     M.rendement = round(10000 * nbCrPlacés / length(M.collCreneauxAT)) / 100
-    M.info *= "Rendement final : $(M.rendement) % $strStat\n"
-    M.info *= "Nombre d'itérations : $(M.nbreTours)\n" 
+    M.info *= "[--- Rendement final : $(M.rendement)% $strStat  ---]\n"
+    M.info *= "Nombre d'itérations : $(M.nbreTours)\n"
     println(M.info)
+    #= Renomme le fichier pour ajouter le rendement (sous forme d'un entier),
+       l'énergie et l'extension .csv 
+       Un fichier aura alors un nom du type : s39_1_9856_3997.csv =#
+    nouvNom = nom * "_" * string(Int(trunc(M.rendement*100))) * "_"
+    nouvNom *= string(M.energie) * ".csv"
+    mv(nom, nouvNom)
 end
 
 #######################
 ### PROGRAMME PRINCIPAL
 #######################
 function programmePrincipal(semaine, nbEDTCalcules)
+    # Cette fonction principale a été appelée depuis une route de webAPI.jl
 	semaine = Base.parse(Int64, semaine)
 	nbEDTCalcules = Base.parse(Int64, nbEDTCalcules)
     # Supprime si possible le dossier qui contiendra les plannings de la semaine
     rm(REPERTOIRE_PLAN * SEP * string(semaine), force=true, recursive=true)
     # Recrée le dossier (il est donc vide)
     mkdir(REPERTOIRE_PLAN * SEP * string(semaine))
+    #= Crée un tableau vide qui contiendra un tuple (rendement, energie) par
+      tour de moteur. Ce tableau sera ensuite trié par ordre décroissant pour
+      connaître le numéro du tour du meilleur score obtenu par le moteur. =#
+    scoreDesTours = []
 	for numEDT in 1:nbEDTCalcules
 	    moteur = prepareMoteur(semaine, numEDT)
 	    runMoteur(moteur)
 	    afficheEnregistreEDT(moteur, semaine, numEDT)
+        # Enregistre les scores sous forme de tuples (rendement, energie, n°)
+        push!(scoreDesTours, (moteur.rendement, moteur.energie, numEDT))
 	end
+    # Trie le tableau des scores par ordre décroissant
+    sort!(scoreDesTours, by=((x,y),) -> (-x,y))
+    println("Le meilleur planning est le numéro $(scoreDesTours[1][3])")
+    println("avec un rendement de $(scoreDesTours[1][1])%")
+    #println(scoreDesTours)
+    #= Crée un fichier texte dans le répertoire avec à chaque ligne:
+       numEDT;rendement =#
+    txt = ""
+    for numEDT in 1:nbEDTCalcules
+        txt *= string(scoreDesTours[numEDT][3]) * ";" * string(scoreDesTours[numEDT][1]) * "\n"
+    end
+    write(REPERTOIRE_PLAN * SEP * string(semaine) * SEP * "classement.txt", txt)
 end
