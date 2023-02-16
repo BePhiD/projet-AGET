@@ -107,7 +107,11 @@ function positionEtTailleCreneau(promo, groupe, numJour, deb, dureeEnQH)
 end
 
 # Création de la fenêtre principale et de sa grille
-win = GtkWindow("Planning EDT...")
+ns = ARGS[1]
+np = ARGS[2]
+formation = ARGS[3]
+titre = "-- SEMAINE $ns -- Planning n°$np pour $formation"
+win = GtkWindow(titre)
 grille = GtkGrid()
 set_gtk_property!(grille, :column_homogeneous, true)
 set_gtk_property!(grille, :column_spacing, 4)  # gap in pixels between columns

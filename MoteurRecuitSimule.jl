@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 # Date Création : jeudi 21 février 2019
-# Date Modification : Mardi 14 février 2023
+# Date Modification : Jeudi 16 février 2023
 # Langage : Julia
 
 # Module : MoteurRecuitSimule
@@ -391,6 +391,9 @@ function afficheEnregistreEDT(M, numSemaine, tour)
     nouvNom = nom * "_" * string(Int(trunc(M.rendement*100))) * "_"
     nouvNom *= string(M.energie) * ".csv"
     mv(nom, nouvNom)
+    # Copie ce fichier sous un nom plus court (pour le programme de visu)
+    # Ainsi, s39_1_9856_3997.csv sera aussi connu sous le nom s39_1.csv
+    cp(nouvNom, nom * ".csv")
 end
 
 #######################
@@ -419,12 +422,16 @@ function programmePrincipal(semaine, nbEDTCalcules)
     sort!(scoreDesTours, by=((x,y),) -> (-x,y))
     println("Le meilleur planning est le numéro $(scoreDesTours[1][3])")
     println("avec un rendement de $(scoreDesTours[1][1])%")
-    #println(scoreDesTours)
-    #= Crée un fichier texte dans le répertoire avec à chaque ligne:
+    #= Crée un fichier texte dans le répertoire avec à chaque ligne :
        numEDT;rendement =#
-    txt = ""
+    lignes = ""
     for numEDT in 1:nbEDTCalcules
-        txt *= string(scoreDesTours[numEDT][3]) * ";" * string(scoreDesTours[numEDT][1]) * "\n"
+        lignes *= string(scoreDesTours[numEDT][3]) * ";"
+        lignes *= string(scoreDesTours[numEDT][1]) * "\n"
     end
-    write(REPERTOIRE_PLAN * SEP * string(semaine) * SEP * "classement.txt", txt)
+    # Chemin du fichier présentant les classements des plannings générés
+    cf = REPERTOIRE_PLAN * SEP * string(semaine) * SEP * NOM_FICHIER_CLASSEMENT
+    write(cf, lignes)
+    # Retourne la chaîne de texte contenant les plannings triés par rendement
+    return lignes
 end

@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme
 # Date Création : Jeudi 13 décembre 2018
-# Date Modification : Lundi 13 février 2023
+# Date Modification : Jeudi 16 février 2023
 # Langage : Julia
 
 # Module : CONSTANTES
@@ -93,6 +93,9 @@ LISTE_GROUPES = "ListeDesGroupes.cfg"
 
 # Nom de la base de données SQLite gérant tout le système
 NOM_DATABASE_EDT = "bddAutomaticEDT.sql"
+
+# Nom du fichier indiquant le classement des plannings calculés
+NOM_FICHIER_CLASSEMENT = "classement.txt"
 
 # Messages d'erreur pour les divers modules
 ERR_CR_GROUPE      = "Groupe du créneau inconnu... "

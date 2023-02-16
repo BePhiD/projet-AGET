@@ -381,7 +381,8 @@ function creeCreneau(type, matiere, prof, lieu, public, duree, zone="") {
 }
 
 
-/* Fonction qui retourne le nombre de créneau de l'onglet courant par type */
+/* Fonction qui compte le nombre de créneau de l'onglet courant par type et
+   l'affiche dans la barre du haut, à côté du numéro de semaine. */
 function compteNombreDeCreneauxParType() {
     var nb_CM = 0;
     var nb_TD = 0;
@@ -430,17 +431,28 @@ function compteNombreDeCreneauxParType() {
 
 /* Fonction qui affiche dans la barre d'état (en bas) un bouton par planning
    calculé. Les boutons seront triés dans l'ordre des meilleurs plannings */
-function afficheBoutonsPlannings(nbPlannings) {
-    for (var i = 1; i<=nbPlannings; i++) {
+function afficheBoutonsPlannings(nbPlannings, data) {
+    const leTableauDesPlannings = data.split('\n');
+    for (var i = 0; i<nbPlannings; i++) {
         var txt = "<button id='number" + i + "' class='btn btn-danger'>";
-        txt += i + "</button>";
+        numPlanning = leTableauDesPlannings[i].split(';')[0];
+        rendement   = leTableauDesPlannings[i].split(';')[1];
+        txt += "n°" + numPlanning + "->" + rendement + "%";
+        txt += "</button>&nbsp;";
         $("#barreEtat").append(txt);
-        $("#number"+i).click({param: i}, coolFunction);
+        $("#number"+i).click({param: numPlanning}, coolFunction);
     }
 }
 
 function coolFunction(event) {
-    alert("Montrer le planning n°" + event.data.param);
+    var planning = event.data.param;
+    var numeroOnglet = sessionStorage.getItem("numOngletActif");
+    var numeroSemaine = $("#laSemaine").val();
+    var nomOnglet = $("#previsionnel a")[numeroOnglet].text;
+    // Requête AJAX pour montrer le planning adéquat
+    var url = "http://localhost:8000/montrePlanning?planning=" + planning;
+    url += "&nomOnglet=" + nomOnglet + "&numSemaine=" + numeroSemaine;
+    $.ajax({url: url});
 }
 
 /* -------------------------------------------------------------
@@ -492,9 +504,13 @@ $(document).ready(function() {
 
     // Action après saisie/changement de numéro de semaine
     $("#laSemaine").on("change", function() {
+        // Vide la barre d'état en bas car les plannings ne seront plus bons
+        $('#barreEtat').empty();
     	remplirCreneaux();            // charge les créneaux prévus
     	if ($("#laSemaine").val() > 0 && $("#laSemaine").val() < 53) {
-    		$('#btAjoutCreneau').show(); 
+    		$('#btAjoutCreneau').show();
+            // Affiche le nombre de créneaux par type de l'onglet actif
+            compteNombreDeCreneauxParType();
     	} else {
     		$('#btAjoutCreneau').hide();
     	}
@@ -574,6 +590,14 @@ $(document).ready(function() {
 
             // Affiche le nombre de créneaux par type de l'onglet actif
             compteNombreDeCreneauxParType();
+
+            // Affiche (barre d'état) des boutons vers les plannings calculés
+            var numeroSemaine = $("#laSemaine").val();
+            if ("classement_"+numeroSemaine in localStorage) {
+                data = localStorage.getItem("classement_"+numeroSemaine);
+                nbPlannings = data.split('\n').length - 1;   // car \n à la fin
+                afficheBoutonsPlannings(nbPlannings, data);
+            }
         });
     }
 
@@ -646,16 +670,22 @@ $(document).ready(function() {
         // Vide la barre d'état en bas car les plannings ne seront plus bons
         $('#barreEtat').empty();
         numSemaine = $("#laSemaine").val();
-        var result = prompt("Nombre de versions d'EDT (max: 10)");
+        var nbEDT = prompt("Nombre de versions d'EDT (max: 10)");
         try {
-            if (parseInt(result) > 0 && parseInt(result) <= 10) {
+            if (parseInt(nbEDT) > 0 && parseInt(nbEDT) <= 10) {
                 var url ="http://localhost:8000/lancerMoteur?numSemaine="
-                        + numSemaine + "&nbEDTCalcules=" + result;
-                $.ajax({url: url}).done(function() {
+                        + numSemaine + "&nbEDTCalcules=" + nbEDT;
+                $.ajax({url: url}).done(function(data) {
+                    /* Le retour (data) de cette route est une chaîne de texte
+                       possédant autant de lignes (car \n) que d'EDT demandés.
+                       Chaque ligne a la forme : numPlanning;rendement_en_%
+                    */
                     // Peuple la barre d'état avec un bouton par planning
-                    afficheBoutonsPlannings(parseInt(result));
-                    // Montre la barre d'état
-                    $('#barreEtat').show();
+                    afficheBoutonsPlannings(parseInt(nbEDT), data);
+                    /* Enregistre la chaîne de texte 'data' dans une variable
+                       de session locale (donc résistante à la fermeture du
+                       navigateur) */
+                    localStorage.setItem("classement_"+numSemaine, data);
                 });
             }
             else {

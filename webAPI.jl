@@ -158,7 +158,8 @@ end
 route("/lancerMoteur", method = "GET") do
 	numSemaine = params(:numSemaine, false)
 	nbEDTCalcules = params(:nbEDTCalcules, false)
-	programmePrincipal(numSemaine, nbEDTCalcules)
+	data = programmePrincipal(numSemaine, nbEDTCalcules)
+	return data
 end
 
 # Swann : 
@@ -393,6 +394,25 @@ route("/deForceCreneau", method = "GET") do
 	io = open(REPERTOIRE_DATA * SEP * lieu * ".dat", "w")
     serialize(io, tab_plSalle)
     close(io)
+end
+
+
+#= Route permettant d'afficher l'un des plannings de la semaine en cours pour
+   l'onglet qui était actif au moment du clic sur le bouton de la barre d'état.
+   Route de la forme :
+   http://localhost:8000/montrePlanning?planning=3&nomOnglet=GIM-1A-FI&numSemaine=6
+=#
+route("/montrePlanning", method = "GET") do
+	# Récupère le numéro du planning demandé, le nom de la promo (l'onglet)
+	# et le numéro de semaine
+	planning = params(:planning, false)
+	numSemaine = Base.parse(Int, params(:numSemaine, 0)) # de String à Int64
+	nomOnglet = params(:nomOnglet, false)
+	println(planning, '/', nomOnglet, '/', numSemaine)
+	# Crée un tableau d'options pour exécuter une future commande
+	options = [string(numSemaine), planning, nomOnglet]
+	# En Julia une commande doit FORCÉMENT utiliser les anti-quotes
+	run(`julia webVisu.jl $options`)
 end
 
 # La ligne suivante est nécessaire pour une requête AJAX depuis jquery.
