@@ -397,18 +397,18 @@ route("/deForceCreneau", method = "GET") do
 end
 
 
-#= Route permettant d'afficher l'un des plannings de la semaine en cours pour
-   l'onglet qui était actif au moment du clic sur le bouton de la barre d'état.
+#= Route permettant d'afficher le planning de la semaine en cours pour
+   l'onglet actif (après un clic sur l'un des boutons de la barre d'état).
    Route de la forme :
    http://localhost:8000/montrePlanning?planning=3&nomOnglet=GIM-1A-FI&numSemaine=6
-=#
+   Le programme de visualisation (pour l'instant) est : webVisu.jl
+   =#
 route("/montrePlanning", method = "GET") do
 	# Récupère le numéro du planning demandé, le nom de la promo (l'onglet)
 	# et le numéro de semaine
 	planning = params(:planning, false)
 	numSemaine = Base.parse(Int, params(:numSemaine, 0)) # de String à Int64
 	nomOnglet = params(:nomOnglet, false)
-	println(planning, '/', nomOnglet, '/', numSemaine)
 	# Crée un tableau d'options pour exécuter une future commande
 	options = [string(numSemaine), planning, nomOnglet]
 	# En Julia une commande doit FORCÉMENT utiliser les anti-quotes

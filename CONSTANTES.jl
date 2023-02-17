@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme
 # Date Création : Jeudi 13 décembre 2018
-# Date Modification : Jeudi 16 février 2023
+# Date Modification : Vendredi 17 février 2023
 # Langage : Julia
 
 # Module : CONSTANTES
@@ -116,7 +116,9 @@ NB_MAX_DE_TOURS_SC = 3
 COEFF_DECROISSANCE_DE_T = 0.9
 # Température initiale de la méthode de recuit simulé
 τ0 = 0.5       # 50% si on pense qu'au départ la disposition n'est pas terrible
-ΔEmoyen = 20   # 20 quarts d'heure soit une "amélioration" moyenne de 5 heures
+#τ0 = 0.25      # 25% si on pense qu'au départ la disposition n'est pas trop mal
+ΔEmoyen = 90   # moyenne constatée avec le calcul d'énergie "PAR_JOUR"
+#ΔEmoyen = 107   # moyenne constatée avec le calcul d'énergie "PAR_TRANCHE"
 T0 = -ΔEmoyen / (log(τ0))
 # Valeur de la probabilité de "secouage" au départ
 MAX_PROBA = 0.25

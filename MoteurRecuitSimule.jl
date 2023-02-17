@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 # Date Création : jeudi 21 février 2019
-# Date Modification : Jeudi 16 février 2023
+# Date Modification : Vendredi 17 février 2023
 # Langage : Julia
 
 # Module : MoteurRecuitSimule
@@ -15,6 +15,7 @@ using Serialization             # pour relire les données depuis le disque
 using Random                    # pour la fonction shuffle!
 using DataFrames
 using CSV
+
 
 ### Structure du moteur contenant tous les éléments pour calculer l'EDT
 mutable struct Moteur
@@ -38,7 +39,7 @@ Par défaut la collection de créneaux à placer est vide. Le moteur ne pourra
 tourner que si le moteur est 'alimenté' en créneaux à traiter. =#
 function prepareMoteur(numSemaine, numEDT)
     M = Moteur("",numSemaine,Dict(),Dict(),Dict(),[],[],0.0,0,0,0.0,0,MAX_PROBA)
-    M.info = "*** Moteur n°$numEDT de la semaine $numSemaine\n"
+    M.info = "*** Moteur n°$numEDT ***\n"
     lstCreneaux = analyseListeDesCreneaux(numSemaine)
     if ERR_Globales != ""           # vient du module 'Creneaux.jl'
         M.info = "Erreur !!!" * ERR_Globales
@@ -141,13 +142,12 @@ function faitEvoluerLeSysteme(M)
             bas = Intersection(plProfGroupe, plSalle)
             jourFinal, debutFinal = ouEstCePossible(nbQH, bas)
             if jourFinal != 0                # on a trouvé !
-                #= On calcule la différence d'énergie du possible changement,
-                   la valeur sera négative on trouve une meilleure place. =#
-                ΔE = (jourFinal - cr.numeroDuJour) * NBCRENEAUX
-                ΔE += debutFinal - cr.debutDuCreneau
+                #= Calcule la différence d'énergie du possible changement, la
+                   valeur sera négative si on trouve une meilleure place. =#
+                ΔE = deltaEnergie(jourFinal, debutFinal, cr, "PAR_JOUR")
                 # Retourne la variation d'énergie plus un tuple des infos
                 return ΔE, (jourFinal, debutFinal, salle)
-                break                        # quitte le 'for salle' car ok
+                #[inutile !] break               # quitte le 'for salle' car ok
             end
         end
     end
@@ -155,6 +155,23 @@ function faitEvoluerLeSysteme(M)
     return 0, (0, 0, "")
 end
 
+#= Calcule la variation d'énergie d'un créneau s'il était placé ailleurs.
+   Le paramètre 'méthode' indique quelle méthode utiliser.
+=#
+function deltaEnergie(jourFinal, debutFinal, cr, methode)
+    if methode == "PAR_JOUR"
+        # Elle "tasse" les créneaux vers le lundi mais charge les journées...
+        # Elle a trop tendance à libérer les vendredi !
+        ΔE = (jourFinal - cr.numeroDuJour) * NBCRENEAUX
+        ΔE += debutFinal - cr.debutDuCreneau
+        return ΔE
+    elseif methode == "PAR_TRANCHE"
+        # Moins bien que "PAR_JOUR" ! Elle place moins de créneaux au final...
+        ΔE = (debutFinal - cr.debutDuCreneau) * 5
+        ΔE += (jourFinal - cr.numeroDuJour)
+        return ΔE
+    end
+end
 
 #= Positionne dans l'EDT les créneaux à traiter (ne s'occupe pas des créneaux
 forcés). Ce sera la situation de départ de l'algorithme de recuit simulé sur
@@ -295,6 +312,7 @@ function calculeEnergieDuSysteme(M)
     # TODO: envisager de tenir compte de la durée des créneaux
     M.energie = 0
     for cr in M.collCreneauxAT
+        # TODO: est-ce une bonne méthode de calcul ?
         M.energie += cr.numeroDuJour * cr.debutDuCreneau
     end
 end
@@ -316,7 +334,7 @@ function runMoteur(M)
             onChange = false              # drapeau pour l'évolution
             if ΔE < 0                     # on va accepter ce changement
                 onChange = true
-            elseif ΔE > 0   # si ΔE == 0 c'est que le créneau a repris sa place ou n'en a pas
+            elseif ΔE > 0   # si ΔE == 0 le créneau a repris sa place ou n'en a pas
                 proba = exp(-ΔE/M.temperature)   # probabilité de l'échange
                 if rand() < proba
                     onChange = true
@@ -411,13 +429,21 @@ function programmePrincipal(semaine, nbEDTCalcules)
       tour de moteur. Ce tableau sera ensuite trié par ordre décroissant pour
       connaître le numéro du tour du meilleur score obtenu par le moteur. =#
     scoreDesTours = []
-	for numEDT in 1:nbEDTCalcules
-	    moteur = prepareMoteur(semaine, numEDT)
-	    runMoteur(moteur)
-	    afficheEnregistreEDT(moteur, semaine, numEDT)
-        # Enregistre les scores sous forme de tuples (rendement, energie, n°)
+    println("-------------Traitement de la semaine n°$semaine--------------")
+    #-------------------------------------------------------------------------
+    # TODO: CETTE PARTIE DEVRAIT ÊTRE LANCÉE VIA DES THREADS !!!
+    for numEDT in 1:nbEDTCalcules
+        begin
+            moteur = prepareMoteur(semaine, numEDT)
+            runMoteur(moteur)
+            afficheEnregistreEDT(moteur, semaine, numEDT)
+        end
+        # Enregistre les scores comme des tuples (rendement, energie, n°)
         push!(scoreDesTours, (moteur.rendement, moteur.energie, numEDT))
 	end
+    # FIN DU TODO:
+
+    #-------------------------------------------------------------------------
     # Trie le tableau des scores par ordre décroissant
     sort!(scoreDesTours, by=((x,y),) -> (-x,y))
     println("Le meilleur planning est le numéro $(scoreDesTours[1][3])")
