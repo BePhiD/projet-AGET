@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 # Date Création : jeudi 21 février 2019
-# Date Modification : Vendredi 17 février 2023
+# Date Modification : Mardi 21 février 2023
 # Langage : Julia
 
 # Module : MoteurRecuitSimule
@@ -47,9 +47,9 @@ function prepareMoteur(numSemaine, numEDT)
         # Recherche les créneaux déjà pré-positionnés pour les mettre de côté
         for cr in lstCreneaux
             if cr.jour != "" && cr.horaire != ""
-                push!(M.collCreneauxF, cr)
+                push!(M.collCreneauxF, cr)    # créneaux 'F'orcés
             else
-                push!(M.collCreneauxAT, cr)
+                push!(M.collCreneauxAT, cr)   # créneaux 'A' 'T'raiter
             end
         end
         chargeLesProfs(M)
@@ -144,7 +144,7 @@ function faitEvoluerLeSysteme(M)
             if jourFinal != 0                # on a trouvé !
                 #= Calcule la différence d'énergie du possible changement, la
                    valeur sera négative si on trouve une meilleure place. =#
-                ΔE = deltaEnergie(jourFinal, debutFinal, cr, "PAR_JOUR")
+                ΔE = deltaEnergie(jourFinal, debutFinal, cr)
                 # Retourne la variation d'énergie plus un tuple des infos
                 return ΔE, (jourFinal, debutFinal, salle)
                 #[inutile !] break               # quitte le 'for salle' car ok
@@ -156,19 +156,29 @@ function faitEvoluerLeSysteme(M)
 end
 
 #= Calcule la variation d'énergie d'un créneau s'il était placé ailleurs.
-   Le paramètre 'méthode' indique quelle méthode utiliser.
+   La constante METHODE_ΔE indique quelle méthode utiliser.
 =#
-function deltaEnergie(jourFinal, debutFinal, cr, methode)
-    if methode == "PAR_JOUR"
+function deltaEnergie(jourFinal, debutFinal, cr)
+    if METHODE_ΔE == "PAR_JOUR"
         # Elle "tasse" les créneaux vers le lundi mais charge les journées...
         # Elle a trop tendance à libérer les vendredi !
         ΔE = (jourFinal - cr.numeroDuJour) * NBCRENEAUX
         ΔE += debutFinal - cr.debutDuCreneau
         return ΔE
-    elseif methode == "PAR_TRANCHE"
-        # Moins bien que "PAR_JOUR" ! Elle place moins de créneaux au final...
+    elseif METHODE_ΔE == "PAR_TRANCHE"
+        # Moins bien que "PAR_JOUR". Même si elle répartit mieux le matin, elle
+        # place moins de créneaux au final.
         ΔE = (debutFinal - cr.debutDuCreneau) * 5
         ΔE += (jourFinal - cr.numeroDuJour)
+        return ΔE
+    elseif METHODE_ΔE == "PAR_EXPONENTIELLE"
+        x = jourFinal
+        y = (debutFinal-1)/4 + 8
+        Ef = exp(α*x) - exp(α) + exp(β*y) - exp(β)
+        x = cr.numeroDuJour
+        y = (cr.debutDuCreneau-1)/4 + 8
+        Ed = exp(α*x) - exp(α) + exp(β*y) - exp(β)
+        ΔE = Ef-Ed
         return ΔE
     end
 end
@@ -324,12 +334,17 @@ function runMoteur(M)
     M.info *= "Energie départ/finale : $(M.energie)/"
     M.temperature = T0                    # température initiale du système
     nbreToursSansChangement = 0
+    statDeltaE = []   # TODO: enlever plus tard
     while true                            # boucle d'évolution de la température
         M.nbreTours += 1                  # MAJ du numéro de tour
         nbTentatives = 0                  # initialisation des comptes
         nbTentativesReussies = 0
         for nb_essai in 1:DUREE_EQUILIBRE_THERMIQUE
             ΔE, infos = faitEvoluerLeSysteme(M)  # joue avec le créneau M.numCr
+            # TODO: enlever plus tard
+            if ΔE>0
+                push!(statDeltaE, ΔE)
+            end
             nbTentatives += 1
             onChange = false              # drapeau pour l'évolution
             if ΔE < 0                     # on va accepter ce changement
@@ -365,6 +380,9 @@ function runMoteur(M)
     end
     calculeEnergieDuSysteme(M)
     M.info *= "$(M.energie)\n"
+    # TODO: enlever plus tard
+    #ΔEmoyen = sum(statDeltaE)/length(statDeltaE)
+    #println("Moyenne des énergies : $ΔEmoyen")
 end
 
 ### Fonction qui affiche l'emploi du temps calculé et l'enregistre dans un CSV
@@ -372,11 +390,13 @@ function afficheEnregistreEDT(M, numSemaine, tour)
     # Crée un fichier par tour, sur le modèle : s39_1, s39_2, etc.
     nom = REPERTOIRE_PLAN * SEP * string(numSemaine) * SEP
     nom *= "s" * string(numSemaine) * "_" * string(tour)
-    touch(nom)
+    touch(nom)    # Utile ???
+    # Crée un nom de fichier pour les créneaux éventuellement non placés
+    nom_np = nom * "_np.csv"
+    touch(nom_np)   # ainsi le fichier sera créé, car sera éventuellement vide
     # Variable pour compter le nombre de créneaux réellement bien placés
     nbCrPlacés = 0
     for e in M.collCreneauxAT
-        if e.jour in JOURS nbCrPlacés += 1 end
         # Remplit le CSV avec les créneaux placés ou non
         df = DataFrame(semaine = [numSemaine], jour = [e.jour],
                        matiere = [e.nomModule], typeCr = [e.typeDeCours],
@@ -385,6 +405,17 @@ function afficheEnregistreEDT(M, numSemaine, tour)
                        salleDeCours = [e.salleRetenue], public = [e.groupe],
                        onglet = [e.onglet], uuid = [e.uuid])
         CSV.write(nom, df, header = false, append = true, delim=';')
+        if e.jour in JOURS
+            nbCrPlacés += 1
+        else
+            #= Le créneau désigné par 'e' n'a pas pu être placé. On va
+               l'enregistrer à part dans un csv qui portera le même nom que
+               celui des bons créneaux, mais avec '_np' avant l'extension =#
+            df = DataFrame(typeCr = [e.typeDeCours], matiere = [e.nomModule],
+                           duree = [e.dureeEnMin], professeur = [e.prof],
+                           public = [e.groupe])
+            CSV.write(nom_np, df, header = false, append = true, delim=';')
+        end
     end
     for e in M.collCreneauxF
         # Remplit le CSV avec les créneaux forcés au départ depuis l'interface

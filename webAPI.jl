@@ -415,6 +415,23 @@ route("/montrePlanning", method = "GET") do
 	run(`julia webVisu.jl $options`)
 end
 
+
+#= Route permettant d'afficher les créneaux non placés dans le planning de la
+   semaine en cours pour l'onglet actif (après un clic sur l'un des boutons de
+   la barre d'état).
+   Route de la forme :
+   http://localhost:8000/montreNPdansPlanning?planning=3&numSemaine=6
+   =#
+   route("/montreNPdansPlanning", method = "GET") do
+	# Récupère le numéro du planning demandé et le numéro de semaine
+	planning = params(:planning, false)
+	numSemaine = Base.parse(Int, params(:numSemaine, 0)) # de String à Int64
+	# Lit le CSV des créneaux non placés (éventuellement le fichier sera vide)
+	nom = "s" * string(numSemaine) * "_" * string(planning) * "_np.csv"
+	txt = read(REPERTOIRE_PLAN * SEP * string(numSemaine) * SEP * nom, String)
+	return txt
+end
+
 # La ligne suivante est nécessaire pour une requête AJAX depuis jquery.
 # Info trouvée sur le site :
 # https://stackoverflow.com/questions/62166853/how-can-i-setup-cors-headers-in-julia-genie-app-to-allow-post-request-from-diffe

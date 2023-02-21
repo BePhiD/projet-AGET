@@ -2,7 +2,7 @@
 // du projet EDTAutomatic (moteur de recuit simulé écrit en Julia)
 // Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 // Date de création : lundi 31 janvier 2022 (isolement Covid...)
-// Date de modification : Mardi 14 février 2023
+// Date de modification : Mardi 21 février 2023
 
 /* ------------------------
 -- Fonctions utilitaires --
@@ -432,19 +432,26 @@ function compteNombreDeCreneauxParType() {
 /* Fonction qui affiche dans la barre d'état (en bas) un bouton par planning
    calculé. Les boutons seront triés dans l'ordre des meilleurs plannings */
 function afficheBoutonsPlannings(nbPlannings, data) {
+    // Vide la barre d'état en bas même si c'était déjà fait (par sécurité)
+    $('#barreEtat').empty();
     const leTableauDesPlannings = data.split('\n');
     for (var i = 0; i<nbPlannings; i++) {
-        var txt = "<button id='number" + i + "' class='btn btn-danger'>";
+        // Crée le code html du bouton (n°de planning->rendement)
+        var codeHTML = "<button id='number" + i + "' class='btn btn-danger'>";
         numPlanning = leTableauDesPlannings[i].split(';')[0];
         rendement   = leTableauDesPlannings[i].split(';')[1];
-        txt += "n°" + numPlanning + "->" + rendement + "%";
-        txt += "</button>&nbsp;";
-        $("#barreEtat").append(txt);
-        $("#number"+i).click({param: numPlanning}, coolFunction);
+        codeHTML += "n°" + numPlanning + "->" + rendement + "%";
+        codeHTML += "</button>&nbsp;";
+        $("#barreEtat").append(codeHTML);
+        // Attache la callback déclenchée quand on appuiera sur le bouton
+        $("#number"+i).click({param: numPlanning}, afficheVisuPlanning);
     }
 }
 
-function coolFunction(event) {
+/* Fonction qui prépare une requête AJAX pour afficher le planning choisi dans
+   la barre d'état. La route API appelée lancera un nouveau programme Julia
+   dédié à l'affichage d'un planning dans une interface de type Tk. */
+function afficheVisuPlanning(event) {
     var planning = event.data.param;
     var numeroOnglet = sessionStorage.getItem("numOngletActif");
     var numeroSemaine = $("#laSemaine").val();
@@ -453,6 +460,15 @@ function coolFunction(event) {
     var url = "http://localhost:8000/montrePlanning?planning=" + planning;
     url += "&nomOnglet=" + nomOnglet + "&numSemaine=" + numeroSemaine;
     $.ajax({url: url});
+    // Requête AJAX pour montrer les éventuels créneaux non placés
+    var url = "http://localhost:8000/montreNPdansPlanning?planning=" + planning;
+    url += "&numSemaine=" + numeroSemaine;
+    $.ajax({url: url}).done(function(data) {
+        // Ouvrir une popup pour afficher les créneaux "non affectés"
+        if (data != "") {
+            alert("Créneaux non placés : \n" + data);
+        }
+    });
 }
 
 /* -------------------------------------------------------------

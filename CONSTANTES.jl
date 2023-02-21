@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme
 # Date Création : Jeudi 13 décembre 2018
-# Date Modification : Vendredi 17 février 2023
+# Date Modification : Mardi 21 février 2023
 # Langage : Julia
 
 # Module : CONSTANTES
@@ -115,13 +115,22 @@ NB_MAX_DE_TOURS_SC = 3
 # A chaque tour la température du système baisse (ici de 10%)
 COEFF_DECROISSANCE_DE_T = 0.9
 # Température initiale de la méthode de recuit simulé
-τ0 = 0.5       # 50% si on pense qu'au départ la disposition n'est pas terrible
-#τ0 = 0.25      # 25% si on pense qu'au départ la disposition n'est pas trop mal
-ΔEmoyen = 90   # moyenne constatée avec le calcul d'énergie "PAR_JOUR"
-#ΔEmoyen = 107   # moyenne constatée avec le calcul d'énergie "PAR_TRANCHE"
+#τ0 = 0.5       # 50% si on pense qu'au départ la disposition n'est pas terrible
+τ0 = 0.33      # 33% si on pense qu'au départ la disposition n'est pas trop mal
+# Valeurs d'énergie moyenne constatée selon la méthode utilisée pour le calcul
+# de la différence d'énergie d'un créneau avant/après placement
+DictΔEmoyen = Dict("PAR_JOUR" => 90,
+                   "PAR_TRANCHE" => 107,
+                   "PAR_EXPONENTIELLE" => 78)
+METHODE_ΔE = "PAR_EXPONENTIELLE"
+ΔEmoyen = DictΔEmoyen[METHODE_ΔE]
 T0 = -ΔEmoyen / (log(τ0))
+# Paramètres α et β pour la méthode "PAR_EXPONENTIELLE"
+# Dans cette méthode : lundi->0  vendredi->100  8h->0   17h->100
+α = 0.92602
+β = 0.276015
 # Valeur de la probabilité de "secouage" au départ
-MAX_PROBA = 0.25
+MAX_PROBA = τ0
 # Minimum de la probabilité possible lors de la phase de "secouage"
 MIN_PROBA = 0.05
 # Pas de décroissance de la probabilité de "secouage"

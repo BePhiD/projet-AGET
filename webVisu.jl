@@ -1,8 +1,8 @@
 #= 
 Visu pour le système de création automatique d'emploi du temps (écrit en julia)
 Auteur : Philippe Belhomme
-Dates de création : vendredi 26 août 2022
-  de modification : jeudi 09 février 2023
+Dates de création : Vendredi 26 août 2022
+  de modification : Mardi 21 février 2023
 
 Ce programme est appelé avec la commande suivante :
 julia webVisu.jl numSemaine numPlanning promo
@@ -60,7 +60,7 @@ end
 
 function afficheLesJoursDansLaGrille(n)
   # Affichage du numJour en ligne 1, sur n colonnes
-  for j in 1:length(JOURS)
+  for j = 1:length(JOURS)
     b = GtkButton(JOURS[j])
     c = 2 + (j-1)*n
     grille[c : c+n-1, 1] = b
@@ -94,31 +94,29 @@ function litUnPlanningSemainePourUnePromo(semaine, numPlanning, onglet)
     # Crée un widget "button" pour afficher le créneau
     b = GtkButton(type * " " * matiere * "\n" * prof * "\n" * salle)
     # Positionne le créneau à la bonne place dans la grille selon le groupe
-    x, y, Δx, Δy = positionEtTailleCreneau(promo, groupe, numJour, deb, dureeEnQH)
-    #grille[(numJour-1)*4+2:(numJour-1)*4+2+(4-1), deb+1:deb+1+dureeEnQH] = b
+    x, y, Δx, Δy = posEtTailleCreneau(promo, groupe, numJour, deb, dureeEnQH)
     grille[x:x+Δx, y:y+Δy] = b
   end
 end
 
-function positionEtTailleCreneau(promo, groupe, numJour, deb, dureeEnQH)
+function posEtTailleCreneau(promo, groupe, numJour, deb, dureeEnQH)
   x = (numJour-1) * JSON_G[promo]["taille"] + JSON_G[groupe]["pos"] + 1
   Δx = JSON_G[groupe]["taille"] - 1
   return x, deb+1, Δx, dureeEnQH-1     # x, y, Δx, Δy
 end
 
 # Création de la fenêtre principale et de sa grille
-ns = ARGS[1]
-np = ARGS[2]
-formation = ARGS[3]
-titre = "-- SEMAINE $ns -- Planning n°$np pour $formation"
-win = GtkWindow(titre)
+ns = ARGS[1]          # numéro de semaine
+np = ARGS[2]          # numéro de planning
+formation = ARGS[3]   # nom de l'onglet (donc promo) dans webAPI.jl
+win = GtkWindow("-- SEMAINE $ns -- Planning n°$np pour $formation")
 grille = GtkGrid()
 set_gtk_property!(grille, :column_homogeneous, true)
 set_gtk_property!(grille, :column_spacing, 4)  # gap in pixels between columns
 
 # Préparation de la structure de base de l'affichage
 afficheLesHeuresDansLaGrille()
-largeurColonne = JSON_G[ARGS[3]]["taille"]   # taille du 'père' = onglet
+largeurColonne = JSON_G[ARGS[3]]["taille"]   # taille du 'père' (= nom onglet)
 afficheLesJoursDansLaGrille(largeurColonne)
 # Appel du pgm : julia webVisu.jl numSemaine numPlanning promo
 # donc on peut extraire les informations utiles pour afficher les créneaux
