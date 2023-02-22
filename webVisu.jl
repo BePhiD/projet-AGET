@@ -71,20 +71,20 @@ function litUnPlanningSemainePourUnePromo(semaine, numPlanning, onglet)
   # Lit la totalité du fichier "EDT calculé"
   fic = "s" * string(semaine) * "_" * string(numPlanning) * ".csv"
   LstCr = readlines(open(REPERTOIRE_PLAN * SEP * string(semaine) * SEP * fic, "r"))
-  # Décompose chaque ligne en un "créneau"
-  for i in 1:length(LstCr)
+  # Décompose chaque ligne en un "créneau" ; commence à 2 car ligne d'en-tête
+  for i in 2:length(LstCr)
     tabCr = split(LstCr[i],';')
-    promo = tabCr[11]
+    promo = tabCr[1]
     # Passe au suivant si le créneau n'appartient pas à l'onglet voulu
     if promo != onglet continue end
     jourEnLettres = tabCr[2]
     # Passe au suivant si le créneau n'a pas été affecté quelque part
     if jourEnLettres == "" continue end
-    matiere = tabCr[3]
+    matiere = tabCr[5]
     type = tabCr[4]
-    heure = tabCr[6]
+    heure = tabCr[3]
     dureeEnMin = string(tabCr[7])
-    prof = tabCr[8]
+    prof = tabCr[6]
     salle = tabCr[9]
     groupe = tabCr[10]
     # Convertit l'information "jour/horaire" en numJour/num Creneau de début

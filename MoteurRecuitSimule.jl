@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 # Date Création : jeudi 21 février 2019
-# Date Modification : Mardi 21 février 2023
+# Date Modification : Mercredi 22 février 2023
 # Langage : Julia
 
 # Module : MoteurRecuitSimule
@@ -195,7 +195,7 @@ function positionneLesCreneauxAuDepart(M)
         push!(listePourTri, (Surface(M.dctP[cr.prof]), cr))   # tuple (surf,cr)
     end
     sort!(listePourTri, by = x -> x[1])   # trie le tuple selon la surface
-    M.collCreneauxAT = []                 # vide la collection
+    empty!(M.collCreneauxAT)              # vide la collection
     for e in listePourTri
         push!(M.collCreneauxAT, e[2])     # reconstruit la collection mais triée
     end
@@ -396,35 +396,40 @@ function afficheEnregistreEDT(M, numSemaine, tour)
     touch(nom_np)   # ainsi le fichier sera créé, car sera éventuellement vide
     # Variable pour compter le nombre de créneaux réellement bien placés
     nbCrPlacés = 0
+    # Variable drapeau pour n'afficher qu'une fois l'en-tête du CSV
+    afficheHeader = true
     for e in M.collCreneauxAT
         # Remplit le CSV avec les créneaux placés ou non
-        df = DataFrame(semaine = [numSemaine], jour = [e.jour],
-                       matiere = [e.nomModule], typeCr = [e.typeDeCours],
-                       numApogee = "numApogee", heure = [e.horaire],
-                       duree = [e.dureeEnMin], professeur = [e.prof],
-                       salleDeCours = [e.salleRetenue], public = [e.groupe],
-                       onglet = [e.onglet], uuid = [e.uuid])
-        CSV.write(nom, df, header = false, append = true, delim=';')
+        df = DataFrame(Formation = [e.onglet],
+                       Jour = [e.jour], Heure = [e.horaire],
+                       Type = [e.typeDeCours], Matière = [e.nomModule],
+                       Prof = [e.prof], DureeEnMin = [e.dureeEnMin],
+                       DureeEnHeure = [e.dureeEnMin]/60,                       
+                       Salle = [e.salleRetenue], Groupe = [e.groupe])
+        CSV.write(nom, df, header = afficheHeader, append = true, delim=';')
+        afficheHeader = false    # les autres tours n'auront pas l'en-tête
         if e.jour in JOURS
             nbCrPlacés += 1
         else
             #= Le créneau désigné par 'e' n'a pas pu être placé. On va
                l'enregistrer à part dans un csv qui portera le même nom que
                celui des bons créneaux, mais avec '_np' avant l'extension =#
-            df = DataFrame(typeCr = [e.typeDeCours], matiere = [e.nomModule],
-                           duree = [e.dureeEnMin], professeur = [e.prof],
-                           public = [e.groupe])
+            df = DataFrame(Formation = [e.onglet],
+               Type = [e.typeDeCours], Matière = [e.nomModule],
+               Prof = [e.prof], DureeEnMin = [e.dureeEnMin],
+               DureeEnHeure = [e.dureeEnMin]/60,                       
+               Salle = [e.salleRetenue], Groupe = [e.groupe])
             CSV.write(nom_np, df, header = false, append = true, delim=';')
         end
     end
     for e in M.collCreneauxF
         # Remplit le CSV avec les créneaux forcés au départ depuis l'interface
-        df = DataFrame(semaine = [numSemaine], jour = [e.jour],
-                       matiere = [e.nomModule], typeCr = [e.typeDeCours],
-                       numApogee = "numApogee", heure = [e.horaire],
-                       duree = [e.dureeEnMin], professeur = [e.prof],
-                       salleDeCours = [e.salleRetenue], public = [e.groupe],
-                       onglet = [e.onglet], uuid = [e.uuid])
+        df = DataFrame(Formation = [e.onglet],
+                       Jour = [e.jour], Heure = [e.horaire],
+                       Type = [e.typeDeCours], Matière = [e.nomModule],
+                       Prof = [e.prof], DureeEnMin = [e.dureeEnMin],
+                       DureeEnHeure = [e.dureeEnMin]/60,                       
+                       Salle = [e.salleRetenue], Groupe = [e.groupe])
         CSV.write(nom, df, header = false, append = true, delim=';')
     end
     strStat = " (" * string(nbCrPlacés + length(M.collCreneauxF)) * "/" 
