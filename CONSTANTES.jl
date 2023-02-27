@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme
 # Date Création : Jeudi 13 décembre 2018
-# Date Modification : Mardi 21 février 2023
+# Date Modification : Lundi 27 février 2023
 # Langage : Julia
 
 # Module : CONSTANTES
@@ -13,7 +13,7 @@ using Serialization             # pour relire les données depuis le disque
 # Numéros de semaine possibles = futurs indices de tableaux
 NBSEMAINES = 52
 
-JOURS = ["Lundi","Mardi","Mercredi","Jeudi","Vendredi"]
+JOURS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi"]
 NBJOURS = length(JOURS)         # ils seront numérotés de 1:Lundi à 5:Vendredi
 
 # Calcul du nombre de créneaux de 15mn par jour
@@ -108,8 +108,8 @@ ERR_CR_DUREE       = "Durée prévue du créneau non multiple de 15mn... "
 #
 # Nombre maximal de tours pour atteindre "l'équilibre thermique"
 DUREE_EQUILIBRE_THERMIQUE = 100
-# Nombre de tentatives réussies pour quitter l'équilibre thermique
-NB_TENTATIVES_REUSSIES = 12
+# Nombre maximal de tentatives réussies pour quitter l'équilibre thermique
+NB_MAX_TENTATIVES_REUSSIES = 12
 # Maximum de tours sans changement d'EDT autorisé
 NB_MAX_DE_TOURS_SC = 3
 # A chaque tour la température du système baisse (ici de 10%)

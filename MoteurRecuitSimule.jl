@@ -136,8 +136,7 @@ function faitEvoluerLeSysteme(M)
             #= Construction du planning mixant toutes les entités ; c'est
                donc celui dans lequel on cherchera une place possible au
                créneau (prof + groupe + salle).
-               bas -> 'bac à sable'
-            =#
+               bas -> 'bac à sable'  =#
             plSalle = M.dctS[salle]
             bas = Intersection(plProfGroupe, plSalle)
             jourFinal, debutFinal = ouEstCePossible(nbQH, bas)
@@ -147,7 +146,6 @@ function faitEvoluerLeSysteme(M)
                 ΔE = deltaEnergie(jourFinal, debutFinal, cr)
                 # Retourne la variation d'énergie plus un tuple des infos
                 return ΔE, (jourFinal, debutFinal, salle)
-                #[inutile !] break               # quitte le 'for salle' car ok
             end
         end
     end
@@ -199,7 +197,7 @@ function positionneLesCreneauxAuDepart(M)
     for e in listePourTri
         push!(M.collCreneauxAT, e[2])     # reconstruit la collection mais triée
     end
-
+    
     nbCrPlacés = 0   # pour comptabiliser ceux qui auront une place au départ
     for tour in 1:length(M.collCreneauxAT)       # tour sera un entier
         cr = M.collCreneauxAT[tour]              # isole un créneau de la pile
@@ -265,8 +263,8 @@ function retireDesCreneauxSelonUneProbabilite(M)
         return     # pour ne pas "secouer" continuellement le système
     end
     for _ in 1:length(M.collCreneauxAT)
-        if rand() < M.probaSecouage              # proba de gagner une heure
-            cr = M.collCreneauxAT[M.numCr]       # isole un créneau de la pile
+        if rand() < M.probaSecouage            # proba d'être "changé de place"
+            cr = M.collCreneauxAT[M.numCr]     # isole un créneau de la pile
             j,d,n = cr.numeroDuJour, cr.debutDuCreneau, cr.nombreDeQuartDHeure
             if j != 6   # on ne touche pas à un créneau "non-placé" (6=samedi)
                 LibereCreneau(M.dctP[cr.prof],j,d,n)          # libère le prof
@@ -334,34 +332,35 @@ function runMoteur(M)
     M.info *= "Energie départ/finale : $(M.energie)/"
     M.temperature = T0                    # température initiale du système
     nbreToursSansChangement = 0
-    statDeltaE = []   # TODO: enlever plus tard
+    statDeltaE = []   # INFO: tableau pour statistiques de "réglage" de l'algo
     while true                            # boucle d'évolution de la température
         M.nbreTours += 1                  # MAJ du numéro de tour
         nbTentatives = 0                  # initialisation des comptes
         nbTentativesReussies = 0
-        for nb_essai in 1:DUREE_EQUILIBRE_THERMIQUE
+        for _ in 1:DUREE_EQUILIBRE_THERMIQUE
             ΔE, infos = faitEvoluerLeSysteme(M)  # joue avec le créneau M.numCr
-            # TODO: enlever plus tard
+            # INFO: stocke la somme des ΔE pour calculer leur moyenne
             if ΔE>0
                 push!(statDeltaE, ΔE)
             end
+            # Fin du INFO:
             nbTentatives += 1
-            onChange = false              # drapeau pour l'évolution
+            changerCreneau = false        # drapeau pour l'évolution
             if ΔE < 0                     # on va accepter ce changement
-                onChange = true
+                changerCreneau = true
             elseif ΔE > 0   # si ΔE == 0 le créneau a repris sa place ou n'en a pas
                 proba = exp(-ΔE/M.temperature)   # probabilité de l'échange
                 if rand() < proba
-                    onChange = true
+                    changerCreneau = true
                 end
             end
-            if onChange
+            if changerCreneau
                 changerPositionCreneau(M, infos)
                 calculeEnergieDuSysteme(M)
                 nbTentativesReussies += 1
                 nbreToursSansChangement = 0
             end
-            if nbTentativesReussies >= NB_TENTATIVES_REUSSIES
+            if nbTentativesReussies >= NB_MAX_TENTATIVES_REUSSIES
                 break  # sort du for "équilibre thermique"
             end
         end

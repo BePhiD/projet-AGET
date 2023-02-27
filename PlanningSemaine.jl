@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 # Date Création : Vendredi 28 décembre 2018
-# Date Modification : Dimanche 25 septembre 2022
+# Date Modification : Lundi 27 février 2023
 # Langage : Julia
 
 # Module : PlanningSemaine
@@ -103,20 +103,27 @@ end
 function ouEstCePossible(nbQH,P)
     #= Recherche la 1ère position possible pour placer un créneau de longueur
        nbQH quarts d'heure dans le planning P. Retourne un tuple (jour, deb)
-       si possible, sinon (0,0).
+       si possible, sinon (0,0). NOUVEAU : essaye de privilégier les matins.
        Calcule en fait une sorte de 'corrélation' entre chaque ligne de P et le
        vecteur représentant le créneau C (transposé ici) et fait la somme des
        valeurs 'true'. Un créneau est possible quand la somme correspond
        justement à la longueur du vecteur C. =#
-    C = fill(true,(1,nbQH))      # vecteur 1 ligne de nbQH valeurs 'true'
-    n,m = size(P)[2],length(C)   # longueur d'un jour et d'un créneau
-    for i=1:NBJOURS , j=1:n-m+1  # i balaye les jours, j les débuts de créneau
-        M = P[i,1:n]             # une ligne de P donc une journée
+    tabPosPossibles = []
+    C = fill(true,(1,nbQH))       # vecteur 1 ligne de nbQH valeurs 'true'
+    n,m = size(P)[2],length(C)    # longueur d'un jour et d'un créneau
+    for i=1:NBJOURS , j=1:n-m+1   # i balaye les jours, j les débuts de créneau
+        M = P[i,1:n]              # une ligne de P donc une journée
         if sum(M[j:j+m-1] .& C') == m
-            return (i,j)         # pourra être converti avec convPosEnJH(x,y)
+            push!(tabPosPossibles, (i,j))   # enregistre les possibilités
         end
     end
-    return (0,0)
+    if length(tabPosPossibles) > 0
+        # Tri le tableau selon les j croissants (privilégie les matins)
+        sort!(tabPosPossibles, by = x -> x[2])
+        return tabPosPossibles[1] # pourra être converti avec convPosEnJH(x,y)
+    else
+        return (0,0)
+    end
 end
 
 function estPossibleIci(P, jour, deb, nb)
