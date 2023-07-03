@@ -1,10 +1,10 @@
 Tester avec la semaine n°49, elle contient 213 créneaux !
 
-Donc lancer le programme Moteur comme ceci :
-julia MoteurRecuitSimule.jl 49
-
 Pour travailler en mode graphique :
 julia webAPI.jl
+
+Pour travailler en "manuel", lancer le programme Moteur comme ceci :
+julia MoteurRecuitSimule.jl 49
 
 # Problème de version du package CSV dans julia (pour EDTAutomatique)...
 # Afficher la liste des packages installés

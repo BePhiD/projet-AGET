@@ -2,7 +2,7 @@
 // du projet EDTAutomatic (moteur de recuit simulé écrit en Julia)
 // Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 // Date de création : lundi 31 janvier 2022 (isolement Covid...)
-// Date de modification : Mardi 21 février 2023
+// Date de modification : lundi 03 juillet 2023
 
 /* ------------------------
 -- Fonctions utilitaires --
@@ -633,6 +633,23 @@ $(document).ready(function() {
         afficherPublic()
     });
 
+
+    // Permet d'importer un fichier Excel depuis le prévisionnel pour alimenter
+    // automatiquement la base de données avec les créneaux prévus.
+    $("#importExcelToDDB").on("click", function() {
+        var fileDialog = $('<input type="file">');
+        fileDialog.click();
+        fileDialog.on("change", onFileSelected);
+    });
+
+    var onFileSelected = function(e) {
+        nomFichierExcelChoisi = e.target.files[0].name ;
+        numSemaine = $("#laSemaine").val().toString() ;
+        var url = "http://localhost:8000/importExcelToDDB?numSemaine=" ;
+        url += numSemaine + "&fichier=" + nomFichierExcelChoisi ;
+        //alert(url) ;
+        $.ajax({url: url});
+      };
 
     // Permet de créer le CSV prévisionnel quand on appuie sur le bon bouton
     $("#makeCSV").on("click", function() {

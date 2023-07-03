@@ -12,6 +12,7 @@ include("PlanningSemaine.jl")           # pour affecter un créneau dans un x.da
 include("bddPlanificationSemaine.jl")   # pour gérer la base de données
 include("Groupes.jl")
 include("MoteurRecuitSimule.jl")
+include("importExcelPrevisionnel.jl")
 
 # Info trouvée notamment sur :
 # https://docs.juliahub.com/Genie/8eazC/0.31.5/guides/Simple_API_backend.html
@@ -431,6 +432,22 @@ end
 	txt = read(REPERTOIRE_PLAN * SEP * string(numSemaine) * SEP * nom, String)
 	return txt
 end
+
+
+#= Route permettant d'importer les créneaux à placer dans le planning de la
+   semaine en cours depuis un fichier Excel issu du prévisionnel GIM/GEII.
+   Route de la forme :
+   http://localhost:8000/importExcelToDDB?numSemaine=49&fichier=Psemaine49.xlsx
+   =#
+   route("/importExcelToDDB", method = "GET") do
+	# Récupère le numéro de semaine et le nom du fichier Excel
+	numSemaine = Base.parse(Int, params(:numSemaine, 0)) # de String à Int64
+	fichierExcel = params(:fichier, false)
+	println("Semaine n°$numSemaine alimentée par $fichierExcel")
+	listeCrPr = importFichierExcel(fichierExcel, numSemaine)
+	print(listeCrPr)
+end
+
 
 # La ligne suivante est nécessaire pour une requête AJAX depuis jquery.
 # Info trouvée sur le site :

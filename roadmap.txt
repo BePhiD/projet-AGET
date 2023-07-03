@@ -1,0 +1,27 @@
+Projet AGET automatique : feuille de route
+
+"FACILE"
+* créer un prof nommé "Projet autonomie" : on l'autorisera à être pris plusieurs fois sur
+le même créneau
+
+* créer une salle "Anonyme" : même chose que le prof "Projet autonomie"
+
+* permettre de propager une indispo de prof/salle de la semaine en cours jusqu'au
+numéro de semaine saisi dans une zone de texte (si vide, alors indispo popur la semaine en cours)
+
+
+"DIFFICILE"
+* mettre 2 profs sur le même créneau
+* mettre 2 salles pour le même créneau
+
+
+"BUG"
+* Le système ne gère pas la relecture des forçages...
+* La possibilité de bloquer une salle a disparu...
+
+
+"DÉVELOPPEMENT URGENT"
+* Développer une "moulinette" qui remplit la BDD de gestion des créneaux à partir
+d'une extraction ADE fournie par Viviane et d'un dictionnaire qui indique les salles
+en fonction des matières.
+

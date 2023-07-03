@@ -52,8 +52,8 @@ GROUPES = """{
   "TP2-GEII-1A-APP": {"pos": 2, "taille": 1},
 
   "GEII-2A-APP": {"pos": 1, "taille": 1},
-  "TD-GEII-1A-APP": {"pos": 1, "taille": 1},
-  "TP-GEII-1A-APP": {"pos": 1, "taille": 1},
+  "TD-GEII-2A-APP": {"pos": 1, "taille": 1},
+  "TP-GEII-2A-APP": {"pos": 1, "taille": 1},
 
 
   "LP-SARI": {"pos": 1, "taille": 2},

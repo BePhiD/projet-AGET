@@ -1,11 +1,11 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme
-# Date Création : Jeudi 13 décembre 2018
-# Date Modification : Lundi 27 février 2023
+# Date Création : jeudi 13 décembre 2018
+# Date Modification : lundi 03 juillet 2023
 # Langage : Julia
 
 # Module : CONSTANTES
-# Contient les constantes utiles au projet
+# Contient les constantes utiles au projet et quelques fonctions de base
 
 using Serialization             # pour relire les données depuis le disque
 
@@ -87,9 +87,8 @@ REPERTOIRE_DATA  = "DATAS"
 REPERTOIRE_SEM   = "PLANNINGS"
 REPERTOIRE_PLAN  = "PLANNINGS_CALCULES"
 # Noms des fichiers de configuration des éléments du système
-LISTE_PROFS   = "ListeDesProfs.cfg"
-LISTE_SALLES  = "ListeDesSalles.cfg"
 LISTE_GROUPES = "ListeDesGroupes.cfg"
+LISTE_SALLES  = REPERTOIRE_CFG * '/' * "Liste_Salles.xlsx"
 
 # Nom de la base de données SQLite gérant tout le système
 NOM_DATABASE_EDT = "bddAutomaticEDT.sql"

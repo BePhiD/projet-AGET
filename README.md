@@ -18,6 +18,12 @@ add XXX
 'Backspace'  (pour sortir du mode Pkg)
 CTRL D       (pour quitter Julia)
 
+
+Remarque :
+;            (passe en mode shell UNIX)
+'Backspace'  (pour sortir du mode Pkg)
+
+
 # Sites utiles :
 [pour visualiser graphiquement un JSON]
 https://jsoncrack.com/editor
