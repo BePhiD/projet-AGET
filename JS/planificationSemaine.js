@@ -2,7 +2,7 @@
 // du projet EDTAutomatic (moteur de recuit simulé écrit en Julia)
 // Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 // Date de création : lundi 31 janvier 2022 (isolement Covid...)
-// Date de modification : lundi 03 juillet 2023
+// Date de modification : mardi 04 juillet 2023
 
 /* ------------------------
 -- Fonctions utilitaires --
@@ -157,8 +157,7 @@ function dropCreneau(event, ui, idZoneDuDrop) {
 
     if ($("#"+uuid).hasClass("FORCE")) {
         alert("Désolé, un créneau forcé ne peut pas être déplacé vers la corbeille...");
-        // Recharge la page web dans le navigateur
-        location.reload();
+        location.reload();           // Recharge la page web dans le navigateur
     }
     else {
         // Le déplace dans la bonne zone (mais il est mal positionné, en vrac...)
@@ -248,7 +247,9 @@ function fabriqueCreneauFromFormulaire() {
             }
         }
         if (sallesAvecProbleme.length == 0) {
-            // On peut créer le créneau car les salles existent
+            /* On peut créer le créneau car les salles existent. Le paramètre
+               'zone' n'est pas indiqué donc il vaudra par défaut "" ce qui
+               placera le créneau forcément dans l'onglet actif. */
             creeCreneau(type.toUpperCase(), matiere, prof,
                         lieu.toUpperCase(), public.toUpperCase(), duree);
         } else {
@@ -341,24 +342,38 @@ function creeCreneau(type, matiere, prof, lieu, public, duree, zone="") {
         var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
         return v.toString(16);
     });
-    // Vérifie si la création se fait dans le prévisionnel (quand zone == ""),
-    // sinon zone devrait forcément être "#corbeille".
-    if (zone == "") {
+    /* Vérifie si la création se fait dans le prévisionnel (quand zone == ""),
+       sinon zone devrait être "#corbeille".
+       NOUVEAU depuis 'importExcelToBDD' : zone peut être déjà fixée avec le
+       nom de l'onglet concerné, car le nom d'un onglet correspond au nom de la
+       promo concernée par l'import d'un créneau issu du prévisionnel Excel.
+       Dans ce cas zone ne commencera pas par un caractère '#'. */
+    var nomOnglet = zone ;       // valeur par défaut de l'onglet = la zone
+    if (zone == "") {            // donc créneau créé depuis l'interface
         // Recherche le numéro de l'onglet actif
         var numeroOnglet = $("#previsionnel").tabs("option", "active");
         zone = "#previsionnel-" + numeroOnglet;
         // Recherche le nom de l'onglet actif
-        var nomOnglet = $("#previsionnel a")[numeroOnglet].text;
+        nomOnglet = $("#previsionnel a")[numeroOnglet].text;
     }
     // Construit le code du <div> qui sera injecté dans la zone du prévisionnel
     // Le jour et l'heure ne sont pas connus (car pas forcés) donc vides
     ch = fabriqueCreneauHTML(uuid, type, matiere, prof, lieu, public, duree, nomOnglet, "", "");
-    // Ajoute le créneau au bon endroit (onglet ou corbeille)
-    $(zone).append(ch);
-    if (zone == "#corbeille") {        // il a été dupliqué depuis la corbeille
-        $("#"+uuid).addClass("corbeille");   // il acquiert la classe corbeille
-        var nomOnglet = "corbeille";         // et on retient son nom
+    /* Ajoute le créneau au bon endroit, mais seulement si c'est un onglet ou
+       la corbeille, car un créneau pourrait être créé à partir d'un import
+       du prévisionnel Excel. */
+    if (zone.startsWith("#")) {
+        $(zone).append(ch);
+        if (zone == "#corbeille") {     // il a été dupliqué depuis la corbeille
+            $("#"+uuid).addClass("corbeille");   // acquiert la classe corbeille
+            var nomOnglet = "corbeille";         // et on retient son nom
+        }
     }
+    else {
+        alert("Le créneau provient d'un import !");
+        return;  // TODO: pour l'instant...
+    }
+ 
     // Rend ce nouvel élément du DOM "draggable"
     $("#"+uuid).draggable({ 
         opacity: 0.5,
@@ -394,7 +409,7 @@ function compteNombreDeCreneauxParType() {
     var numeroOnglet = $("#previsionnel").tabs("option", "active");
     // En déduit l'élément racine du DOM
     idZoneCourante = "#previsionnel-" + numeroOnglet;
-    /* Utilise la fonction 'creeCreneau' sur chaque créneau de l'onglet */
+    // Utilise la fonction 'attributsFromUUID' sur chaque créneau de l'onglet
     $(idZoneCourante + " .creneau").each(function () {
         var nodeMap = $(this)[0].attributes;
         var uuid = nodeMap.getNamedItem("id").value;
@@ -636,7 +651,7 @@ $(document).ready(function() {
 
     // Permet d'importer un fichier Excel depuis le prévisionnel pour alimenter
     // automatiquement la base de données avec les créneaux prévus.
-    $("#importExcelToDDB").on("click", function() {
+    $("#importExcelToBDD").on("click", function() {
         var fileDialog = $('<input type="file">');
         fileDialog.click();
         fileDialog.on("change", onFileSelected);
@@ -645,10 +660,12 @@ $(document).ready(function() {
     var onFileSelected = function(e) {
         nomFichierExcelChoisi = e.target.files[0].name ;
         numSemaine = $("#laSemaine").val().toString() ;
-        var url = "http://localhost:8000/importExcelToDDB?numSemaine=" ;
+        var url = "http://localhost:8000/importExcelToBDD?numSemaine=" ;
         url += numSemaine + "&fichier=" + nomFichierExcelChoisi ;
-        //alert(url) ;
-        $.ajax({url: url});
+        $.ajax({url: url}).done(function(data) {
+            alert(data);            // popup pour afficher le message retourné
+            remplirCreneaux();      // permet de rafraîchir la page web
+        });
       };
 
     // Permet de créer le CSV prévisionnel quand on appuie sur le bon bouton
@@ -741,7 +758,7 @@ $(document).ready(function() {
             var url = "http://localhost:8000/ajouterProf?nomProf=" + nom;
             $.ajax({url: url});
             alert("L'enseignant a bien été ajouté.");
-            location.reload();  // recharge la page web pour MAJ la liste
+            location.reload();  // recharge la page web pour MAJ de la liste
         }
         else {
             alert("Vous n'avez saisi aucun nom d'enseignant !!!");
@@ -767,7 +784,7 @@ $(document).ready(function() {
             var url = "http://localhost:8000/ajouterSalle?nomSalle=" + nom;
             $.ajax({url: url});
             alert("La salle a bien été ajoutée.");
-            location.reload();  // recharge la page web pour MAJ la liste
+            location.reload();  // recharge la page web pour MAJ de la liste
         }
         else {
             alert("Vous n'avez saisi aucun nom de salle !!!");
@@ -1108,8 +1125,7 @@ $(document).ready(function() {
                         var timer = setInterval(function() { 
                             if(myWin.closed) {
                                 clearInterval(timer);
-                                //location.reload();   // ça marche !
-                                remplirCreneaux();   // ça marche aussi !
+                                remplirCreneaux();
                                 // Active l'onglet précédemment utilisé via la variable de session
                                 numeroOnglet = sessionStorage.getItem("numOngletActif");
                                 $("#previsionnel").tabs({ active: numeroOnglet });

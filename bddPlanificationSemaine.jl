@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 # Date Création : mercredi 09 février 2022
-# Date Modification : mardi 20 septembre 2022
+# Date Modification : vendredi 07 juillet 2023
 # Langage : Julia
 
 # Module : bddPlanificationSemaine
@@ -12,6 +12,8 @@ include("CONSTANTES.jl")        # pour importer les constantes du système
 using SQLite
 using CSV
 using DataFrames
+using UUIDs
+
 
 # Réinitialise toutes les données, vidant la BDD SQLite de toutes informations
 function viderToutesInfos()
@@ -159,9 +161,21 @@ son identifiant, numéro de semaine, onglet, type de cours, nom de matière, pro
 liste de salles possibles, groupe d'étudiants, duree en quart d'heure, nom du
 jour, horaire, salle finalement retenue =#
 function insereCreneauBDD(id, ns, tab, type, nm, pr, s, gr, duree, ndj="", h="", sR="")
+    if id == "???"
+        # Provient forcément de l'import ExcelToBDD
+        id = string(uuid1())                 # fabrique un uuid
+        insertionDansBaseAutorisee = false   # pour l'instant ;-)
+    else
+        # Provient d'une insertion faite depuis l'interface graphique
+        insertionDansBaseAutorisee = true
+    end
     req = """ INSERT INTO previsionnelEDT VALUES("$id", $ns, "$tab", "$type",
           "$nm", "$pr", "$s", "$gr", $duree, "$ndj", "$h", "$sR") """
-    DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req)
+    if insertionDansBaseAutorisee
+        DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req)
+    else
+        println(req)
+    end
 end
 
 #= Fonction qui supprime un créneau de la base de données =#

@@ -2,7 +2,7 @@
 API pour le système de création automatique d'emploi du temps (écrit en julia)
 Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 Dates de création : lundi 27 décembre 2021
-  de modification : Mardi 14 février 2023
+  de modification : vendredi 07 juillet 2023
 =#
 
 using Genie, Genie.Router, Genie.Renderer.Html, Genie.Requests, Genie.Renderer.Json
@@ -247,7 +247,6 @@ route("/insertCreneau", method = "GET") do
 	la salle retenue sont forcément vides à ce stade) =#
 	insereCreneauBDD(uuid, week, tab, type, matiere, prof, lieu, public, duree,
 	                 "", "", "")
-	#afficheDonnees()
 end
 
 #= Route permettant de mettre à jour dans une base de données les créneaux gérés
@@ -273,7 +272,6 @@ route("/updateCreneau", method = "GET") do
 	# Modifie le créneau connu par son uuid
 	updateCreneauBDD(uuid, week, tab, type, matiere, prof, lieu, public, duree,
 	                 "", "", "")
-	#afficheDonnees() 
 end
 
 # Swann : 
@@ -437,15 +435,25 @@ end
 #= Route permettant d'importer les créneaux à placer dans le planning de la
    semaine en cours depuis un fichier Excel issu du prévisionnel GIM/GEII.
    Route de la forme :
-   http://localhost:8000/importExcelToDDB?numSemaine=49&fichier=Psemaine49.xlsx
+   http://localhost:8000/importExcelToBDD?numSemaine=49&fichier=Psemaine49.xlsx
    =#
-   route("/importExcelToDDB", method = "GET") do
+   route("/importExcelToBDD", method = "GET") do
 	# Récupère le numéro de semaine et le nom du fichier Excel
 	numSemaine = Base.parse(Int, params(:numSemaine, 0)) # de String à Int64
 	fichierExcel = params(:fichier, false)
 	println("Semaine n°$numSemaine alimentée par $fichierExcel")
 	listeCrPr = importFichierExcel(fichierExcel, numSemaine)
-	print(listeCrPr)
+	if typeof(listeCrPr) == String          # il y a eu forcément une erreur...
+		return listeCrPr                    # retourne donc un message texte
+	else
+		for e in listeCrPr
+			println(e.promo,'/',e.typeEns,'/',e.matiere,'/',e.groupe,'/',e.prof,'/',e.dureeEnMin,'/',e.salle)
+			insereCreneauBDD("???", numSemaine, e.promo, e.typeEns,
+			                 e.matiere, e.prof, e.salle, e.groupe,
+							 Int64(e.dureeEnMin/15), "", "", "")
+		end
+		return "Importation réussie !"
+	end
 end
 
 

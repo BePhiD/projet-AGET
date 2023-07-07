@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme
 # Date Création : lundi 03 juillet 2023
-# Date Modification : lundi 03 juillet 2023
+# Date Modification : vendredi 07 juillet 2023
 # Langage : Julia
 
 # Module : importExcelPrevisionnel.jl
@@ -13,6 +13,7 @@ include("CONSTANTES.jl")        # pour importer les constantes du système
 
 NOM_ONGLET = "semaine"
 PREMIERE_CELLULE_PROMO = "A4"
+LIMITE_NB_LIGNES = 1000         # pour limiter la recherche si feuille entière
 
 mutable struct zonePromo
     nom::String
@@ -31,9 +32,14 @@ struct creneauPrevisionnel
 end
 
 
-# Fonction qui ouvre le fichier Excel et retourne la feuille de travail
+#= Fonction qui ouvre le fichier Excel et retourne la feuille de travail ou
+   nothing s'il y a eu une erreur =#
 function ouvreLaFeuilleDeTravail(fichierExcel)
-    XLSX.readxlsx(fichierExcel)[NOM_ONGLET]
+    try
+        XLSX.readxlsx(fichierExcel)[NOM_ONGLET]
+    catch e
+        nothing
+    end
 end
 
 
@@ -52,6 +58,16 @@ end
 function trouveLesPromos(feuille)
     listePromo = []                        # liste qui contiendra des zonePromo
     nbLignes, nbCols = size(feuille[:])    # nb de lignes/colonnes de la feuille
+    if nbLignes > LIMITE_NB_LIGNES         # car parfois nbLignes == 1048576 !
+        println("Nombre de lignes : $nbLignes et nombre de colonnes : $nbCols")
+        # On va chercher la dernière ligne non vide en partant de la limite
+        nbLignes = LIMITE_NB_LIGNES
+        while ismissing(feuille[nbLignes, 1])
+            nbLignes -= 1                  # on recule d'une ligne
+        end
+        nbLignes += 1                      # on en ajoute une par sécurité
+        println("Nombre de lignes retenues : $nbLignes")
+    end
     for ligne in 1:nbLignes
         for colonne in 1:nbCols
             try
@@ -79,19 +95,18 @@ end
 #= Fonction qui lit les salles associées à des enseignements et en déduit un
    dictionnaire dont la clé sera formée par  : la promo + le type de cours +
    la matière ; la valeur sera une liste de salles séparées par des virgules
-   (ou juste le nom d'une salle).
-   La fonction retourne le dictionnaire =#
+   (ou juste le nom d'une salle). La fonction retourne le dictionnaire =#
    function listeDesSalles()
     dds = Dict()                            # dictionnaire des salles
-    xf = XLSX.readxlsx(LISTE_SALLES)
-    for promo in XLSX.sheetnames(xf)
+    xf = XLSX.readxlsx(LISTE_SALLES)        # lit le fichier Excel
+    for promo in XLSX.sheetnames(xf)        # balaye tous les onglets
         ligne = 2                           # car il y a une ligne d'en-tête
         while !ismissing(xf[promo][ligne, 1])
             typeEns = xf[promo][ligne, 1]
             matiere = xf[promo][ligne, 2]
+            sallesPrevues = xf[promo][ligne, 3]
             cleDictionnaire = promo * SEP * typeEns * SEP * matiere
-            valeur = xf[promo][ligne, 3]
-            dds[cleDictionnaire] = valeur
+            dds[cleDictionnaire] = sallesPrevues
             ligne += 1
         end
     end
@@ -109,7 +124,7 @@ function extraitLesCreneauxDeLaZone(feuille, zone, dicoDesSalles)
             typeEns = feuille[ligne, 1]
             lt = ligne + 1                  # ligne de travail = la suivante
             while !ismissing(feuille[lt,1]) # balaye les lignes non vides
-                ct = 1                      # colonne de travail
+                ct = 1                      # colonne de travail au départ
                 while !ismissing(feuille[lt,ct])
                     matiere = feuille[lt,ct]
                     promo = feuille[lt,ct+1]
@@ -126,7 +141,7 @@ function extraitLesCreneauxDeLaZone(feuille, zone, dicoDesSalles)
                         print("ERREUR !!! Salle non précisée pour : ")
                         println(cleDictionnaire)
                     end
-                    if ismissing(salle)
+                    if ismissing(salle)     # en principe ne devrait pas arriver
                         salle = "missing"
                     end
                     crP = creneauPrevisionnel(zone.nom,
@@ -139,7 +154,7 @@ function extraitLesCreneauxDeLaZone(feuille, zone, dicoDesSalles)
                     push!(LCP, crP)
                     ct += 4                 # prochain créneau 4 cols à droite
                 end
-                lt += 1
+                lt += 1                     # on passe à la ligne suivante
             end
         end
     end
@@ -147,22 +162,27 @@ function extraitLesCreneauxDeLaZone(feuille, zone, dicoDesSalles)
 end
 
 
-# Fonction principale qui sera appelée depuis l'interface graphique Web
+#= Fonction qui sera appelée depuis l'interface graphique Web. Elle retourne
+   soit un message d'erreur qui commence par 'ERREUR', soit la liste des
+   créneaux prévisionnels (des objets de la structure creneauPrevisionnel) =#
 function importFichierExcel(fichierExcel::AbstractString, semaine::Number)
-    println("--------------- !!! COUCOU !!! -----------------")
     feuille = ouvreLaFeuilleDeTravail(fichierExcel)
+    if isnothing(feuille)
+        message = "ERREUR ! Ce n'est pas un fichier Excel valide..."
+        return message
+    end
 
     numSemaine = trouveLeNumeroDeSemaine(feuille)
     if numSemaine != semaine
-        println("Ce n'était pas la semaine attendue !")
-        println("J'ai trouvé $numSemaine alors que j'attendais $semaine...")
-        return nothing
+        message = "ERREUR ! Ce n'était pas la semaine attendue...\n"
+        message *= "J'ai trouvé $numSemaine alors que j'attendais $semaine."
+        return message
     end
 
     listeDesPromos = trouveLesPromos(feuille)
     if length(listeDesPromos) == 0
-        println("Désolé, je n'ai trouvé aucune promo dans le fichier Excel...")
-        return nothing
+        message = "ERREUR ! Aucune promo trouvée dans le fichier Excel..."
+        return message
     end
 
     dictionnaireDesSalles = listeDesSalles()
@@ -178,5 +198,5 @@ end
 #######################
 ### PROGRAMME PRINCIPAL
 #######################
-#liste = importFichierExcel("Psemaine49geiiPourPhilippe.xlsx", 49)   # test !
-#println(liste)
+#= liste = importFichierExcel("Psemaine49geiiPourPhilippe.xlsx", 49)   # test !
+println(liste) =#
