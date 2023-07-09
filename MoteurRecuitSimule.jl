@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 # Date Création : jeudi 21 février 2019
-# Date Modification : Mercredi 22 février 2023
+# Date Modification : dimanche 09 juillet 2023
 # Langage : Julia
 
 # Module : MoteurRecuitSimule
@@ -54,7 +54,7 @@ function prepareMoteur(numSemaine, numEDT)
         end
         chargeLesProfs(M)
         chargeLesSalles(M)
-        chargeLesGroupes(M)         # avec les parents/enfants
+        chargeLesGroupes(M)                   # avec les parents/enfants
     end
     return M
 end
@@ -77,6 +77,8 @@ end
 function chargeLesSalles(M)
     for cr in M.collCreneauxAT
         for salle in cr.salles
+            # Le nom des salles est en MAJUSCULE sans espaces.
+            salle = uppercase(replace(salle, " " => ""))
             if !(salle in keys(M.dctS))
                 M.dctS[salle] = deserialiseFichierDat(salle)[M.numSemaine]
             end
@@ -133,6 +135,8 @@ function faitEvoluerLeSysteme(M)
     if jour != 0                             # ce serait possible...
         # Chercher si l'une des salles est disponible (priorité = ordre)
         for salle in cr.salles               # balaye toutes les salles
+            # Par convention les salles sont en MAJUSCULE sans espace.
+            salle = uppercase(replace(salle, " " => ""))
             #= Construction du planning mixant toutes les entités ; c'est
                donc celui dans lequel on cherchera une place possible au
                créneau (prof + groupe + salle).
@@ -216,20 +220,31 @@ function positionneLesCreneauxAuDepart(M)
         for e in rechercheFamilleDuGroupe(cr.groupe)
             plFamille = Intersection(plFamille, M.dctG[e])
         end
-        #= Regarder déjà si le prof et le groupe peuvent coincider =#
-        plProfGroupe = Intersection(plProf, plFamille)
+        #= Regarder déjà si le prof et le groupe peuvent coincider. Mais si le
+           prof a le don d'ubiquité, on n'en tient pas compte. =#
+        if lowercase(cr.prof) == lowercase(PROF_UBIQUITE)
+            plProfGroupe = plFamille
+        else
+            plProfGroupe = Intersection(plProf, plFamille)
+        end
         jour, debut = ouEstCePossible(nbQH, plProfGroupe) # tuple (j,d) ou (0,0)
         if jour != 0                             # ce serait possible...
             # Chercher si l'une des salles est disponible (priorité = ordre)
             # Par défaut, cr.salleRetenue == ""
             for salle in cr.salles               # balaye toutes les salles
+                # Par convention les salles sont en MAJUSCULE sans espace.
+                salle = uppercase(replace(salle, " " => ""))
                 #= Construction du planning mixant toutes les entités ; c'est
                    donc celui dans lequel on cherchera une place possible au
                    créneau (prof + groupe + salle).
                    bas -> 'bac à sable'
                 =#
                 plSalle = M.dctS[salle]
-                bas = Intersection(plProfGroupe, plSalle)
+                if lowercase(salle) == lowercase(SALLE_UBIQUITE)
+                    bas = plProfGroupe
+                else
+                    bas = Intersection(plProfGroupe, plSalle)
+                end
                 jourFinal, debutFinal = ouEstCePossible(nbQH, bas)
                 if jourFinal != 0                # on a trouvé !
                     nbCrPlacés += 1              # MAJ du comptage

@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme
 # Date Création : jeudi 13 décembre 2018
-# Date Modification : lundi 03 juillet 2023
+# Date Modification : dimanche 09 juillet 2023
 # Langage : Julia
 
 # Module : CONSTANTES
@@ -86,6 +86,7 @@ REPERTOIRE_CFG   = "CONFIG"
 REPERTOIRE_DATA  = "DATAS"
 REPERTOIRE_SEM   = "PLANNINGS"
 REPERTOIRE_PLAN  = "PLANNINGS_CALCULES"
+
 # Noms des fichiers de configuration des éléments du système
 LISTE_GROUPES = "ListeDesGroupes.cfg"
 LISTE_SALLES  = REPERTOIRE_CFG * '/' * "Liste_Salles.xlsx"
@@ -96,15 +97,21 @@ NOM_DATABASE_EDT = "bddAutomaticEDT.sql"
 # Nom du fichier indiquant le classement des plannings calculés
 NOM_FICHIER_CLASSEMENT = "classement.txt"
 
+# Nom du prof qui a le don d'ubiquité
+PROF_UBIQUITE = "Projet-autonomie"
+
+# Nom de la salle qui a le don d'ubiquité
+SALLE_UBIQUITE = "missing"
+
 # Messages d'erreur pour les divers modules
 ERR_CR_GROUPE      = "Groupe du créneau inconnu... "
 ERR_CR_PROF        = "Prof du créneau inconnu... "
 ERR_CR_SALLE       = "Salle du créneau inconnue... "
 ERR_CR_DUREE       = "Durée prévue du créneau non multiple de 15mn... "
 
-#
+#######################################################
 # Zone de constantes pour l'algorithme de Recuit Simulé
-#
+#######################################################
 # Nombre maximal de tours pour atteindre "l'équilibre thermique"
 DUREE_EQUILIBRE_THERMIQUE = 100
 # Nombre maximal de tentatives réussies pour quitter l'équilibre thermique

@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 # Date Création : mercredi 09 février 2022
-# Date Modification : vendredi 07 juillet 2023
+# Date Modification : dimanche 09 juillet 2023
 # Langage : Julia
 
 # Module : bddPlanificationSemaine
@@ -72,7 +72,7 @@ function supprimeProf(nomProf)
     end
 end
 
-#Insere une salle dans la base depuis page planning semaine
+# Insère une salle dans la base de données
 function insereSalle(nomSalle)
     req = """ INSERT INTO salles VALUES("$nomSalle") """
     DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req)
@@ -94,7 +94,7 @@ end
 
 # Supprime et recrée la table des professeurs
 function creeFichierEtTableProf()
-#= Fonction qui devrait être appelée une seule fois, pour créer la BDD
+#= Fonction qui devrait être appelée une seule fois, pour créer la table
    contenant tous les profs.  =#
    db = SQLite.DB(NOM_DATABASE_EDT)
    reqSup = """DROP TABLE IF EXISTS professeurs"""
@@ -107,7 +107,7 @@ end
 
 # Supprime et recrée la table des salles
 function creeFichierEtTableSalles()
-#= Fonction qui devrait être appelée une seule fois, pour créer la BDD
+#= Fonction qui devrait être appelée une seule fois, pour créer la table
    contenant toutes les salles.  =#
    db = SQLite.DB(NOM_DATABASE_EDT)
    reqSup = """DROP TABLE IF EXISTS salles"""
@@ -163,19 +163,12 @@ jour, horaire, salle finalement retenue =#
 function insereCreneauBDD(id, ns, tab, type, nm, pr, s, gr, duree, ndj="", h="", sR="")
     if id == "???"
         # Provient forcément de l'import ExcelToBDD
-        id = string(uuid1())                 # fabrique un uuid
-        insertionDansBaseAutorisee = false   # pour l'instant ;-)
-    else
-        # Provient d'une insertion faite depuis l'interface graphique
-        insertionDansBaseAutorisee = true
+        id = string(uuid1())                 # donc fabrique un uuid
     end
     req = """ INSERT INTO previsionnelEDT VALUES("$id", $ns, "$tab", "$type",
           "$nm", "$pr", "$s", "$gr", $duree, "$ndj", "$h", "$sR") """
-    if insertionDansBaseAutorisee
-        DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req)
-    else
-        println(req)
-    end
+    
+    DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req)
 end
 
 #= Fonction qui supprime un créneau de la base de données =#
@@ -235,13 +228,19 @@ function checkExistanceSalle(salle)
     return salle in df.nomSalle ? "true" : "false"
 end
 
+# Vérifie l'existence d'un prof
+function checkExistanceProf(prof)
+    req = """ select nomProf from professeurs """
+    df = DataFrame(DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req))
+    return prof in df.nomProf ? "true" : "false"
+end
+
 # Insere un prof depuis le moteur
 function insereProfdepuisMoteur(nomProf)
     req = """ INSERT INTO professeurs VALUES("$nomProf") """
     try
         DBInterface.execute(SQLite.DB(NOM_DATABASE_EDT), req) 
-    catch
-        print("Ce professeur existe déjà !")
+    catch e
     end
 end
 

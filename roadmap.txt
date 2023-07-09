@@ -1,11 +1,16 @@
 Projet AGET automatique : feuille de route
 
 "FACILE"
-* créer un prof nommé "Projet autonomie" : on l'autorisera à être pris plusieurs fois sur
-le même créneau
+* créer un prof nommé "Projet-autonomie" : on l'autorisera à être pris plusieurs fois sur
+le même créneau --> OK
 
-* créer une salle "Anonyme" : même chose que le prof "Projet autonomie"
+* créer une salle "missing" : même chose que le prof "Projet-autonomie" --> OK
 
+* effacer tous les créneaux d'une semaine (delete from previsionnelEDT where numSemaine=49)
+quand on réimporte depuis Excel la même semaine
+
+
+"MOYEN"
 * permettre de propager une indispo de prof/salle de la semaine en cours jusqu'au
 numéro de semaine saisi dans une zone de texte (si vide, alors indispo popur la semaine en cours)
 

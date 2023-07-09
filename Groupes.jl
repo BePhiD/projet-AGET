@@ -28,6 +28,8 @@ hierarchieGroupes = Dict()
 function analyseListeDesGroupes()
     fichiersPresents = readdir(REPERTOIRE_DATA)
     for id in retourneListeGroupes()
+        # Par convention les noms de groupes sont mis en MAJUSCULE
+        id = uppercase(id)
         if !(id * ".dat" in fichiersPresents)
             # Crée un nouvel élément et génère son fichier ".dat" pour l'année
             P = []                   # tableau vide (contiendra 52 plannings)
@@ -74,8 +76,9 @@ function construitHierarchieDesGroupes()
         if startswith(strip(e),'#') continue end    # on saute les commentaires
         if length(strip(e)) == 0 continue end       # on saute les lignes vides
         # Extrait les noms qui apparaîssent autour du '<' (élimine les ' ')
-        fils = strip(split(strip(e),'<')[1])
-        pere = strip(split(strip(e),'<')[2])
+        # Met en MAJUSCULES systématiquement le nom des groupes
+        fils = uppercase(strip(split(strip(e),'<')[1]))
+        pere = uppercase(strip(split(strip(e),'<')[2]))
         # Crée les groupes dans le dictionnaire s'ils n'y sont pas
         if !(pere in keys(hierarchieGroupes))
             hierarchieGroupes[pere] = nouveauNoeud()

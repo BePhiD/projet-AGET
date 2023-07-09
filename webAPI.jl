@@ -2,7 +2,7 @@
 API pour le système de création automatique d'emploi du temps (écrit en julia)
 Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 Dates de création : lundi 27 décembre 2021
-  de modification : vendredi 07 juillet 2023
+  de modification : samedi 08 juillet 2023
 =#
 
 using Genie, Genie.Router, Genie.Renderer.Html, Genie.Requests, Genie.Renderer.Json
@@ -195,8 +195,10 @@ end
 
 # Swann : 
 route("/ajouterSalle", method = "GET") do
-	nomSalle = params(:nomSalle, false)
-	# Appelle la fonction spécifique du module bddPlanificationSemaine.jl
+	#= Appelle la fonction spécifique du module bddPlanificationSemaine.jl
+	   Par convention, une salle ne contiendra jamais d'espace et sera toujours
+	   mise en majuscule ==> erreurs évitées =#
+	nomSalle = uppercase(replace(params(:nomSalle, false), " " => ""))
 	insereSalle(nomSalle)
 end
 
@@ -447,10 +449,9 @@ end
 		return listeCrPr                    # retourne donc un message texte
 	else
 		for e in listeCrPr
-			println(e.promo,'/',e.typeEns,'/',e.matiere,'/',e.groupe,'/',e.prof,'/',e.dureeEnMin,'/',e.salle)
 			insereCreneauBDD("???", numSemaine, e.promo, e.typeEns,
 			                 e.matiere, e.prof, e.salle, e.groupe,
-							 Int64(e.dureeEnMin/15), "", "", "")
+							 Int64(e.dureeEnMin), "", "", "")
 		end
 		return "Importation réussie !"
 	end

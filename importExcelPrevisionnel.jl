@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme
 # Date Création : lundi 03 juillet 2023
-# Date Modification : vendredi 07 juillet 2023
+# Date Modification : dimanche 09 juillet 2023
 # Langage : Julia
 
 # Module : importExcelPrevisionnel.jl
@@ -102,11 +102,13 @@ end
     for promo in XLSX.sheetnames(xf)        # balaye tous les onglets
         ligne = 2                           # car il y a une ligne d'en-tête
         while !ismissing(xf[promo][ligne, 1])
-            typeEns = xf[promo][ligne, 1]
+            # On enlève au passage les éventuels '.' comme dans "T.D." par ex
+            typeEns = replace(xf[promo][ligne, 1], "." => "")
             matiere = xf[promo][ligne, 2]
             sallesPrevues = xf[promo][ligne, 3]
             cleDictionnaire = promo * SEP * typeEns * SEP * matiere
-            dds[cleDictionnaire] = sallesPrevues
+            # On force la clé du dictionnaire à être en MAJUSCULE
+            dds[uppercase(cleDictionnaire)] = sallesPrevues
             ligne += 1
         end
     end
@@ -119,38 +121,57 @@ function extraitLesCreneauxDeLaZone(feuille, zone, dicoDesSalles)
     LCP = []                                # Liste de Créneaux Prévisionnels
     # Se limite aux lignes concernées par la promo (la zone d'influence)
     for ligne in zone.ligneDebut:zone.ligneFin
-        # Un type d'enseignement est un texte avec rien sur sa droite
+        #= Un type d'enseignement est un texte avec rien sur sa droite. On
+           enlève au passage les éventuels '.' comme dans "T.D." par exemple.=#
         if !ismissing(feuille[ligne, 1]) && ismissing(feuille[ligne, 2])
-            typeEns = feuille[ligne, 1]
+            typeEns = replace(feuille[ligne, 1], "." => "")
             lt = ligne + 1                  # ligne de travail = la suivante
             while !ismissing(feuille[lt,1]) # balaye les lignes non vides
                 ct = 1                      # colonne de travail au départ
                 while !ismissing(feuille[lt,ct])
                     matiere = feuille[lt,ct]
-                    promo = feuille[lt,ct+1]
-                    prof = feuille[lt,ct+2]
+                    # Les noms de promo sont mis forcément en MAJUSCULE
+                    promo = uppercase(feuille[lt,ct+1])
+                    # Dans les noms de prof, les espaces sont remplacés par '-'
+                    prof = replace(feuille[lt,ct+2], " " => "-")
                     if ismissing(prof)
                         prof = "inconnu"    # en projet, pas de prof désigné
+                    end
+                    # Teste l'existence du prof
+                    if checkExistanceProf(prof) == "false"
+                        println("Prof à créer car non encore rencontré : $prof")
+                        insereProf(prof)
                     end
                     dureeEnMin = Int64(feuille[lt,ct+3] * 60)
                     cleDictionnaire = zone.nom * SEP * typeEns * SEP * matiere
                     try
-                        salle = dicoDesSalles[cleDictionnaire]
+                        # La clé de dictionnaire est TOUJOURS en MAJUSCULE
+                        salles = dicoDesSalles[uppercase(cleDictionnaire)]
                     catch e
-                        salle = missing
-                        print("ERREUR !!! Salle non précisée pour : ")
-                        println(cleDictionnaire)
+                        salles = missing
+                        print("ATTENTION ! Salles non précisées pour : ")
+                        println(cleDictionnaire, " --> \"missing\"")
                     end
-                    if ismissing(salle)     # en principe ne devrait pas arriver
-                        salle = "missing"
+                    if ismissing(salles)    # en principe ne devrait pas arriver
+                        salles = "missing"
+                    end
+                    #= Teste l'existence de chaque salle possible du créneau.
+                       Par convention, une salle ne contiendra jamais d'espace
+                       et sera toujours mise en majuscule ==> erreurs évitées =#
+                    for salle in split(salles, ",")
+                        salle = uppercase(replace(salle, " " => ""))
+                        if checkExistanceSalle(salle) == "false"
+                            println("Salle à créer car inconnue : $salle")
+                            insereSalle(salle)
+                        end
                     end
                     crP = creneauPrevisionnel(zone.nom,
                                               typeEns,
                                               matiere,
-                                              promo * '-' * zone.nom,
+                                              promo * '-' * uppercase(zone.nom),
                                               prof,
                                               dureeEnMin,
-                                              salle)
+                                              salles)
                     push!(LCP, crP)
                     ct += 4                 # prochain créneau 4 cols à droite
                 end

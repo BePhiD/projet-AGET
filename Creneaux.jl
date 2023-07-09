@@ -1,7 +1,7 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme
 # Date Création : mercredi 23 janvier 2019
-# Date Modification : mardi 13 septembre 2022
+# Date Modification : dimanche 09 juillet 2023
 # Langage : Julia
 
 # Module : Creneaux
@@ -100,7 +100,7 @@ function verifieValiditeDesCreneaux(lstCreneaux)
             # Crée le .dat du prof puisqu'il n'est pas connu
             creeFichierDatPourProfOuSalle(c.prof, "Création du prof : ")
             push!(fichiersPresents, lowercase(c.prof) * ".dat")
-            insereProfdepuisMoteur(c.prof)   # ne devrait plus arriver...
+            insereProfdepuisMoteur(c.prof)
         end
         # Vérifie la ou les salles
         for salle in c.salles

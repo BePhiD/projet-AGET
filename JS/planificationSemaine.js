@@ -2,7 +2,7 @@
 // du projet EDTAutomatic (moteur de recuit simulé écrit en Julia)
 // Auteur : Philippe Belhomme (+ Swann Protais pendant son stage de DUT INFO)
 // Date de création : lundi 31 janvier 2022 (isolement Covid...)
-// Date de modification : mardi 04 juillet 2023
+// Date de modification : dimanche 09 juillet 2023
 
 /* ------------------------
 -- Fonctions utilitaires --
@@ -85,6 +85,7 @@ function fromAttrToJSON(numeroSemaine, nomOnglet, uuid) {
 function colore_CM_TD_TP(uuid, typeDeCours) {
     switch (typeDeCours) {
         case 'CM':
+        case 'COURS':
             $("#"+uuid).addClass("CM");     // il acquiert la classe CM
             $("#"+uuid).removeClass("TD");  // et perd les autres
             $("#"+uuid).removeClass("TP");
@@ -106,6 +107,8 @@ function colore_CM_TD_TP(uuid, typeDeCours) {
             $("#"+uuid).removeClass("Autre");
             break;
         case 'CTRL':
+        case 'CONT':
+        case 'CONTROLE':
             $("#"+uuid).addClass("CTRL");   // il acquiert la classe CTRL
             $("#"+uuid).removeClass("CM");  // et perd les autres
             $("#"+uuid).removeClass("TD");
@@ -665,6 +668,7 @@ $(document).ready(function() {
         $.ajax({url: url}).done(function(data) {
             alert(data);            // popup pour afficher le message retourné
             remplirCreneaux();      // permet de rafraîchir la page web
+            location.reload();      // Recharge la page web (pour les profs)
         });
       };
 
@@ -847,15 +851,15 @@ $(document).ready(function() {
                 for (var i=0; i<obj_JSON.length; i++) {
                     // Extrait le nom de la salle
                     var salle = Object.keys(obj_JSON[i]);
-                    // Extrait l'état possible ('true') ou non ('false') ; donc String
+                    // Extrait l'état possible 'true' / 'false' ; donc String
                     var estPossible = obj_JSON[i][Object.keys(obj_JSON[i])];
                     // Teste la chaîne de caractères (ce n'est pas un booléen !)
                     if (estPossible == 'false') {
-                        if (sallesAvecProbleme.length == 0) {   // première salle
+                        if (sallesAvecProbleme.length == 0) {  // première salle
                             sallesAvecProbleme += salle;
                         }
                         else {
-                            sallesAvecProbleme += ',' + salle;  // ajoute une ','
+                            sallesAvecProbleme += ',' + salle; // ajoute une ','
                         }
                     }
                 }
