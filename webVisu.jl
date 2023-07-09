@@ -1,14 +1,15 @@
 #= 
 Visu pour le système de création automatique d'emploi du temps (écrit en julia)
 Auteur : Philippe Belhomme
-Dates de création : Vendredi 26 août 2022
-  de modification : Lundi 28 février 2023
+Dates de création : vendredi 26 août 2022
+  de modification : dimanche 09 juillet 2023
 
 Ce programme est appelé avec la commande suivante :
 julia webVisu.jl numSemaine numPlanning promo
 exemple : julia webVisu.jl 36 1 GIM-2A-FI
 =#
 
+# Mettre tous les caractères en MAJUSCULE dans les groupes !!!
 GROUPES = """{
   "GIM-2A-FI": {"pos": 1, "taille": 1},
   "TD-GIM-2A-FI": {"pos": 1, "taille": 1},
@@ -30,36 +31,39 @@ GROUPES = """{
   "TP2-GIM-1A-APP": {"pos": 2, "taille": 1},
 
 
-  "GEII-1A-FI": {"pos": 1, "taille": 6},
-  "TD1-GEII-1A-FI": {"pos": 1, "taille": 3},
-  "TD2-GEII-1A-FI": {"pos": 4, "taille": 3},
-  "TPG1A-GEII-1A-FI": {"pos": 1, "taille": 2},
-  "TPG1BG2A-GEII-1A-FI": {"pos": 3, "taille": 2},
-  "TPG2B-GEII-1A-FI": {"pos": 5, "taille": 2},
+  "GEII-S1-S2": {"pos": 1, "taille": 6},
+  "G12-GEII-S1-S2": {"pos": 1, "taille": 6},
+  "G1-GEII-S1-S2": {"pos": 1, "taille": 3},
+  "G2-GEII-S1-S2": {"pos": 4, "taille": 3},
+  "G1A-GEII-S1-S2": {"pos": 1, "taille": 2},
+  "G1B2A-GEII-S1-S2": {"pos": 3, "taille": 2},
+  "G2B-GEII-S1-S2": {"pos": 5, "taille": 2},
 
-  "GEII-2A-FI": {"pos": 1, "taille": 4},
-  "TD1-GEII-2A-FI": {"pos": 1, "taille": 2},
-  "TD2-GEII-2A-FI": {"pos": 3, "taille": 2},
-  "TPG1A-GEII-2A-FI": {"pos": 1, "taille": 1},
-  "TPG1B-GEII-2A-FI": {"pos": 2, "taille": 1},
-  "TPG2A-GEII-2A-FI": {"pos": 3, "taille": 1},
-  "TPG2B-GEII-2A-FI": {"pos": 4, "taille": 1},
-  "TPG1BG2A-GEII-2A-FI": {"pos": 2, "taille": 2},
+  "GEII-S3-S4": {"pos": 1, "taille": 6},
+  "G12-GEII-S3-S4": {"pos": 1, "taille": 6},
+  "G1-GEII-S3-S4": {"pos": 1, "taille": 3},
+  "G2-GEII-S3-S4": {"pos": 4, "taille": 3},
+  "G1A-GEII-S3-S4": {"pos": 1, "taille": 2},
+  "G1B2A-GEII-S3-S4": {"pos": 3, "taille": 2},
+  "G2B-GEII-S3-S4": {"pos": 5, "taille": 2},
 
-  "GEII-1A-APP": {"pos": 1, "taille": 2},
-  "TD-GEII-1A-APP": {"pos": 1, "taille": 2},
-  "TP1-GEII-1A-APP": {"pos": 1, "taille": 1},
-  "TP2-GEII-1A-APP": {"pos": 2, "taille": 1},
+  "GEII-S5-S6": {"pos": 1, "taille": 6},
+  "G12-GEII-S5-S6": {"pos": 1, "taille": 6},
+  "G1-GEII-S5-S6": {"pos": 1, "taille": 3},
+  "G2-GEII-S5-S6": {"pos": 4, "taille": 3},
+  "G1A-GEII-S5-S6": {"pos": 1, "taille": 2},
+  "G1B2A-GEII-S5-S6": {"pos": 3, "taille": 2},
+  "G2B-GEII-S5-S6": {"pos": 5, "taille": 2},
 
-  "GEII-2A-APP": {"pos": 1, "taille": 1},
-  "TD-GEII-2A-APP": {"pos": 1, "taille": 1},
-  "TP-GEII-2A-APP": {"pos": 1, "taille": 1},
+  "GEIIALT-S1-S2": {"pos": 1, "taille": 2},
+  "GEII-GEIIALT-S1-S2": {"pos": 1, "taille": 2},
+  "GEII1-GEIIALT-S1-S2": {"pos": 1, "taille": 1},
+  "GEII2-GEIIALT-S1-S2": {"pos": 2, "taille": 1},
 
-
-  "LP-SARI": {"pos": 1, "taille": 2},
-  "TD-LP-SARI": {"pos": 1, "taille": 2},
-  "TP1-LP-SARI": {"pos": 1, "taille": 1},
-  "TP2-LP-SARI": {"pos": 2, "taille": 1}
+  "GEIIALT-S3-S4": {"pos": 1, "taille": 2},
+  "GEII-GEIIALT-S3-S4": {"pos": 1, "taille": 2},
+  "GEII1-GEIIALT-S3-S4": {"pos": 1, "taille": 1},
+  "GEII2-GEIIALT-S3-S4": {"pos": 2, "taille": 1}
 }"""
 
 using Gtk
