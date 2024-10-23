@@ -100,8 +100,7 @@ route("/affecteLesCreneaux", method = "GET") do
 end
 
 #= Route permettant de charger depuis une base de données les créneaux de la
-   semaine demandée
-   L'URL d'appel sera du type :
+   semaine demandée. L'URL d'appel sera du type :
    http://serveur:8000/selectCreneaux?semaine=38
 =#
 route("/selectCreneaux", method = "GET") do
@@ -347,7 +346,8 @@ route("/forceCreneau", method = "GET") do
 	# Bloque le créneau dans les 3 plannings prof, groupe et salle
 	tab_plProf = deserialiseFichierDat(prof)
 	tab_plGroupe = deserialiseFichierDat(public)
-	tab_plSalle = deserialiseFichierDat(lieu)
+	# Attention : les noms de salles sont toujours en MAJUSCULE
+	tab_plSalle = deserialiseFichierDat(uppercase(lieu))
 	AffecteCreneau(tab_plProf[numSemaine], jour, debCreneau, nbQH)
     AffecteCreneau(tab_plGroupe[numSemaine], jour, debCreneau, nbQH)
     AffecteCreneau(tab_plSalle[numSemaine], jour, debCreneau, nbQH)
@@ -358,7 +358,7 @@ route("/forceCreneau", method = "GET") do
 	io = open(REPERTOIRE_DATA * SEP * public * ".dat", "w")
     serialize(io, tab_plGroupe)
     close(io)
-	io = open(REPERTOIRE_DATA * SEP * lieu * ".dat", "w")
+	io = open(REPERTOIRE_DATA * SEP * uppercase(lieu) * ".dat", "w")
     serialize(io, tab_plSalle)
     close(io)
 end
@@ -381,7 +381,8 @@ route("/deForceCreneau", method = "GET") do
 	# Débloque le créneau dans les 3 plannings prof, groupe et salle
 	tab_plProf = deserialiseFichierDat(prof)
 	tab_plGroupe = deserialiseFichierDat(public)
-	tab_plSalle = deserialiseFichierDat(lieu)
+	# Attention : les noms de salles sont toujours en MAJUSCULE
+	tab_plSalle = deserialiseFichierDat(uppercase(lieu))
 	LibereCreneau(tab_plProf[numSemaine], jour, debCreneau, nbQH)
     LibereCreneau(tab_plGroupe[numSemaine], jour, debCreneau, nbQH)
     LibereCreneau(tab_plSalle[numSemaine], jour, debCreneau, nbQH)
@@ -392,7 +393,7 @@ route("/deForceCreneau", method = "GET") do
 	io = open(REPERTOIRE_DATA * SEP * public * ".dat", "w")
     serialize(io, tab_plGroupe)
     close(io)
-	io = open(REPERTOIRE_DATA * SEP * lieu * ".dat", "w")
+	io = open(REPERTOIRE_DATA * SEP * uppercase(lieu) * ".dat", "w")
     serialize(io, tab_plSalle)
     close(io)
 end

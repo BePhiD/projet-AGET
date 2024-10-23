@@ -132,14 +132,16 @@ function extraitLesCreneauxDeLaZone(feuille, zone, dicoDesSalles)
                     matiere = feuille[lt,ct]
                     # Les noms de promo sont mis forcément en MAJUSCULE
                     promo = uppercase(feuille[lt,ct+1])
-                    # Dans les noms de prof, les espaces sont remplacés par '-'
-                    prof = replace(feuille[lt,ct+2], " " => "-")
-                    if ismissing(prof)
-                        prof = "inconnu"    # en projet, pas de prof désigné
+                    DEBUG_LOG(promo)
+                    if ismissing(feuille[lt,ct+2])
+                        prof = PROF_UBIQUITE   # en projet, pas de prof désigné
+                    else
+                        # Dans les noms de prof, les espaces sont remplacés par '-'
+                        prof = replace(feuille[lt,ct+2], " " => "-")
                     end
+                    DEBUG_LOG(prof)
                     # Teste l'existence du prof
                     if checkExistanceProf(prof) == "false"
-                        println("Prof à créer car non encore rencontré : $prof")
                         insereProf(prof)
                     end
                     dureeEnMin = Int64(feuille[lt,ct+3] * 60)
@@ -155,13 +157,13 @@ function extraitLesCreneauxDeLaZone(feuille, zone, dicoDesSalles)
                     if ismissing(salles)    # en principe ne devrait pas arriver
                         salles = "missing"
                     end
+                    DEBUG_LOG(salles)
                     #= Teste l'existence de chaque salle possible du créneau.
                        Par convention, une salle ne contiendra jamais d'espace
                        et sera toujours mise en majuscule ==> erreurs évitées =#
                     for salle in split(salles, ",")
                         salle = uppercase(replace(salle, " " => ""))
                         if checkExistanceSalle(salle) == "false"
-                            println("Salle à créer car inconnue : $salle")
                             insereSalle(salle)
                         end
                     end

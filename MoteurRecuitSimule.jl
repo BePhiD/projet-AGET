@@ -129,8 +129,13 @@ function faitEvoluerLeSysteme(M)
     for e in rechercheFamilleDuGroupe(cr.groupe)
         plFamille = Intersection(plFamille, M.dctG[e])
     end
-    #= Regarder déjà si le prof et le groupe peuvent coincider =#
-    plProfGroupe = Intersection(plProf, plFamille)
+    #= Regarder déjà si le prof et le groupe peuvent coincider. Mais si le
+       prof a le don d'ubiquité, on n'en tient pas compte. =#
+    if lowercase(cr.prof) == lowercase(PROF_UBIQUITE)
+        plProfGroupe = plFamille
+    else
+        plProfGroupe = Intersection(plProf, plFamille)
+    end
     jour, debut = ouEstCePossible(nbQH, plProfGroupe) # tuple (j,d) ou (0,0)
     if jour != 0                             # ce serait possible...
         # Chercher si l'une des salles est disponible (priorité = ordre)
@@ -142,7 +147,11 @@ function faitEvoluerLeSysteme(M)
                créneau (prof + groupe + salle).
                bas -> 'bac à sable'  =#
             plSalle = M.dctS[salle]
-            bas = Intersection(plProfGroupe, plSalle)
+            if lowercase(salle) == lowercase(SALLE_UBIQUITE)
+                bas = plProfGroupe    # on ne tient pas compte de la salle
+            else
+                bas = Intersection(plProfGroupe, plSalle)
+            end
             jourFinal, debutFinal = ouEstCePossible(nbQH, bas)
             if jourFinal != 0                # on a trouvé !
                 #= Calcule la différence d'énergie du possible changement, la
@@ -241,7 +250,7 @@ function positionneLesCreneauxAuDepart(M)
                 =#
                 plSalle = M.dctS[salle]
                 if lowercase(salle) == lowercase(SALLE_UBIQUITE)
-                    bas = plProfGroupe
+                    bas = plProfGroupe    # on ne tient pas compte de la salle
                 else
                     bas = Intersection(plProfGroupe, plSalle)
                 end

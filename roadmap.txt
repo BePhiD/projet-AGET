@@ -3,21 +3,23 @@ Projet AGET automatique : feuille de route
 "FACILE"
 * créer un prof nommé "Projet-autonomie" : on l'autorisera à être pris plusieurs fois sur
 le même créneau --> OK
-
 * créer une salle "missing" : même chose que le prof "Projet-autonomie" --> OK
 
-* effacer tous les créneaux d'une semaine (delete from previsionnelEDT where numSemaine=49)
-quand on réimporte depuis Excel la même semaine
+* modifier la fonction faitEvoluerLeSysteme (dans MoteurRecuitSimule.jl) pour permettre
+l'ubiquité prof/salle  --> OK
+
 
 
 "MOYEN"
 * permettre de propager une indispo de prof/salle de la semaine en cours jusqu'au
-numéro de semaine saisi dans une zone de texte (si vide, alors indispo popur la semaine en cours)
+numéro de semaine saisi dans une zone de texte (si vide, alors indispo pour la semaine en cours)
+* passer le paramètre "MODE_DEBUG" comme un paramètre de la ligne de commande
+julia webAPI.jl DEBUG=true   (valeur par défaut : false)
 
 
 "DIFFICILE"
 * mettre 2 profs sur le même créneau
-* mettre 2 salles pour le même créneau
+* mettre 2 salles pour le même créneau (avec le symbôle '&' comme C3&C4 par ex.)
 
 
 "BUG"
@@ -28,5 +30,5 @@ numéro de semaine saisi dans une zone de texte (si vide, alors indispo popur la
 "DÉVELOPPEMENT URGENT"
 * Développer une "moulinette" qui remplit la BDD de gestion des créneaux à partir
 d'une extraction ADE fournie par Viviane et d'un dictionnaire qui indique les salles
-en fonction des matières.
+en fonction des matières.  --> OK
 

@@ -2,7 +2,7 @@
 Visu pour le système de création automatique d'emploi du temps (écrit en julia)
 Auteur : Philippe Belhomme
 Dates de création : vendredi 26 août 2022
-  de modification : dimanche 09 juillet 2023
+  de modification : lundi 10 juillet 2023
 
 Ce programme est appelé avec la commande suivante :
 julia webVisu.jl numSemaine numPlanning promo
@@ -11,24 +11,36 @@ exemple : julia webVisu.jl 36 1 GIM-2A-FI
 
 # Mettre tous les caractères en MAJUSCULE dans les groupes !!!
 GROUPES = """{
-  "GIM-2A-FI": {"pos": 1, "taille": 1},
-  "TD-GIM-2A-FI": {"pos": 1, "taille": 1},
-  "TP-GIM-2A-FI": {"pos": 1, "taille": 1},
+  "GIM-S1-S2": {"pos": 1, "taille": 6},
+  "PROMO-GIM-S1-S2": {"pos": 1, "taille": 6},
+  "GR1-GIM-S1-S2": {"pos": 1, "taille": 3},
+  "GR2-GIM-S1-S2": {"pos": 4, "taille": 3},
+  "GA-GIM-S1-S2": {"pos": 1, "taille": 2},
+  "GB-GIM-S1-S2": {"pos": 3, "taille": 2},
+  "GC-GIM-S1-S2": {"pos": 5, "taille": 2},
 
-  "GIM-2A-APP": {"pos": 1, "taille": 2},
-  "TD-GIM-2A-APP": {"pos": 1, "taille": 2},
-  "TP1-GIM-2A-APP": {"pos": 1, "taille": 1},
-  "TP2-GIM-2A-APP": {"pos": 2, "taille": 1},
+  "GIM-S3-S4": {"pos": 1, "taille": 2},
+  "PROMO-GIM-S3-S4": {"pos": 1, "taille": 2},
+  "GR1-GIM-S3-S4": {"pos": 1, "taille": 1},
+  "GR2-GIM-S3-S4": {"pos": 2, "taille": 1},
 
-  "GIM-1A-FI": {"pos": 1, "taille": 2},
-  "TD-GIM-1A-FI": {"pos": 1, "taille": 2},
-  "TP1-GIM-1A-FI": {"pos": 1, "taille": 1},
-  "TP2-GIM-1A-FI": {"pos": 2, "taille": 1},
+  "GIM-S5-S6": {"pos": 1, "taille": 6},
+  "PROMO-GIM-S5-S6": {"pos": 1, "taille": 6},
+  "GR1-GIM-S5-S6": {"pos": 1, "taille": 3},
+  "GR2-GIM-S5-S6": {"pos": 4, "taille": 3},
+  "GA-GIM-S5-S6": {"pos": 1, "taille": 2},
+  "GB-GIM-S5-S6": {"pos": 3, "taille": 2},
+  "GC-GIM-S5-S6": {"pos": 5, "taille": 2},
 
-  "GIM-1A-APP": {"pos": 1, "taille": 2},
-  "TD-GIM-1A-APP": {"pos": 1, "taille": 2},
-  "TP1-GIM-1A-APP": {"pos": 1, "taille": 1},
-  "TP2-GIM-1A-APP": {"pos": 2, "taille": 1},
+  "GIMAPP-S1-S2": {"pos": 1, "taille": 2},
+  "PROMO-GIMAPP-S1-S2": {"pos": 1, "taille": 2},
+  "GR1-GIMAPP-S1-S2": {"pos": 1, "taille": 1},
+  "GR2-GIMAPP-S1-S2": {"pos": 2, "taille": 1},
+
+  "GIMAPP-S3-S4": {"pos": 1, "taille": 2},
+  "PROMO-GIMAPP-S3-S4": {"pos": 1, "taille": 2},
+  "GR1-GIMAPP-S3-S4": {"pos": 1, "taille": 1},
+  "GR2-GIMAPP-S3-S4": {"pos": 2, "taille": 1},
 
 
   "GEII-S1-S2": {"pos": 1, "taille": 6},

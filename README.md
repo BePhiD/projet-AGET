@@ -3,13 +3,14 @@ Projet d'Emploi Du Temps automatisé pour l'IUT de Cherbourg.
 Développé par : Philippe Belhomme
 Contribution : Swann Protais (stage DUT INFO 2A avril-juin 2022)
 
-Packages nécessaires sous Julia (V 1.7) :
+Packages nécessaires sous Julia (V 1.7) : attention au respect de la casse !
   - Genie
-  - SQLite
   - JSON
+  - SQLite
   - CSV
   - DataFrames
   - Gtk
+  - XLSX
 
 Méthode d'installation des packages :
 julia

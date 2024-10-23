@@ -1,13 +1,18 @@
 # Projet : AUTOMATIC-EDT
 # Auteur : Philippe Belhomme
 # Date Création : jeudi 13 décembre 2018
-# Date Modification : dimanche 09 juillet 2023
+# Date Modification : lundi 10 juillet 2023
 # Langage : Julia
 
 # Module : CONSTANTES
 # Contient les constantes utiles au projet et quelques fonctions de base
 
 using Serialization             # pour relire les données depuis le disque
+
+MODE_DEBUG = false               # pour afficher des traces d'exécution
+function DEBUG_LOG(message)
+   if MODE_DEBUG println(message) end
+end
 
 # Numérotation des semaines de cours sur une année civile (donc 1 à 52)
 # Numéros de semaine possibles = futurs indices de tableaux

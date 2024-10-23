@@ -721,6 +721,8 @@ $(document).ready(function() {
 
     // Lance le moteur de recuit simulé quand on appuie sur le bon bouton
     $("#lancerMoteurCalcul").on("click", function() {
+        // Lance le calcul du CSV (évite le click sur l'ancien bouton)
+        //$("#makeCSV").trigger("click");  # TODO: marche ou pas ???
         // Vide la barre d'état en bas car les plannings ne seront plus bons
         $('#barreEtat').empty();
         numSemaine = $("#laSemaine").val();

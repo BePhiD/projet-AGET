@@ -1,9 +1,15 @@
 Tester avec la semaine n°49, elle contient 213 créneaux !
 
-Pour travailler en mode graphique :
-julia webAPI.jl
 
-Pour travailler en "manuel", lancer le programme Moteur comme ceci :
+*** Pour travailler en mode graphique :
+julia webAPI.jl
+un serveur est lancé sur le port 8000
+attendre un peu...
+Ouvrir ensuite la page :  planificationSemaine.html dans un navigateur
+
+
+
+*** Pour travailler en "manuel", lancer le programme Moteur comme ceci :
 julia MoteurRecuitSimule.jl 49
 
 # Problème de version du package CSV dans julia (pour EDTAutomatique)...

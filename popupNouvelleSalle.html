@@ -52,8 +52,7 @@
 			<div class="divbtn">
 				<script type="text/javascript">
 					function ValiderSupprimersalle(){
-						
-							var nom = document.getElementById("lesProfs").value.toUpperCase();
+						var nom = document.getElementById("lesProfs").value.toUpperCase();
 						var url = "http://localhost:8000/supprimerSalle?nomSalle="+ nom;
 						$.ajax({url: url});
 						alert("La salle a été supprimée");
